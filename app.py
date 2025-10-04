@@ -5,29 +5,15 @@ PDF-grounded Q&A and Quiz system using OpenAI Assistants API (GPT-3.5-turbo)
 import os
 import asyncio
 import json
-import random
 from typing import List, Optional
 import discord
 from discord import app_commands
-from fastapi import FastAPI
-import uvicorn
 from openai import OpenAI
 
 # Environment variables
 DISCORD_TOKEN = os.environ["DISCORD_TOKEN"]
 OPENAI_API_KEY = os.environ["OPENAI_API_KEY"]
 ASSISTANT_ID = os.environ["ASSISTANT_ID"]
-
-# --- Web server for Railway health checks ---
-api = FastAPI()
-
-@api.get("/")
-def health_check():
-    return {"status": "ok", "bot": "DarkstarAIC", "version": "1.0.0"}
-
-@api.get("/health")
-def health():
-    return {"healthy": True, "service": "DarkstarAIC"}
 
 # --- Discord client setup ---
 intents = discord.Intents.default()
@@ -398,21 +384,5 @@ async def on_ready():
     print(f"🤖 Using GPT-3.5-turbo for cost efficiency")
 
 
-async def start_discord():
-    """Start the Discord bot."""
-    await client.start(DISCORD_TOKEN)
-
-
-def main():
-    """Main entry point."""
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    
-    loop.create_task(start_discord())
-    
-    port = int(os.getenv("PORT", "8080"))
-    uvicorn.run(api, host="0.0.0.0", port=port, loop="asyncio")
-
-
 if __name__ == "__main__":
-    main()
+    client.run(DISCORD_TOKEN)
