@@ -91,7 +91,7 @@ class QuizAnswerButton(discord.ui.Button):
         seconds_remaining = int(time_remaining.total_seconds() % 60)
         
         await interaction.response.send_message(
-            f"✅ Answer **{self.choice}** recorded for question {self.question_idx + 1}!\n"
+            f"📝 Answer **{self.choice}** recorded for question {self.question_idx + 1}!\n"
             f"📊 You've answered {answered_count}/{total_questions} questions.\n"
             f"⏱️ Time remaining: {minutes_remaining}m {seconds_remaining}s",
             ephemeral=True
@@ -175,17 +175,26 @@ async def ask_assistant(user_msg: str, timeout: int = 30) -> str:
         return f"❌ Error communicating with AI: {str(e)}"
 
 
-def format_mcq(question: str, options: List[str], question_num: int = None, total: int = None) -> str:
-    """Format a multiple choice question for Discord."""
+def format_mcq(question: str, options: List[str], question_num: int = None, total: int = None) -> discord.Embed:
+    """Format a multiple choice question as a Discord embed with forest green border."""
     letters = ["A", "B", "C", "D", "E", "F"][:len(options)]
     
-    header = ""
+    # Forest green color similar to flight suit (hex #2d5016)
+    embed = discord.Embed(
+        color=0x2d5016
+    )
+    
+    # Add question number as non-bold text if provided
     if question_num is not None and total is not None:
-        header = f"**Question {question_num}/{total}**\n"
+        embed.description = f"Question {question_num}/{total}\n\n**{question}**"
+    else:
+        embed.description = f"**{question}**"
     
+    # Add options as a field
     options_text = "\n".join(f"**{letter})** {opt}" for letter, opt in zip(letters, options))
+    embed.add_field(name="Options", value=options_text, inline=False)
     
-    return f"{header}**{question}**\n\n{options_text}"
+    return embed
 
 
 async def generate_quiz(topic_hint: str = "", num_questions: int = 6) -> Optional[List[dict]]:
@@ -293,29 +302,80 @@ async def display_quiz_results(channel, channel_id: int):
     
     total_questions = len(questions)
     
-    # Build results message
-    results_text = "🏁 **Quiz Complete!**\n\n"
+    # Forest green color for embeds
+    embed_color = 0x2d5016
+    
+    # Create leaderboard embed
+    leaderboard_embed = discord.Embed(
+        title="🏁 Quiz Complete!",
+        color=embed_color
+    )
     
     if scores_sorted:
-        leaderboard = "\n".join(
+        leaderboard_text = "\n".join(
             f"{'🥇' if i == 0 else '🥈' if i == 1 else '🥉' if i == 2 else '📊'} <@{uid}>: **{score}/{total_questions}** ({int(score/total_questions*100)}%)"
             for i, (uid, score) in enumerate(scores_sorted)
         )
-        results_text += f"**Final Scores:**\n{leaderboard}\n\n"
+        leaderboard_embed.add_field(name="Final Scores", value=leaderboard_text, inline=False)
     else:
-        results_text += "No one submitted answers!\n\n"
+        leaderboard_embed.description = "No one submitted answers!"
     
-    # Show correct answers with explanations
-    results_text += "**Correct Answers:**\n"
+    await channel.send(embed=leaderboard_embed)
+    
+    # Create detailed results for each question
     for idx, q in enumerate(questions):
-        results_text += f"\n**Q{idx+1}:** {q['answer']} - {q['explain']}"
+        result_embed = discord.Embed(
+            title=f"Question {idx+1}/{total_questions}",
+            description=f"**{q['q']}**",
+            color=embed_color
+        )
+        
+        # Show the correct answer
+        result_embed.add_field(
+            name="✅ Correct Answer",
+            value=f"**{q['answer']}**",
+            inline=False
+        )
+        
+        # Collect users who answered correctly
+        correct_users = []
+        incorrect_users = []
+        for user_id, answers in user_answers.items():
+            if idx in answers:
+                if answers[idx] == q["answer"].strip().upper():
+                    correct_users.append(user_id)
+                else:
+                    incorrect_users.append(user_id)
+        
+        # Show who answered correctly
+        if correct_users:
+            correct_mentions = ", ".join(f"<@{uid}>" for uid in correct_users)
+            result_embed.add_field(
+                name="✅ Answered Correctly",
+                value=correct_mentions,
+                inline=False
+            )
+        
+        # Show who answered incorrectly
+        if incorrect_users:
+            incorrect_mentions = ", ".join(f"<@{uid}>" for uid in incorrect_users)
+            result_embed.add_field(
+                name="❌ Answered Incorrectly",
+                value=incorrect_mentions,
+                inline=False
+            )
+        
+        # Show explanation
+        result_embed.add_field(
+            name="📖 Explanation",
+            value=q['explain'],
+            inline=False
+        )
+        
+        await channel.send(embed=result_embed)
     
-    # Discord message limit is 2000 chars
-    if len(results_text) > 1900:
-        # Split into multiple messages
-        results_text = results_text[:1897] + "..."
-    
-    await channel.send(results_text + "\n\nStart a new quiz with `/quiz_start`!")
+    # Send closing message
+    await channel.send("Start a new quiz with `/quiz_start`!")
     
     # Clean up state
     QUIZ_STATE.pop(channel_id, None)
@@ -391,19 +451,35 @@ async def quiz_start(interaction: discord.Interaction, topic: str = "", question
     # Schedule auto-end task
     asyncio.create_task(auto_end_quiz(interaction.channel_id, interaction.channel, duration))
     
-    # Send initial message
-    await interaction.followup.send(
-        f"✈️ **Quiz Started!**{topic_text}\n"
-        f"⏱️ Duration: **{duration} minute(s)**\n"
-        f"📝 {len(quiz_questions)} questions - Click the buttons below to answer!\n"
-        f"Results will be revealed when the timer ends!\n"
+    # Send initial message with embed
+    start_embed = discord.Embed(
+        title="✈️ Quiz Started!",
+        description=f"{topic_text if topic else ''}",
+        color=0x2d5016
     )
+    start_embed.add_field(
+        name="⏱️ Duration",
+        value=f"**{duration} minute(s)**",
+        inline=True
+    )
+    start_embed.add_field(
+        name="📝 Questions",
+        value=f"**{len(quiz_questions)}**",
+        inline=True
+    )
+    start_embed.add_field(
+        name="Instructions",
+        value="Click the buttons below each question to answer!\nResults will be revealed when the timer ends!",
+        inline=False
+    )
+    
+    await interaction.followup.send(embed=start_embed)
     
     # Send each question with its button options
     for idx, q in enumerate(quiz_questions):
-        question_text = format_mcq(q["q"], q["options"], idx + 1, len(quiz_questions))
+        question_embed = format_mcq(q["q"], q["options"], idx + 1, len(quiz_questions))
         view = QuizQuestionView(idx, q["options"])
-        await interaction.channel.send(question_text, view=view)
+        await interaction.channel.send(embed=question_embed, view=view)
 
 
 @tree.command(name="quiz_answer", description="Answer a quiz question (alternative to buttons)")
@@ -461,7 +537,7 @@ async def quiz_answer(interaction: discord.Interaction, question_number: int, ch
     seconds_remaining = int(time_remaining.total_seconds() % 60)
     
     await interaction.response.send_message(
-        f"✅ Answer recorded for question {question_number}!\n"
+        f"📝 Answer recorded for question {question_number}!\n"
         f"📊 You've answered {answered_count}/{total_questions} questions.\n"
         f"⏱️ Time remaining: {minutes_remaining}m {seconds_remaining}s",
         ephemeral=True
@@ -532,7 +608,7 @@ async def info_command(interaction: discord.Interaction):
     embed = discord.Embed(
         title="✈️ DarkstarAIC",
         description="AI-powered Q&A and quiz bot for Air Control Communication",
-        color=discord.Color.blue()
+        color=0x2d5016  # Forest green
     )
     embed.add_field(name="Model", value="GPT-3.5-turbo", inline=True)
     embed.add_field(name="Servers", value=str(len(client.guilds)), inline=True)
