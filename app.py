@@ -32,6 +32,85 @@ oai = OpenAI(
 # In-memory quiz state (per-channel)
 QUIZ_STATE = {}
 
+
+# --- Button Classes for Quiz Interaction ---
+
+class QuizAnswerButton(discord.ui.Button):
+    """Button for answering a quiz question."""
+    
+    def __init__(self, question_idx: int, choice: str, label: str):
+        super().__init__(
+            style=discord.ButtonStyle.primary,
+            label=f"{choice}",
+            custom_id=f"quiz_{question_idx}_{choice}"
+        )
+        self.question_idx = question_idx
+        self.choice = choice
+    
+    async def callback(self, interaction: discord.Interaction):
+        """Handle button click."""
+        state = QUIZ_STATE.get(interaction.channel_id)
+        if not state:
+            await interaction.response.send_message(
+                "❌ No quiz is running in this channel.",
+                ephemeral=True
+            )
+            return
+        
+        # Check if quiz has ended
+        if datetime.utcnow() >= state["end_time"]:
+            await interaction.response.send_message(
+                "❌ This quiz has ended! Results are being calculated.",
+                ephemeral=True
+            )
+            return
+        
+        # Validate question number
+        if self.question_idx < 0 or self.question_idx >= len(state["questions"]):
+            await interaction.response.send_message(
+                f"❌ Invalid question.",
+                ephemeral=True
+            )
+            return
+        
+        user_id = str(interaction.user.id)
+        
+        # Initialize user's answers if needed
+        if user_id not in state["user_answers"]:
+            state["user_answers"][user_id] = {}
+        
+        # Store the answer
+        state["user_answers"][user_id][self.question_idx] = self.choice
+        
+        # Calculate how many questions they've answered
+        answered_count = len(state["user_answers"][user_id])
+        total_questions = len(state["questions"])
+        
+        time_remaining = state["end_time"] - datetime.utcnow()
+        minutes_remaining = int(time_remaining.total_seconds() / 60)
+        seconds_remaining = int(time_remaining.total_seconds() % 60)
+        
+        await interaction.response.send_message(
+            f"✅ Answer **{self.choice}** recorded for question {self.question_idx + 1}!\n"
+            f"📊 You've answered {answered_count}/{total_questions} questions.\n"
+            f"⏱️ Time remaining: {minutes_remaining}m {seconds_remaining}s",
+            ephemeral=True
+        )
+
+
+class QuizQuestionView(discord.ui.View):
+    """View containing buttons for a quiz question."""
+    
+    def __init__(self, question_idx: int, options: List[str]):
+        super().__init__(timeout=None)  # No timeout since quiz has its own timer
+        
+        # Add buttons for each option (A, B, C, D)
+        choices = ["A", "B", "C", "D"]
+        for i, (choice, option_text) in enumerate(zip(choices[:len(options)], options)):
+            button = QuizAnswerButton(question_idx, choice, option_text)
+            self.add_item(button)
+
+
 # --- Helper Functions ---
 
 async def ask_assistant(user_msg: str, timeout: int = 30) -> str:
@@ -307,26 +386,27 @@ async def quiz_start(interaction: discord.Interaction, topic: str = "", question
         "initiator": interaction.user.id
     }
     
-    # Format all questions for display
-    questions_text = ""
-    for idx, q in enumerate(quiz_questions):
-        questions_text += format_mcq(q["q"], q["options"], idx + 1, len(quiz_questions)) + "\n\n"
-    
     topic_text = f" (Topic: {topic})" if topic else ""
     
     # Schedule auto-end task
     asyncio.create_task(auto_end_quiz(interaction.channel_id, interaction.channel, duration))
     
+    # Send initial message
     await interaction.followup.send(
         f"✈️ **Quiz Started!**{topic_text}\n"
         f"⏱️ Duration: **{duration} minute(s)**\n"
-        f"Answer all questions using `/quiz_answer <question_number> <A|B|C|D>`\n"
-        f"Results will be revealed when the timer ends!\n\n" +
-        questions_text
+        f"📝 {len(quiz_questions)} questions - Click the buttons below to answer!\n"
+        f"Results will be revealed when the timer ends!\n"
     )
+    
+    # Send each question with its button options
+    for idx, q in enumerate(quiz_questions):
+        question_text = format_mcq(q["q"], q["options"], idx + 1, len(quiz_questions))
+        view = QuizQuestionView(idx, q["options"])
+        await interaction.channel.send(question_text, view=view)
 
 
-@tree.command(name="quiz_answer", description="Answer a quiz question")
+@tree.command(name="quiz_answer", description="Answer a quiz question (alternative to buttons)")
 async def quiz_answer(interaction: discord.Interaction, question_number: int, choice: str):
     """Submit an answer to a quiz question."""
     choice = choice.strip().upper()
