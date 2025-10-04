@@ -1,5 +1,5 @@
 """
-DarkstarAIC - DCS Squadron Discord Bot
+DarkstarAIC - DCS Air Control Communication Discord Bot
 PDF-grounded Q&A and Quiz system using OpenAI Assistants API (GPT-3.5-turbo)
 """
 import os
@@ -7,6 +7,7 @@ import asyncio
 import json
 import re
 from typing import List, Optional
+from datetime import datetime, timedelta
 import discord
 from discord import app_commands
 from openai import OpenAI
@@ -30,6 +31,85 @@ oai = OpenAI(
 
 # In-memory quiz state (per-channel)
 QUIZ_STATE = {}
+
+
+# --- Button Classes for Quiz Interaction ---
+
+class QuizAnswerButton(discord.ui.Button):
+    """Button for answering a quiz question."""
+    
+    def __init__(self, question_idx: int, choice: str, label: str):
+        super().__init__(
+            style=discord.ButtonStyle.primary,
+            label=f"{choice}",
+            custom_id=f"quiz_{question_idx}_{choice}"
+        )
+        self.question_idx = question_idx
+        self.choice = choice
+    
+    async def callback(self, interaction: discord.Interaction):
+        """Handle button click."""
+        state = QUIZ_STATE.get(interaction.channel_id)
+        if not state:
+            await interaction.response.send_message(
+                "❌ No quiz is running in this channel.",
+                ephemeral=True
+            )
+            return
+        
+        # Check if quiz has ended
+        if datetime.utcnow() >= state["end_time"]:
+            await interaction.response.send_message(
+                "❌ This quiz has ended! Results are being calculated.",
+                ephemeral=True
+            )
+            return
+        
+        # Validate question number
+        if self.question_idx < 0 or self.question_idx >= len(state["questions"]):
+            await interaction.response.send_message(
+                f"❌ Invalid question.",
+                ephemeral=True
+            )
+            return
+        
+        user_id = str(interaction.user.id)
+        
+        # Initialize user's answers if needed
+        if user_id not in state["user_answers"]:
+            state["user_answers"][user_id] = {}
+        
+        # Store the answer
+        state["user_answers"][user_id][self.question_idx] = self.choice
+        
+        # Calculate how many questions they've answered
+        answered_count = len(state["user_answers"][user_id])
+        total_questions = len(state["questions"])
+        
+        time_remaining = state["end_time"] - datetime.utcnow()
+        minutes_remaining = int(time_remaining.total_seconds() / 60)
+        seconds_remaining = int(time_remaining.total_seconds() % 60)
+        
+        await interaction.response.send_message(
+            f"✅ Answer **{self.choice}** recorded for question {self.question_idx + 1}!\n"
+            f"📊 You've answered {answered_count}/{total_questions} questions.\n"
+            f"⏱️ Time remaining: {minutes_remaining}m {seconds_remaining}s",
+            ephemeral=True
+        )
+
+
+class QuizQuestionView(discord.ui.View):
+    """View containing buttons for a quiz question."""
+    
+    def __init__(self, question_idx: int, options: List[str]):
+        super().__init__(timeout=None)  # No timeout since quiz has its own timer
+        
+        # Add buttons for each option (A, B, C, D)
+        choices = ["A", "B", "C", "D"]
+        for i, (choice, option_text) in enumerate(zip(choices[:len(options)], options)):
+            button = QuizAnswerButton(question_idx, choice, option_text)
+            self.add_item(button)
+
 
 # --- Helper Functions ---
 
@@ -171,9 +251,79 @@ IMPORTANT: Return ONLY the JSON array, no other text."""
         return None
 
 
+async def auto_end_quiz(channel_id: int, channel, duration_minutes: int):
+    """Automatically end the quiz after the specified duration."""
+    try:
+        await asyncio.sleep(duration_minutes * 60)
+        
+        # Check if quiz still exists
+        state = QUIZ_STATE.get(channel_id)
+        if not state:
+            return
+        
+        # Calculate and display results
+        await display_quiz_results(channel, channel_id)
+        
+    except Exception as e:
+        print(f"Error in auto_end_quiz: {e}")
+
+
+async def display_quiz_results(channel, channel_id: int):
+    """Display quiz results and clean up state."""
+    state = QUIZ_STATE.get(channel_id)
+    if not state:
+        return
+    
+    questions = state["questions"]
+    user_answers = state["user_answers"]
+    
+    # Calculate scores
+    scores = {}
+    for user_id, answers in user_answers.items():
+        score = 0
+        for q_idx, choice in answers.items():
+            if q_idx < len(questions):
+                correct_answer = questions[q_idx]["answer"].strip().upper()
+                if choice == correct_answer:
+                    score += 1
+        scores[user_id] = score
+    
+    # Sort by score
+    scores_sorted = sorted(scores.items(), key=lambda x: x[1], reverse=True)
+    
+    total_questions = len(questions)
+    
+    # Build results message
+    results_text = "🏁 **Quiz Complete!**\n\n"
+    
+    if scores_sorted:
+        leaderboard = "\n".join(
+            f"{'🥇' if i == 0 else '🥈' if i == 1 else '🥉' if i == 2 else '📊'} <@{uid}>: **{score}/{total_questions}** ({int(score/total_questions*100)}%)"
+            for i, (uid, score) in enumerate(scores_sorted)
+        )
+        results_text += f"**Final Scores:**\n{leaderboard}\n\n"
+    else:
+        results_text += "No one submitted answers!\n\n"
+    
+    # Show correct answers with explanations
+    results_text += "**Correct Answers:**\n"
+    for idx, q in enumerate(questions):
+        results_text += f"\n**Q{idx+1}:** {q['answer']} - {q['explain']}"
+    
+    # Discord message limit is 2000 chars
+    if len(results_text) > 1900:
+        # Split into multiple messages
+        results_text = results_text[:1897] + "..."
+    
+    await channel.send(results_text + "\n\nStart a new quiz with `/quiz_start`!")
+    
+    # Clean up state
+    QUIZ_STATE.pop(channel_id, None)
+
+
 # --- Discord Commands ---
 
-@tree.command(name="ask", description="Ask a question about the squadron documentation")
+@tree.command(name="ask", description="Ask a question about the ACC documentation")
 async def ask_command(interaction: discord.Interaction, question: str):
     """Ask the bot a question grounded in the uploaded PDF."""
     await interaction.response.defer(thinking=True)
@@ -189,12 +339,19 @@ async def ask_command(interaction: discord.Interaction, question: str):
     await interaction.followup.send(answer)
 
 
-@tree.command(name="quiz_start", description="Start a quiz from the squadron documentation")
-async def quiz_start(interaction: discord.Interaction, topic: str = "", questions: int = 6):
+@tree.command(name="quiz_start", description="Start a quiz from the ACC documentation")
+async def quiz_start(interaction: discord.Interaction, topic: str = "", questions: int = 6, duration: int = 5):
     """Start a new quiz session in this channel."""
     if questions < 3 or questions > 10:
         await interaction.response.send_message(
             "❌ Please choose between 3 and 10 questions.",
+            ephemeral=True
+        )
+        return
+    
+    if duration < 1 or duration > 60:
+        await interaction.response.send_message(
+            "❌ Please choose a duration between 1 and 60 minutes.",
             ephemeral=True
         )
         return
@@ -219,25 +376,39 @@ async def quiz_start(interaction: discord.Interaction, topic: str = "", question
         )
         return
     
+    end_time = datetime.utcnow() + timedelta(minutes=duration)
+    
     QUIZ_STATE[interaction.channel_id] = {
         "questions": quiz_questions,
-        "current_index": 0,
-        "scores": {}
+        "user_answers": {},  # {user_id: {question_idx: choice}}
+        "end_time": end_time,
+        "duration_minutes": duration,
+        "initiator": interaction.user.id
     }
     
-    first_q = quiz_questions[0]
     topic_text = f" (Topic: {topic})" if topic else ""
     
+    # Schedule auto-end task
+    asyncio.create_task(auto_end_quiz(interaction.channel_id, interaction.channel, duration))
+    
+    # Send initial message
     await interaction.followup.send(
         f"✈️ **Quiz Started!**{topic_text}\n"
-        f"Answer using `/quiz_answer <A|B|C|D>`\n\n" +
-        format_mcq(first_q["q"], first_q["options"], 1, len(quiz_questions))
+        f"⏱️ Duration: **{duration} minute(s)**\n"
+        f"📝 {len(quiz_questions)} questions - Click the buttons below to answer!\n"
+        f"Results will be revealed when the timer ends!\n"
     )
+    
+    # Send each question with its button options
+    for idx, q in enumerate(quiz_questions):
+        question_text = format_mcq(q["q"], q["options"], idx + 1, len(quiz_questions))
+        view = QuizQuestionView(idx, q["options"])
+        await interaction.channel.send(question_text, view=view)
 
 
-@tree.command(name="quiz_answer", description="Answer the current quiz question")
-async def quiz_answer(interaction: discord.Interaction, choice: str):
-    """Submit an answer to the current quiz question."""
+@tree.command(name="quiz_answer", description="Answer a quiz question (alternative to buttons)")
+async def quiz_answer(interaction: discord.Interaction, question_number: int, choice: str):
+    """Submit an answer to a quiz question."""
     choice = choice.strip().upper()
     
     if choice not in ["A", "B", "C", "D"]:
@@ -255,64 +426,51 @@ async def quiz_answer(interaction: discord.Interaction, choice: str):
         )
         return
     
-    current_idx = state["current_index"]
-    question = state["questions"][current_idx]
-    correct_answer = question["answer"].strip().upper()
+    # Check if quiz has ended
+    if datetime.utcnow() >= state["end_time"]:
+        await interaction.response.send_message(
+            "❌ This quiz has ended! Results are being calculated.",
+            ephemeral=True
+        )
+        return
     
-    is_correct = (choice == correct_answer)
+    # Validate question number
+    question_idx = question_number - 1
+    if question_idx < 0 or question_idx >= len(state["questions"]):
+        await interaction.response.send_message(
+            f"❌ Invalid question number. Please choose between 1 and {len(state['questions'])}.",
+            ephemeral=True
+        )
+        return
     
     user_id = str(interaction.user.id)
-    if user_id not in state["scores"]:
-        state["scores"][user_id] = 0
     
-    if is_correct:
-        state["scores"][user_id] += 1
+    # Initialize user's answers if needed
+    if user_id not in state["user_answers"]:
+        state["user_answers"][user_id] = {}
     
-    if is_correct:
-        feedback = f"✅ **Correct!** {interaction.user.mention}"
-    else:
-        feedback = f"❌ **Incorrect.** The correct answer is **{correct_answer}**."
+    # Store the answer
+    state["user_answers"][user_id][question_idx] = choice
     
-    feedback += f"\n\n💡 **Explanation:** {question['explain']}"
+    # Calculate how many questions they've answered
+    answered_count = len(state["user_answers"][user_id])
+    total_questions = len(state["questions"])
     
-    state["current_index"] += 1
+    time_remaining = state["end_time"] - datetime.utcnow()
+    minutes_remaining = int(time_remaining.total_seconds() / 60)
+    seconds_remaining = int(time_remaining.total_seconds() % 60)
     
-    if state["current_index"] >= len(state["questions"]):
-        scores_sorted = sorted(
-            state["scores"].items(),
-            key=lambda x: x[1],
-            reverse=True
-        )
-        
-        total_questions = len(state["questions"])
-        
-        leaderboard = "\n".join(
-            f"{'🥇' if i == 0 else '🥈' if i == 1 else '🥉' if i == 2 else '📊'} <@{uid}>: **{score}/{total_questions}** ({int(score/total_questions*100)}%)"
-            for i, (uid, score) in enumerate(scores_sorted)
-        )
-        
-        QUIZ_STATE.pop(interaction.channel_id, None)
-        
-        await interaction.response.send_message(
-            f"{feedback}\n\n"
-            f"🏁 **Quiz Complete!**\n\n"
-            f"**Final Scores:**\n{leaderboard}\n\n"
-            f"Start a new quiz with `/quiz_start`!"
-        )
-    else:
-        next_q = state["questions"][state["current_index"]]
-        next_num = state["current_index"] + 1
-        total = len(state["questions"])
-        
-        await interaction.response.send_message(
-            f"{feedback}\n\n" +
-            format_mcq(next_q["q"], next_q["options"], next_num, total)
-        )
+    await interaction.response.send_message(
+        f"✅ Answer recorded for question {question_number}!\n"
+        f"📊 You've answered {answered_count}/{total_questions} questions.\n"
+        f"⏱️ Time remaining: {minutes_remaining}m {seconds_remaining}s",
+        ephemeral=True
+    )
 
 
-@tree.command(name="quiz_end", description="End the current quiz")
+@tree.command(name="quiz_end", description="End the current quiz and show results")
 async def quiz_end(interaction: discord.Interaction):
-    """Cancel the current quiz in this channel."""
+    """End the current quiz and display results."""
     if interaction.channel_id not in QUIZ_STATE:
         await interaction.response.send_message(
             "❌ No quiz is running in this channel.",
@@ -320,13 +478,17 @@ async def quiz_end(interaction: discord.Interaction):
         )
         return
     
-    QUIZ_STATE.pop(interaction.channel_id, None)
-    await interaction.response.send_message("🛑 Quiz cancelled. Start a new one with `/quiz_start`!")
+    await interaction.response.defer()
+    
+    # Display results
+    await display_quiz_results(interaction.channel, interaction.channel_id)
+    
+    await interaction.followup.send("🛑 Quiz ended by moderator.")
 
 
-@tree.command(name="quiz_score", description="Check current quiz scores")
+@tree.command(name="quiz_score", description="Check your quiz progress")
 async def quiz_score(interaction: discord.Interaction):
-    """Show current scores for the active quiz."""
+    """Show your current quiz progress."""
     state = QUIZ_STATE.get(interaction.channel_id)
     if not state:
         await interaction.response.send_message(
@@ -335,29 +497,31 @@ async def quiz_score(interaction: discord.Interaction):
         )
         return
     
-    current_q = state["current_index"] + 1
+    user_id = str(interaction.user.id)
     total_q = len(state["questions"])
     
-    if not state["scores"]:
-        await interaction.response.send_message(
-            f"📊 **Quiz Progress:** Question {current_q}/{total_q}\nNo answers submitted yet!",
-            ephemeral=True
-        )
-        return
+    if user_id not in state["user_answers"]:
+        answered_count = 0
+    else:
+        answered_count = len(state["user_answers"][user_id])
     
-    scores_sorted = sorted(
-        state["scores"].items(),
-        key=lambda x: x[1],
-        reverse=True
-    )
+    time_remaining = state["end_time"] - datetime.utcnow()
+    minutes_remaining = max(0, int(time_remaining.total_seconds() / 60))
+    seconds_remaining = max(0, int(time_remaining.total_seconds() % 60))
     
-    leaderboard = "\n".join(
-        f"{'🥇' if i == 0 else '🥈' if i == 1 else '🥉' if i == 2 else '📊'} <@{uid}>: **{score}** points"
-        for i, (uid, score) in enumerate(scores_sorted)
-    )
+    # Show which questions have been answered
+    answered_questions = []
+    if user_id in state["user_answers"]:
+        answered_questions = [q_idx + 1 for q_idx in state["user_answers"][user_id].keys()]
+        answered_questions.sort()
+    
+    answered_text = ", ".join(map(str, answered_questions)) if answered_questions else "None"
     
     await interaction.response.send_message(
-        f"📊 **Current Scores** (Question {current_q}/{total_q}):\n{leaderboard}",
+        f"📊 **Your Quiz Progress:**\n"
+        f"Answered: {answered_count}/{total_q} questions\n"
+        f"Questions answered: {answered_text}\n"
+        f"⏱️ Time remaining: {minutes_remaining}m {seconds_remaining}s",
         ephemeral=True
     )
 
@@ -367,15 +531,15 @@ async def info_command(interaction: discord.Interaction):
     """Display bot information."""
     embed = discord.Embed(
         title="✈️ DarkstarAIC",
-        description="AI-powered Q&A and quiz bot for DCS squadrons",
+        description="AI-powered Q&A and quiz bot for Air Control Communication",
         color=discord.Color.blue()
     )
     embed.add_field(name="Model", value="GPT-3.5-turbo", inline=True)
     embed.add_field(name="Servers", value=str(len(client.guilds)), inline=True)
-    embed.add_field(name="Version", value="1.0.1", inline=True)
+    embed.add_field(name="Version", value="1.0.2", inline=True)
     embed.add_field(
         name="Commands",
-        value="• `/ask` - Ask questions\n• `/quiz_start` - Start quiz\n• `/quiz_answer` - Answer question\n• `/quiz_score` - View scores\n• `/quiz_end` - End quiz",
+        value="• `/ask` - Ask questions\n• `/quiz_start` - Start timed quiz\n• `/quiz_answer` - Answer question\n• `/quiz_score` - View progress\n• `/quiz_end` - End quiz",
         inline=False
     )
     embed.set_footer(text="Powered by OpenAI Assistants API v2")
