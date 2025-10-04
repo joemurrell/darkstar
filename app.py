@@ -131,7 +131,7 @@ class QuizQuestionView(discord.ui.View):
 
 # --- Helper Functions ---
 
-async def ask_assistant(user_msg: str, timeout: int = 30, temperature: float = None, frequency_penalty: float = None) -> str:
+async def ask_assistant(user_msg: str, timeout: int = 30, temperature: float = None) -> str:
     """
     Ask the OpenAI Assistant a question using Assistants API v2.
     Uses File Search to ground responses in the uploaded PDF.
@@ -140,7 +140,6 @@ async def ask_assistant(user_msg: str, timeout: int = 30, temperature: float = N
         user_msg: The message/prompt to send to the assistant
         timeout: Maximum seconds to wait for response
         temperature: Optional temperature for response generation (0.0-2.0)
-        frequency_penalty: Optional frequency penalty (-2.0 to 2.0)
     """
     try:
         # Create a new thread for this question
@@ -160,10 +159,8 @@ async def ask_assistant(user_msg: str, timeout: int = 30, temperature: float = N
         }
         
         # Add optional parameters if provided
-        if temperature is not None or frequency_penalty is not None:
-            run_params["temperature"] = temperature if temperature is not None else 1.0
-            if frequency_penalty is not None:
-                run_params["frequency_penalty"] = frequency_penalty
+        if temperature is not None:
+            run_params["temperature"] = temperature
         
         # Create and run the assistant (v2 API)
         run = oai.beta.threads.runs.create(**run_params)
@@ -457,7 +454,7 @@ IMPORTANT: Return ONLY the JSON array, no other text."""
 
     # Call assistant with diversity parameters
     logger.info(f"Generating quiz: topic_hint='{topic_hint}', num_questions={num_questions}")
-    reply = await ask_assistant(prompt, timeout=45, temperature=0.7, frequency_penalty=0.3)
+    reply = await ask_assistant(prompt, timeout=45, temperature=0.7)
     
     # Log the raw assistant reply
     logger.info(f"Assistant raw reply (first 1000 chars): {reply[:1000]}")
@@ -533,7 +530,7 @@ Each question MUST include a unique "topic" tag (different from: {', '.join(used
 
 IMPORTANT: Return ONLY the JSON array, no other text."""
             
-            regen_reply = await ask_assistant(regen_prompt, timeout=45, temperature=0.8, frequency_penalty=0.4)
+            regen_reply = await ask_assistant(regen_prompt, timeout=45, temperature=0.8)
             logger.info(f"Regeneration reply (first 500 chars): {regen_reply[:500]}")
             
             try:
@@ -737,7 +734,7 @@ async def ask_command(interaction: discord.Interaction, question: str):
     """Ask the bot a question grounded in the uploaded PDF."""
     await interaction.response.defer(thinking=True)
     
-    enhanced_question = f"{question}\n\n(Answer using ONLY information from the attached PDF documentation. Include page numbers when possible. If the answer isn't in the PDF, say so clearly.)"
+    enhanced_question = f"{question}\n\n(Answer using ONLY information from the attached PDF documentation. Include page numbers when possible. If the answer isn't in the PDF, say so clearly. Keep your response under 1800 characters to fit in a Discord message.)"
     
     answer = await ask_assistant(enhanced_question)
     
