@@ -51,7 +51,7 @@ tail -f logs/ai_replies.log
 - `deduplicate_questions()` - Remove duplicates
 
 ### Enhanced Functions
-- `ask_assistant()` - Now supports temperature and frequency_penalty
+- `ask_assistant()` - Now supports temperature parameter
 - `generate_quiz()` - Now deduplicates and regenerates
 - `shuffle_quiz_options()` - Preserves topic and page fields
 
