@@ -6,6 +6,7 @@ import os
 import asyncio
 import json
 import re
+import random
 from typing import List, Optional
 from datetime import datetime, timedelta
 import discord
@@ -195,6 +196,41 @@ def format_mcq(question: str, options: List[str], question_num: int = None, tota
     embed.add_field(name="\u200b", value=options_text, inline=False)
     
     return embed
+
+
+def shuffle_quiz_options(question: dict) -> dict:
+    """
+    Shuffle the options in a quiz question and update the correct answer letter.
+    Returns a new dict with shuffled options and updated answer.
+    """
+    # Get the original correct answer index (A=0, B=1, C=2, D=3)
+    answer_letter = question["answer"].strip().upper()
+    answer_index = ord(answer_letter) - ord('A')
+    
+    # Create a list of (option_text, is_correct) tuples
+    options_with_correctness = [
+        (opt, i == answer_index) 
+        for i, opt in enumerate(question["options"])
+    ]
+    
+    # Shuffle the options
+    random.shuffle(options_with_correctness)
+    
+    # Find the new position of the correct answer
+    new_answer_index = next(
+        i for i, (_, is_correct) in enumerate(options_with_correctness) 
+        if is_correct
+    )
+    
+    # Create the shuffled question
+    shuffled_question = {
+        "q": question["q"],
+        "options": [opt for opt, _ in options_with_correctness],
+        "answer": chr(ord('A') + new_answer_index),
+        "explain": question["explain"]
+    }
+    
+    return shuffled_question
 
 
 async def generate_quiz(topic_hint: str = "", num_questions: int = 6) -> Optional[List[dict]]:
@@ -436,10 +472,13 @@ async def quiz_start(interaction: discord.Interaction, topic: str = "", question
         )
         return
     
+    # Shuffle the options for each question to randomize correct answer position
+    shuffled_questions = [shuffle_quiz_options(q) for q in quiz_questions]
+    
     end_time = datetime.utcnow() + timedelta(minutes=duration)
     
     QUIZ_STATE[interaction.channel_id] = {
-        "questions": quiz_questions,
+        "questions": shuffled_questions,
         "user_answers": {},  # {user_id: {question_idx: choice}}
         "end_time": end_time,
         "duration_minutes": duration,
@@ -464,7 +503,7 @@ async def quiz_start(interaction: discord.Interaction, topic: str = "", question
     )
     start_embed.add_field(
         name="📝 Questions",
-        value=f"**{len(quiz_questions)}**",
+        value=f"**{len(shuffled_questions)}**",
         inline=True
     )
     start_embed.add_field(
@@ -476,8 +515,8 @@ async def quiz_start(interaction: discord.Interaction, topic: str = "", question
     await interaction.followup.send(embed=start_embed)
     
     # Send each question with its button options
-    for idx, q in enumerate(quiz_questions):
-        question_embed = format_mcq(q["q"], q["options"], idx + 1, len(quiz_questions))
+    for idx, q in enumerate(shuffled_questions):
+        question_embed = format_mcq(q["q"], q["options"], idx + 1, len(shuffled_questions))
         view = QuizQuestionView(idx, q["options"])
         await interaction.channel.send(embed=question_embed, view=view)
 
