@@ -608,7 +608,7 @@ async def info_command(interaction: discord.Interaction):
     embed = discord.Embed(
         title="✈️ DarkstarAIC",
         description="AI-powered Q&A and quiz bot for Air Control Communication",
-        color=discord.Color.blue()
+        color=0x2d5016  # Forest green
     )
     embed.add_field(name="Model", value="GPT-3.5-turbo", inline=True)
     embed.add_field(name="Servers", value=str(len(client.guilds)), inline=True)
