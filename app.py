@@ -192,7 +192,7 @@ def format_mcq(question: str, options: List[str], question_num: int = None, tota
     
     # Add options as a field
     options_text = "\n".join(f"**{letter})** {opt}" for letter, opt in zip(letters, options))
-    embed.add_field(name="Options", value=options_text, inline=False)
+    embed.add_field(name="\u200b", value=options_text, inline=False)
     
     return embed
 
@@ -402,9 +402,9 @@ async def ask_command(interaction: discord.Interaction, question: str):
 @tree.command(name="quiz_start", description="Start a quiz from the ACC documentation")
 async def quiz_start(interaction: discord.Interaction, topic: str = "", questions: int = 6, duration: int = 5):
     """Start a new quiz session in this channel."""
-    if questions < 3 or questions > 10:
+    if questions < 1 or questions > 10:
         await interaction.response.send_message(
-            "❌ Please choose between 3 and 10 questions.",
+            "❌ Please choose between 1 and 10 questions.",
             ephemeral=True
         )
         return
