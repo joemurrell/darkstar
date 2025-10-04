@@ -7,11 +7,14 @@ import asyncio
 import json
 import re
 import random
-from typing import List, Optional
+import logging
 from datetime import datetime, timedelta
+from typing import List, Optional, Set, Tuple
+from collections import Counter
 import discord
 from discord import app_commands
 from openai import OpenAI
+from fuzzywuzzy import fuzz
 
 # Environment variables
 DISCORD_TOKEN = os.environ["DISCORD_TOKEN"]
@@ -29,6 +32,20 @@ oai = OpenAI(
     api_key=OPENAI_API_KEY,
     default_headers={"OpenAI-Beta": "assistants=v2"}
 )
+
+# Configure logging for assistant responses
+log_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "logs")
+os.makedirs(log_dir, exist_ok=True)
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler(os.path.join(log_dir, 'ai_replies.log')),
+        logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger(__name__)
 
 # In-memory quiz state (per-channel)
 QUIZ_STATE = {}
@@ -114,10 +131,16 @@ class QuizQuestionView(discord.ui.View):
 
 # --- Helper Functions ---
 
-async def ask_assistant(user_msg: str, timeout: int = 30) -> str:
+async def ask_assistant(user_msg: str, timeout: int = 30, temperature: float = None, frequency_penalty: float = None) -> str:
     """
     Ask the OpenAI Assistant a question using Assistants API v2.
     Uses File Search to ground responses in the uploaded PDF.
+    
+    Args:
+        user_msg: The message/prompt to send to the assistant
+        timeout: Maximum seconds to wait for response
+        temperature: Optional temperature for response generation (0.0-2.0)
+        frequency_penalty: Optional frequency penalty (-2.0 to 2.0)
     """
     try:
         # Create a new thread for this question
@@ -130,11 +153,20 @@ async def ask_assistant(user_msg: str, timeout: int = 30) -> str:
             content=user_msg
         )
         
+        # Build run parameters
+        run_params = {
+            "thread_id": thread.id,
+            "assistant_id": ASSISTANT_ID
+        }
+        
+        # Add optional parameters if provided
+        if temperature is not None or frequency_penalty is not None:
+            run_params["temperature"] = temperature if temperature is not None else 1.0
+            if frequency_penalty is not None:
+                run_params["frequency_penalty"] = frequency_penalty
+        
         # Create and run the assistant (v2 API)
-        run = oai.beta.threads.runs.create(
-            thread_id=thread.id,
-            assistant_id=ASSISTANT_ID
-        )
+        run = oai.beta.threads.runs.create(**run_params)
         
         # Poll until complete (with timeout)
         elapsed = 0
@@ -222,7 +254,7 @@ def shuffle_quiz_options(question: dict) -> dict:
         if is_correct
     )
     
-    # Create the shuffled question
+    # Create the shuffled question, preserving optional fields
     shuffled_question = {
         "q": question["q"],
         "options": [opt for opt, _ in options_with_correctness],
@@ -230,14 +262,168 @@ def shuffle_quiz_options(question: dict) -> dict:
         "explain": question["explain"]
     }
     
+    # Preserve optional topic and page fields if present
+    if "topic" in question:
+        shuffled_question["topic"] = question["topic"]
+    if "page" in question:
+        shuffled_question["page"] = question["page"]
+    
     return shuffled_question
+
+
+# --- Deduplication Helper Functions ---
+
+STOPWORDS = {
+    'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for',
+    'of', 'with', 'by', 'from', 'is', 'are', 'was', 'were', 'be', 'been',
+    'being', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would',
+    'should', 'could', 'may', 'might', 'must', 'can', 'what', 'which',
+    'who', 'when', 'where', 'why', 'how', 'this', 'that', 'these', 'those'
+}
+
+
+def extract_topic_from_question(question_dict: dict) -> str:
+    """
+    Extract or compute a topic tag for a question.
+    Uses the 'topic' field if present, otherwise extracts from question text.
+    
+    Args:
+        question_dict: Question dictionary with 'q' and optionally 'topic' fields
+    
+    Returns:
+        A normalized topic string (lowercase, hyphenated)
+    """
+    # Use provided topic if available
+    if "topic" in question_dict and question_dict["topic"]:
+        return question_dict["topic"].lower().strip()
+    
+    # Extract from question text
+    question_text = question_dict.get("q", "").lower()
+    
+    # Remove punctuation and split into words
+    words = re.findall(r'\b[a-z]+\b', question_text)
+    
+    # Filter out stopwords and short words
+    content_words = [w for w in words if w not in STOPWORDS and len(w) > 3]
+    
+    # Count word frequencies
+    if not content_words:
+        return "unknown"
+    
+    word_counts = Counter(content_words)
+    
+    # Take top 2-3 most common words
+    top_words = [word for word, _ in word_counts.most_common(3)]
+    
+    # Create hyphenated topic tag
+    topic = "-".join(top_words[:2]) if len(top_words) >= 2 else (top_words[0] if top_words else "unknown")
+    
+    return topic
+
+
+def extract_keywords(text: str, top_n: int = 5) -> Set[str]:
+    """
+    Extract top N keywords from text (after removing stopwords).
+    
+    Args:
+        text: Input text
+        top_n: Number of top keywords to extract
+    
+    Returns:
+        Set of top keywords
+    """
+    text = text.lower()
+    words = re.findall(r'\b[a-z]+\b', text)
+    content_words = [w for w in words if w not in STOPWORDS and len(w) > 3]
+    
+    if not content_words:
+        return set()
+    
+    word_counts = Counter(content_words)
+    return set(word for word, _ in word_counts.most_common(top_n))
+
+
+def are_questions_similar(q1: dict, q2: dict, topic1: str, topic2: str) -> bool:
+    """
+    Determine if two questions are too similar and should be considered duplicates.
+    
+    Considers questions duplicates if:
+    - Topics match exactly
+    - Question text similarity > 85% (fuzzy ratio)
+    - Share > 40% of top 5 keywords
+    
+    Args:
+        q1, q2: Question dictionaries
+        topic1, topic2: Topic tags for the questions
+    
+    Returns:
+        True if questions are too similar
+    """
+    # Check exact topic match
+    if topic1 == topic2:
+        return True
+    
+    # Check fuzzy text similarity
+    text1 = q1.get("q", "")
+    text2 = q2.get("q", "")
+    
+    if fuzz.ratio(text1.lower(), text2.lower()) > 85:
+        return True
+    
+    # Check keyword overlap
+    keywords1 = extract_keywords(text1)
+    keywords2 = extract_keywords(text2)
+    
+    if keywords1 and keywords2:
+        overlap = len(keywords1 & keywords2)
+        total = len(keywords1 | keywords2)
+        if total > 0 and overlap / total > 0.4:
+            return True
+    
+    return False
+
+
+def deduplicate_questions(questions: List[dict]) -> Tuple[List[dict], List[str]]:
+    """
+    Remove duplicate/similar questions from a list.
+    
+    Args:
+        questions: List of question dictionaries
+    
+    Returns:
+        Tuple of (unique_questions, used_topics)
+    """
+    unique = []
+    topics = []
+    
+    for q in questions:
+        topic = extract_topic_from_question(q)
+        
+        # Check if this question is similar to any already in unique list
+        is_duplicate = False
+        for existing_q, existing_topic in zip(unique, topics):
+            if are_questions_similar(q, existing_q, topic, existing_topic):
+                is_duplicate = True
+                break
+        
+        if not is_duplicate:
+            unique.append(q)
+            topics.append(topic)
+    
+    return unique, topics
 
 
 async def generate_quiz(topic_hint: str = "", num_questions: int = 6) -> Optional[List[dict]]:
     """
     Generate a quiz from the PDF using the Assistant.
+    Enforces diversity by deduplicating questions and regenerating if needed.
     Returns a list of question dicts or None on failure.
     """
+    max_regeneration_attempts = 3
+    unique_questions = []
+    used_topics = []
+    
+    # Initial prompt with diversity requirements
     prompt = f"""Generate {num_questions} multiple-choice questions based ONLY on the attached PDF.
 
 Requirements:
@@ -245,6 +431,7 @@ Requirements:
 - Include the correct answer (A, B, C, or D)
 - Provide a brief explanation with page number citation
 - Focus on practical knowledge for DCS pilots
+- Ensure every question covers a different topic or concept from the PDF and avoid repeating the same keywords across multiple questions (for example, do NOT repeat 'PUSHING' or 'FUMBLE')
 
 {f'Topic focus: {topic_hint}' if topic_hint else 'Cover various topics from the document.'}
 
@@ -254,13 +441,26 @@ Return ONLY a valid JSON array with this exact structure:
     "q": "Question text here?",
     "options": ["Option A text", "Option B text", "Option C text", "Option D text"],
     "answer": "A",
-    "explain": "Brief explanation with page reference (p.XX)"
+    "explain": "Brief explanation with page reference (p.XX)",
+    "page": 12,
+    "topic": "engine-trim"
   }}
 ]
 
+Each question MUST include:
+- "topic": A short hyphenated tag or 2-3 word phrase identifying the concept (e.g., "fuel-system", "emergency-procedures", "engine-trim")
+- "page": The page number from the PDF where this information is found
+
+If you cannot generate {num_questions} distinct topics, return fewer items with a "note" field explaining why.
+
 IMPORTANT: Return ONLY the JSON array, no other text."""
 
-    reply = await ask_assistant(prompt, timeout=45)
+    # Call assistant with diversity parameters
+    logger.info(f"Generating quiz: topic_hint='{topic_hint}', num_questions={num_questions}")
+    reply = await ask_assistant(prompt, timeout=45, temperature=0.7, frequency_penalty=0.3)
+    
+    # Log the raw assistant reply
+    logger.info(f"Assistant raw reply (first 1000 chars): {reply[:1000]}")
     
     try:
         # Try to extract JSON from the response
@@ -285,14 +485,127 @@ IMPORTANT: Return ONLY the JSON array, no other text."""
                     if item["answer"] in ["A", "B", "C", "D"]:
                         valid_questions.append(item)
         
-        return valid_questions[:num_questions] if valid_questions else None
+        if not valid_questions:
+            logger.warning("No valid questions returned from assistant")
+            return None
+        
+        # Deduplicate initial set
+        unique_questions, used_topics = deduplicate_questions(valid_questions)
+        logger.info(f"After deduplication: {len(unique_questions)} unique out of {len(valid_questions)} initial questions")
+        logger.info(f"Used topics: {used_topics}")
+        
+        # Regeneration loop if we don't have enough unique questions
+        attempt = 0
+        while len(unique_questions) < num_questions and attempt < max_regeneration_attempts:
+            attempt += 1
+            needed = num_questions - len(unique_questions)
+            
+            logger.info(f"Regeneration attempt {attempt}/{max_regeneration_attempts}: need {needed} more questions")
+            
+            # Build regeneration prompt with excluded topics
+            regen_prompt = f"""Generate {needed + 2} additional multiple-choice questions based ONLY on the attached PDF.
+
+IMPORTANT: Do NOT generate questions about these topics (already covered): {', '.join(used_topics)}
+
+Requirements:
+- Each question must have exactly 4 options
+- Include the correct answer (A, B, C, or D)
+- Provide a brief explanation with page number citation
+- Focus on practical knowledge for DCS pilots
+- Each question MUST cover a DIFFERENT topic from those listed above
+- Ensure every question has a unique topic tag
+
+{f'Topic focus: {topic_hint}' if topic_hint else 'Cover various topics from the document.'}
+
+Return ONLY a valid JSON array with this exact structure:
+[
+  {{
+    "q": "Question text here?",
+    "options": ["Option A text", "Option B text", "Option C text", "Option D text"],
+    "answer": "A",
+    "explain": "Brief explanation with page reference (p.XX)",
+    "page": 12,
+    "topic": "unique-topic-tag"
+  }}
+]
+
+Each question MUST include a unique "topic" tag (different from: {', '.join(used_topics)}).
+
+IMPORTANT: Return ONLY the JSON array, no other text."""
+            
+            regen_reply = await ask_assistant(regen_prompt, timeout=45, temperature=0.8, frequency_penalty=0.4)
+            logger.info(f"Regeneration reply (first 500 chars): {regen_reply[:500]}")
+            
+            try:
+                # Parse regenerated questions
+                regen_clean = regen_reply.strip()
+                if regen_clean.startswith("```json"):
+                    regen_clean = regen_clean[7:]
+                if regen_clean.startswith("```"):
+                    regen_clean = regen_clean[3:]
+                if regen_clean.endswith("```"):
+                    regen_clean = regen_clean[:-3]
+                
+                regen_clean = regen_clean.strip()
+                regen_data = json.loads(regen_clean)
+                
+                # Validate regenerated questions
+                regen_valid = []
+                for item in regen_data:
+                    if all(k in item for k in ("q", "options", "answer", "explain")):
+                        if len(item["options"]) == 4:
+                            item["answer"] = item["answer"].strip().upper()
+                            if item["answer"] in ["A", "B", "C", "D"]:
+                                regen_valid.append(item)
+                
+                # Add non-duplicate questions
+                for q in regen_valid:
+                    topic = extract_topic_from_question(q)
+                    
+                    # Check if similar to existing questions
+                    is_duplicate = False
+                    for existing_q, existing_topic in zip(unique_questions, used_topics):
+                        if are_questions_similar(q, existing_q, topic, existing_topic):
+                            is_duplicate = True
+                            break
+                    
+                    if not is_duplicate:
+                        unique_questions.append(q)
+                        used_topics.append(topic)
+                        logger.info(f"Added new unique question with topic: {topic}")
+                        
+                        # Stop if we have enough
+                        if len(unique_questions) >= num_questions:
+                            break
+                
+            except (json.JSONDecodeError, Exception) as e:
+                logger.error(f"Error parsing regeneration attempt {attempt}: {e}")
+                continue
+        
+        # Log final results
+        final_count = len(unique_questions)
+        logger.info(f"Final quiz: {final_count} unique questions (requested: {num_questions})")
+        logger.info(f"Final topics: {used_topics}")
+        
+        # Return the requested number or what we have
+        if final_count >= num_questions:
+            result = unique_questions[:num_questions]
+            logger.info(f"Returning {len(result)} questions")
+            return result
+        elif final_count > 0:
+            # Return what we have with a note
+            logger.warning(f"Could only generate {final_count} unique questions (requested {num_questions})")
+            return unique_questions
+        else:
+            logger.error("Failed to generate any unique questions")
+            return None
         
     except json.JSONDecodeError as e:
-        print(f"JSON parse error: {e}")
-        print(f"Response was: {reply[:500]}")
+        logger.error(f"JSON parse error: {e}")
+        logger.error(f"Response was: {reply[:500]}")
         return None
     except Exception as e:
-        print(f"Quiz generation error: {e}")
+        logger.error(f"Quiz generation error: {e}")
         return None
 
 
