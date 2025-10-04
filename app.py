@@ -5,6 +5,7 @@ PDF-grounded Q&A and Quiz system using OpenAI Assistants API (GPT-3.5-turbo)
 import os
 import asyncio
 import json
+import re
 from typing import List, Optional
 import discord
 from discord import app_commands
@@ -80,7 +81,11 @@ async def ask_assistant(user_msg: str, timeout: int = 30) -> str:
                 chunks = []
                 for content in msg.content:
                     if content.type == "text":
-                        chunks.append(content.text.value)
+                        text = content.text.value
+                        # Remove citation markers like 【4:2†source】
+                        text = re.sub(r'【[^】]*】', '', text)
+                        chunks.append(text)
+                
                 return "\n".join(chunks) if chunks else "No response from assistant."
         
         return "No response from assistant."
