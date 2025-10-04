@@ -21,8 +21,11 @@ intents.message_content = True
 client = discord.Client(intents=intents)
 tree = app_commands.CommandTree(client)
 
-# --- OpenAI client ---
-oai = OpenAI(api_key=OPENAI_API_KEY)
+# --- OpenAI client (with v2 assistants) ---
+oai = OpenAI(
+    api_key=OPENAI_API_KEY,
+    default_headers={"OpenAI-Beta": "assistants=v2"}
+)
 
 # In-memory quiz state (per-channel)
 QUIZ_STATE = {}
@@ -31,7 +34,7 @@ QUIZ_STATE = {}
 
 async def ask_assistant(user_msg: str, timeout: int = 30) -> str:
     """
-    Ask the OpenAI Assistant a question.
+    Ask the OpenAI Assistant a question using Assistants API v2.
     Uses File Search to ground responses in the uploaded PDF.
     """
     try:
@@ -45,7 +48,7 @@ async def ask_assistant(user_msg: str, timeout: int = 30) -> str:
             content=user_msg
         )
         
-        # Create and run the assistant
+        # Create and run the assistant (v2 API)
         run = oai.beta.threads.runs.create(
             thread_id=thread.id,
             assistant_id=ASSISTANT_ID
@@ -364,13 +367,13 @@ async def info_command(interaction: discord.Interaction):
     )
     embed.add_field(name="Model", value="GPT-3.5-turbo", inline=True)
     embed.add_field(name="Servers", value=str(len(client.guilds)), inline=True)
-    embed.add_field(name="Version", value="1.0.0", inline=True)
+    embed.add_field(name="Version", value="1.0.1", inline=True)
     embed.add_field(
         name="Commands",
         value="• `/ask` - Ask questions\n• `/quiz_start` - Start quiz\n• `/quiz_answer` - Answer question\n• `/quiz_score` - View scores\n• `/quiz_end` - End quiz",
         inline=False
     )
-    embed.set_footer(text="Powered by OpenAI Assistants API")
+    embed.set_footer(text="Powered by OpenAI Assistants API v2")
     
     await interaction.response.send_message(embed=embed)
 
@@ -381,7 +384,7 @@ async def on_ready():
     await tree.sync()
     print(f"✈️ DarkstarAIC is online!")
     print(f"📚 Connected to {len(client.guilds)} server(s)")
-    print(f"🤖 Using GPT-3.5-turbo for cost efficiency")
+    print(f"🤖 Using GPT-3.5-turbo with Assistants API v2")
 
 
 if __name__ == "__main__":
