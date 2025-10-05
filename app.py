@@ -1,6 +1,6 @@
 """
 DarkstarAIC - DCS Air Control Communication Discord Bot
-PDF-grounded Q&A and Quiz system using OpenAI Assistants API (GPT-3.5-turbo)
+PDF-grounded Q&A and Quiz system using OpenAI Assistants API (GPT-4.1-mini))
 """
 import os
 import asyncio
@@ -734,13 +734,13 @@ async def ask_command(interaction: discord.Interaction, question: str):
     """Ask the bot a question grounded in the uploaded PDF."""
     await interaction.response.defer(thinking=True)
     
-    enhanced_question = f"{question}\n\n(Answer using ONLY information from the attached PDF documentation. Include page numbers when possible. If the answer isn't in the PDF, say so clearly. Keep your response under 1800 characters to fit in a Discord message.)"
+    enhanced_question = f"{question}\n\n(Answer using ONLY information from the attached PDF documentation. Include page numbers when possible. If the answer isn't in the PDF, say so clearly. Your response MUST be less than 2000 characters to fit in a Discord message.)"
     
     answer = await ask_assistant(enhanced_question)
     
     # Discord has a 2000 character limit
-    if len(answer) > 1900:
-        answer = answer[:1897] + "..."
+    if len(answer) > 1998:
+        answer = answer[:1997] + "..."
     
     await interaction.followup.send(answer)
 
@@ -959,7 +959,7 @@ async def info_command(interaction: discord.Interaction):
         description="AI-powered Q&A and quiz bot for Air Control Communication",
         color=0x2d5016  # Forest green
     )
-    embed.add_field(name="Model", value="GPT-3.5-turbo", inline=True)
+    embed.add_field(name="Model", value="GPT-4.1-mini", inline=True)
     embed.add_field(name="Servers", value=str(len(client.guilds)), inline=True)
     embed.add_field(name="Version", value="1.0.2", inline=True)
     embed.add_field(
@@ -978,7 +978,7 @@ async def on_ready():
     await tree.sync()
     print(f"✈️ DarkstarAIC is online!")
     print(f"📚 Connected to {len(client.guilds)} server(s)")
-    print(f"🤖 Using GPT-3.5-turbo with Assistants API v2")
+    print(f"🤖 Using GPT-4.1-mini with Assistants API v2")
 
 
 if __name__ == "__main__":
