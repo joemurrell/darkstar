@@ -209,14 +209,21 @@ def format_mcq(question: str, options: List[str], question_num: int = None, tota
     """Format a multiple choice question as a Discord embed with forest green border."""
     letters = ["A", "B", "C", "D", "E", "F"][:len(options)]
     
-    # Clean options to remove any leading letter prefixes (e.g., "A) ", "B) ", etc.)
+    # Clean options to remove any leading letter prefixes
     cleaned_options = []
     for opt in options:
         # Strip leading whitespace
         cleaned = opt.strip()
-        # Remove leading letter prefix if present (e.g., "A)", "B)", "C)", "D)")
-        if len(cleaned) >= 2 and cleaned[0].upper() in 'ABCDEF' and cleaned[1] == ')':
-            cleaned = cleaned[2:].strip()
+        # Remove leading letter prefix patterns: "A)", "A.", "A:", "A -", etc.
+        if len(cleaned) >= 2 and cleaned[0].upper() in 'ABCDEF':
+            second_char = cleaned[1]
+            # Check for common separators after the letter
+            if second_char in ').:- ':
+                # Find where the actual text starts (skip past separator and whitespace)
+                start_idx = 2
+                while start_idx < len(cleaned) and cleaned[start_idx] in ' \t':
+                    start_idx += 1
+                cleaned = cleaned[start_idx:]
         cleaned_options.append(cleaned)
     
     # Forest green color similar to flight suit (hex #2d5016)
