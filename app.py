@@ -33,19 +33,37 @@ oai = OpenAI(
     default_headers={"OpenAI-Beta": "assistants=v2"}
 )
 
-# Configure logging for assistant responses
+# Configure logging for Railway compatibility
+# Railway prefers structured JSON logs with clear levels
+# Reference: https://docs.railway.com/guides/logs
+import sys
+
+# Create logs directory for file logging
 log_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "logs")
 os.makedirs(log_dir, exist_ok=True)
 
+# Configure logging with proper levels and formatting
+# Railway will capture stdout/stderr and parse JSON if available
 logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    level=logging.DEBUG,  # Capture all levels
+    format='%(asctime)s | %(levelname)-8s | %(name)s | %(funcName)s:%(lineno)d | %(message)s',
     handlers=[
-        logging.FileHandler(os.path.join(log_dir, 'ai_replies.log')),
-        logging.StreamHandler()
+        logging.FileHandler(os.path.join(log_dir, 'darkstar.log')),
+        logging.StreamHandler(sys.stdout)
     ]
 )
+
+# Create logger instances for different components
 logger = logging.getLogger(__name__)
+discord_logger = logging.getLogger('discord_bot')
+quiz_logger = logging.getLogger('quiz')
+api_logger = logging.getLogger('openai_api')
+
+# Set levels for different loggers
+logger.setLevel(logging.DEBUG)
+discord_logger.setLevel(logging.DEBUG)
+quiz_logger.setLevel(logging.DEBUG)
+api_logger.setLevel(logging.INFO)
 
 # In-memory quiz state (per-channel)
 QUIZ_STATE = {}
@@ -67,8 +85,11 @@ class QuizAnswerButton(discord.ui.Button):
     
     async def callback(self, interaction: discord.Interaction):
         """Handle button click."""
+        quiz_logger.info(f"Button click: user={interaction.user.name}({interaction.user.id}) guild={interaction.guild.name if interaction.guild else 'DM'}({interaction.guild_id if interaction.guild else 'N/A'}) channel={interaction.channel_id} question={self.question_idx+1} choice={self.choice}")
+        
         state = QUIZ_STATE.get(interaction.channel_id)
         if not state:
+            quiz_logger.warning(f"No quiz running in channel {interaction.channel_id} for user {interaction.user.name}({interaction.user.id})")
             await interaction.response.send_message(
                 "❌ No quiz is running in this channel.",
                 ephemeral=True
@@ -77,6 +98,7 @@ class QuizAnswerButton(discord.ui.Button):
         
         # Check if quiz has ended
         if datetime.utcnow() >= state["end_time"]:
+            quiz_logger.warning(f"User {interaction.user.name}({interaction.user.id}) attempted to answer after quiz ended in channel {interaction.channel_id}")
             await interaction.response.send_message(
                 "❌ This quiz has ended! Results are being calculated.",
                 ephemeral=True
@@ -85,6 +107,7 @@ class QuizAnswerButton(discord.ui.Button):
         
         # Validate question number
         if self.question_idx < 0 or self.question_idx >= len(state["questions"]):
+            quiz_logger.error(f"Invalid question index {self.question_idx} for user {interaction.user.name}({interaction.user.id}) in channel {interaction.channel_id}")
             await interaction.response.send_message(
                 f"❌ Invalid question.",
                 ephemeral=True
@@ -96,9 +119,11 @@ class QuizAnswerButton(discord.ui.Button):
         # Initialize user's answers if needed
         if user_id not in state["user_answers"]:
             state["user_answers"][user_id] = {}
+            quiz_logger.debug(f"Initialized answer dict for user {interaction.user.name}({user_id}) in channel {interaction.channel_id}")
         
         # Store the answer
         state["user_answers"][user_id][self.question_idx] = self.choice
+        quiz_logger.info(f"Stored answer: user={interaction.user.name}({user_id}) channel={interaction.channel_id} q={self.question_idx+1} answer={self.choice}")
         
         # Calculate how many questions they've answered
         answered_count = len(state["user_answers"][user_id])
@@ -107,6 +132,8 @@ class QuizAnswerButton(discord.ui.Button):
         time_remaining = state["end_time"] - datetime.utcnow()
         minutes_remaining = int(time_remaining.total_seconds() / 60)
         seconds_remaining = int(time_remaining.total_seconds() % 60)
+        
+        quiz_logger.debug(f"User {interaction.user.name}({user_id}) progress: {answered_count}/{total_questions} answered, {minutes_remaining}m {seconds_remaining}s remaining")
         
         await interaction.response.send_message(
             f"📝 Answer **{self.choice}** recorded for question {self.question_idx + 1}!\n"
@@ -230,9 +257,12 @@ async def ask_assistant(user_msg: str, timeout: int = 30, temperature: float = N
         timeout: Maximum seconds to wait for response
         temperature: Optional temperature for response generation (0.0-2.0)
     """
+    api_logger.debug(f"ask_assistant called: msg_len={len(user_msg)} timeout={timeout} temperature={temperature}")
+    
     try:
         # Create a new thread for this question
         thread = oai.beta.threads.create()
+        api_logger.debug(f"Created thread: {thread.id}")
         
         # Add user message to thread
         oai.beta.threads.messages.create(
@@ -240,6 +270,7 @@ async def ask_assistant(user_msg: str, timeout: int = 30, temperature: float = N
             role="user",
             content=user_msg
         )
+        api_logger.debug(f"Added message to thread {thread.id}")
         
         # Build run parameters
         run_params = {
@@ -253,6 +284,7 @@ async def ask_assistant(user_msg: str, timeout: int = 30, temperature: float = N
         
         # Create and run the assistant (v2 API)
         run = oai.beta.threads.runs.create(**run_params)
+        api_logger.debug(f"Created run: {run.id} for thread {thread.id}")
         
         # Poll until complete (with timeout)
         elapsed = 0
@@ -268,7 +300,10 @@ async def ask_assistant(user_msg: str, timeout: int = 30, temperature: float = N
             await asyncio.sleep(0.7)
             elapsed += 0.7
         
+        api_logger.info(f"Run completed: status={run.status} elapsed={elapsed:.1f}s thread={thread.id}")
+        
         if run.status != "completed":
+            api_logger.warning(f"Assistant didn't respond in time: status={run.status} thread={thread.id}")
             return f"⚠️ Assistant didn't respond in time (status: {run.status}). Try again."
         
         # Retrieve messages
@@ -285,12 +320,15 @@ async def ask_assistant(user_msg: str, timeout: int = 30, temperature: float = N
                         text = re.sub(r'【[^】]*】', '', text)
                         chunks.append(text)
                 
-                return "\n".join(chunks) if chunks else "No response from assistant."
+                response = "\n".join(chunks) if chunks else "No response from assistant."
+                api_logger.info(f"Assistant response received: length={len(response)} thread={thread.id}")
+                return response
         
+        api_logger.warning(f"No assistant message found in thread {thread.id}")
         return "No response from assistant."
         
     except Exception as e:
-        print(f"Error asking assistant: {e}")
+        api_logger.error(f"Error asking assistant: {e}", exc_info=True)
         return f"❌ Error communicating with AI: {str(e)}"
 
 
@@ -559,11 +597,11 @@ If you cannot generate {num_questions} distinct topics, return fewer items with 
 IMPORTANT: Return ONLY the JSON array, no other text."""
 
     # Call assistant with diversity parameters
-    logger.info(f"Generating quiz: topic_hint='{topic_hint}', num_questions={num_questions}")
+    api_logger.info(f"Generating quiz: topic_hint='{topic_hint}', num_questions={num_questions}")
     reply = await ask_assistant(prompt, timeout=45, temperature=0.7)
     
     # Log the raw assistant reply
-    logger.info(f"Assistant raw reply (first 1000 chars): {reply[:1000]}")
+    api_logger.debug(f"Assistant raw reply (first 1000 chars): {reply[:1000]}")
     
     try:
         # Try to extract JSON from the response
@@ -589,13 +627,13 @@ IMPORTANT: Return ONLY the JSON array, no other text."""
                         valid_questions.append(item)
         
         if not valid_questions:
-            logger.warning("No valid questions returned from assistant")
+            api_logger.warning("No valid questions returned from assistant")
             return None
         
         # Deduplicate initial set
         unique_questions, used_topics = deduplicate_questions(valid_questions)
-        logger.info(f"After deduplication: {len(unique_questions)} unique out of {len(valid_questions)} initial questions")
-        logger.info(f"Used topics: {used_topics}")
+        api_logger.info(f"After deduplication: {len(unique_questions)} unique out of {len(valid_questions)} initial questions")
+        api_logger.info(f"Used topics: {used_topics}")
         
         # Regeneration loop if we don't have enough unique questions
         attempt = 0
@@ -603,7 +641,7 @@ IMPORTANT: Return ONLY the JSON array, no other text."""
             attempt += 1
             needed = num_questions - len(unique_questions)
             
-            logger.info(f"Regeneration attempt {attempt}/{max_regeneration_attempts}: need {needed} more questions")
+            api_logger.info(f"Regeneration attempt {attempt}/{max_regeneration_attempts}: need {needed} more questions")
             
             # Build regeneration prompt with excluded topics
             regen_prompt = f"""Generate {needed + 2} additional multiple-choice questions based ONLY on the attached PDF.
@@ -637,7 +675,7 @@ Each question MUST include a unique "topic" tag (different from: {', '.join(used
 IMPORTANT: Return ONLY the JSON array, no other text."""
             
             regen_reply = await ask_assistant(regen_prompt, timeout=45, temperature=0.8)
-            logger.info(f"Regeneration reply (first 500 chars): {regen_reply[:500]}")
+            api_logger.debug(f"Regeneration reply (first 500 chars): {regen_reply[:500]}")
             
             try:
                 # Parse regenerated questions
@@ -675,68 +713,79 @@ IMPORTANT: Return ONLY the JSON array, no other text."""
                     if not is_duplicate:
                         unique_questions.append(q)
                         used_topics.append(topic)
-                        logger.info(f"Added new unique question with topic: {topic}")
+                        api_logger.debug(f"Added new unique question with topic: {topic}")
                         
                         # Stop if we have enough
                         if len(unique_questions) >= num_questions:
                             break
                 
             except (json.JSONDecodeError, Exception) as e:
-                logger.error(f"Error parsing regeneration attempt {attempt}: {e}")
+                api_logger.error(f"Error parsing regeneration attempt {attempt}: {e}")
                 continue
         
         # Log final results
         final_count = len(unique_questions)
-        logger.info(f"Final quiz: {final_count} unique questions (requested: {num_questions})")
-        logger.info(f"Final topics: {used_topics}")
+        api_logger.info(f"Final quiz: {final_count} unique questions (requested: {num_questions})")
+        api_logger.info(f"Final topics: {used_topics}")
         
         # Return the requested number or what we have
         if final_count >= num_questions:
             result = unique_questions[:num_questions]
-            logger.info(f"Returning {len(result)} questions")
+            api_logger.info(f"Returning {len(result)} questions")
             return result
         elif final_count > 0:
             # Return what we have with a note
-            logger.warning(f"Could only generate {final_count} unique questions (requested {num_questions})")
+            api_logger.warning(f"Could only generate {final_count} unique questions (requested {num_questions})")
             return unique_questions
         else:
-            logger.error("Failed to generate any unique questions")
+            api_logger.error("Failed to generate any unique questions")
             return None
         
     except json.JSONDecodeError as e:
-        logger.error(f"JSON parse error: {e}")
-        logger.error(f"Response was: {reply[:500]}")
+        api_logger.error(f"JSON parse error: {e}")
+        api_logger.error(f"Response was: {reply[:500]}")
         return None
     except Exception as e:
-        logger.error(f"Quiz generation error: {e}")
+        api_logger.error(f"Quiz generation error: {e}")
         return None
 
 
 async def auto_end_quiz(channel_id: int, channel, duration_minutes: int):
     """Automatically end the quiz after the specified duration."""
+    quiz_logger.info(f"Auto-end task started for channel {channel_id}, will end in {duration_minutes} minutes")
+    
     try:
         await asyncio.sleep(duration_minutes * 60)
         
         # Check if quiz still exists
         state = QUIZ_STATE.get(channel_id)
         if not state:
+            quiz_logger.warning(f"Auto-end: quiz no longer exists in channel {channel_id}")
             return
+        
+        quiz_logger.info(f"Auto-ending quiz in channel {channel_id} after {duration_minutes} minutes")
         
         # Calculate and display results
         await display_quiz_results(channel, channel_id)
         
     except Exception as e:
-        print(f"Error in auto_end_quiz: {e}")
+        quiz_logger.error(f"Error in auto_end_quiz for channel {channel_id}: {e}", exc_info=True)
 
 
 async def display_quiz_results(channel, channel_id: int):
     """Display quiz results and clean up state."""
+    quiz_logger.info(f"Displaying quiz results for channel {channel_id}")
+    
     state = QUIZ_STATE.get(channel_id)
     if not state:
+        quiz_logger.warning(f"No quiz state found for channel {channel_id}")
         return
     
     questions = state["questions"]
     user_answers = state["user_answers"]
+    
+    quiz_logger.info(f"Quiz results: {len(questions)} questions, {len(user_answers)} users participated")
+    quiz_logger.debug(f"User answers data: {user_answers}")
     
     # Calculate scores
     scores = {}
@@ -748,6 +797,7 @@ async def display_quiz_results(channel, channel_id: int):
                 if choice == correct_answer:
                     score += 1
         scores[user_id] = score
+        quiz_logger.debug(f"User {user_id} score: {score}/{len(questions)}")
     
     # Sort by score
     scores_sorted = sorted(scores.items(), key=lambda x: x[1], reverse=True)
@@ -769,13 +819,18 @@ async def display_quiz_results(channel, channel_id: int):
             for i, (uid, score) in enumerate(scores_sorted)
         )
         leaderboard_embed.add_field(name="Final Scores", value=leaderboard_text, inline=False)
+        quiz_logger.info(f"Leaderboard: {[(uid, score) for uid, score in scores_sorted]}")
     else:
         leaderboard_embed.description = "No one submitted answers!"
+        quiz_logger.info("No participants submitted answers")
     
     await channel.send(embed=leaderboard_embed)
+    quiz_logger.info(f"Sent leaderboard embed to channel {channel_id}")
     
     # Create detailed results for each question
     for idx, q in enumerate(questions):
+        quiz_logger.debug(f"Processing results for question {idx+1}/{total_questions}")
+        
         result_embed = discord.Embed(
             title=f"Question {idx+1}/{total_questions}",
             description=f"**{q['q']}**",
@@ -799,9 +854,14 @@ async def display_quiz_results(channel, channel_id: int):
                 else:
                     incorrect_users.append(user_id)
         
+        quiz_logger.info(f"Question {idx+1} results: {len(correct_users)} correct, {len(incorrect_users)} incorrect")
+        quiz_logger.debug(f"Question {idx+1} correct users: {correct_users}")
+        quiz_logger.debug(f"Question {idx+1} incorrect users: {incorrect_users}")
+        
         # Show who answered correctly
         if correct_users:
             correct_mentions = ", ".join(f"<@{uid}>" for uid in correct_users)
+            quiz_logger.debug(f"Question {idx+1} correct mentions string (len={len(correct_mentions)}): {correct_mentions}")
             result_embed.add_field(
                 name="✅ Answered Correctly",
                 value=correct_mentions,
@@ -811,6 +871,7 @@ async def display_quiz_results(channel, channel_id: int):
         # Show who answered incorrectly
         if incorrect_users:
             incorrect_mentions = ", ".join(f"<@{uid}>" for uid in incorrect_users)
+            quiz_logger.debug(f"Question {idx+1} incorrect mentions string (len={len(incorrect_mentions)}): {incorrect_mentions}")
             result_embed.add_field(
                 name="❌ Answered Incorrectly",
                 value=incorrect_mentions,
@@ -825,12 +886,14 @@ async def display_quiz_results(channel, channel_id: int):
         )
         
         await channel.send(embed=result_embed)
+        quiz_logger.debug(f"Sent results embed for question {idx+1} to channel {channel_id}")
     
     # Send closing message
     await channel.send("Start a new quiz with `/quiz_start`!")
     
     # Clean up state
     QUIZ_STATE.pop(channel_id, None)
+    quiz_logger.info(f"Cleaned up quiz state for channel {channel_id}")
 
 
 # --- Discord Commands ---
@@ -838,9 +901,12 @@ async def display_quiz_results(channel, channel_id: int):
 @tree.command(name="ask", description="Ask a question about the ACC documentation")
 async def ask_command(interaction: discord.Interaction, question: str):
     """Ask the bot a question grounded in the uploaded PDF."""
+    discord_logger.info(f"/ask command: user={interaction.user.name}({interaction.user.id}) guild={interaction.guild.name if interaction.guild else 'DM'}({interaction.guild_id if interaction.guild else 'N/A'}) channel={interaction.channel_id} question='{question[:100]}'")
+    
     # Check permissions first
     has_perms, perm_error = await check_bot_permissions(interaction)
     if not has_perms:
+        discord_logger.warning(f"/ask permission denied for user {interaction.user.name}({interaction.user.id}) in channel {interaction.channel_id}")
         await interaction.response.send_message(perm_error, ephemeral=True)
         return
     
@@ -848,25 +914,33 @@ async def ask_command(interaction: discord.Interaction, question: str):
     
     enhanced_question = f"{question}\n\n(Answer using ONLY information from the attached PDF documentation. Include page numbers when possible. If the answer isn't in the PDF, say so clearly. Your response MUST be less than 2000 characters to fit in a Discord message.)"
     
+    api_logger.debug(f"Sending question to assistant API: '{enhanced_question[:100]}'")
     answer = await ask_assistant(enhanced_question)
+    api_logger.debug(f"Received answer from assistant API (length={len(answer)})")
     
     # Discord has a 2000 character limit
     if len(answer) > 1998:
         answer = answer[:1997] + "..."
+        api_logger.warning(f"Answer truncated to 1998 characters")
     
     await interaction.followup.send(answer)
+    discord_logger.info(f"/ask completed for user {interaction.user.name}({interaction.user.id})")
 
 
 @tree.command(name="quiz_start", description="Start a quiz from the ACC documentation")
 async def quiz_start(interaction: discord.Interaction, topic: str = "", questions: int = 6, duration: int = 5):
     """Start a new quiz session in this channel."""
+    discord_logger.info(f"/quiz_start command: user={interaction.user.name}({interaction.user.id}) guild={interaction.guild.name if interaction.guild else 'DM'}({interaction.guild_id if interaction.guild else 'N/A'}) channel={interaction.channel_id} topic='{topic}' questions={questions} duration={duration}")
+    
     # Check permissions first
     has_perms, perm_error = await check_bot_permissions(interaction)
     if not has_perms:
+        discord_logger.warning(f"/quiz_start permission denied for user {interaction.user.name}({interaction.user.id}) in channel {interaction.channel_id}")
         await interaction.response.send_message(perm_error, ephemeral=True)
         return
     
     if questions < 1 or questions > 10:
+        discord_logger.warning(f"/quiz_start invalid question count {questions} from user {interaction.user.name}({interaction.user.id})")
         await interaction.response.send_message(
             "❌ Please choose between 1 and 10 questions.",
             ephemeral=True
@@ -874,6 +948,7 @@ async def quiz_start(interaction: discord.Interaction, topic: str = "", question
         return
     
     if duration < 1 or duration > 60:
+        discord_logger.warning(f"/quiz_start invalid duration {duration} from user {interaction.user.name}({interaction.user.id})")
         await interaction.response.send_message(
             "❌ Please choose a duration between 1 and 60 minutes.",
             ephemeral=True
@@ -881,6 +956,7 @@ async def quiz_start(interaction: discord.Interaction, topic: str = "", question
         return
     
     if interaction.channel_id in QUIZ_STATE:
+        discord_logger.warning(f"/quiz_start attempted but quiz already running in channel {interaction.channel_id}")
         await interaction.response.send_message(
             "⚠️ There's already a quiz running in this channel! Finish it first or use `/quiz_end` to cancel.",
             ephemeral=True
@@ -889,9 +965,11 @@ async def quiz_start(interaction: discord.Interaction, topic: str = "", question
     
     await interaction.response.defer(thinking=True)
     
+    quiz_logger.info(f"Generating quiz: topic='{topic}' questions={questions} duration={duration} for channel {interaction.channel_id}")
     quiz_questions = await generate_quiz(topic_hint=topic, num_questions=questions)
     
     if not quiz_questions:
+        quiz_logger.error(f"Failed to generate quiz for channel {interaction.channel_id}")
         await interaction.followup.send(
             "❌ Couldn't generate a quiz right now. Try:\n"
             "• A more specific topic\n"
@@ -912,6 +990,8 @@ async def quiz_start(interaction: discord.Interaction, topic: str = "", question
         "duration_minutes": duration,
         "initiator": interaction.user.id
     }
+    
+    quiz_logger.info(f"Quiz started in channel {interaction.channel_id} by user {interaction.user.name}({interaction.user.id}): {len(shuffled_questions)} questions, {duration} minutes")
     
     topic_text = f" (Topic: {topic})" if topic else ""
     
@@ -947,14 +1027,19 @@ async def quiz_start(interaction: discord.Interaction, topic: str = "", question
         question_embed = format_mcq(q["q"], q["options"], idx + 1, len(shuffled_questions))
         view = QuizQuestionView(idx, q["options"])
         await interaction.channel.send(embed=question_embed, view=view)
+    
+    quiz_logger.info(f"All quiz questions posted to channel {interaction.channel_id}")
 
 
 @tree.command(name="quiz_answer", description="Answer a quiz question (alternative to buttons)")
 async def quiz_answer(interaction: discord.Interaction, question_number: int, choice: str):
     """Submit an answer to a quiz question."""
+    discord_logger.info(f"/quiz_answer command: user={interaction.user.name}({interaction.user.id}) guild={interaction.guild.name if interaction.guild else 'DM'}({interaction.guild_id if interaction.guild else 'N/A'}) channel={interaction.channel_id} q={question_number} choice={choice}")
+    
     choice = choice.strip().upper()
     
     if choice not in ["A", "B", "C", "D"]:
+        discord_logger.warning(f"/quiz_answer invalid choice '{choice}' from user {interaction.user.name}({interaction.user.id})")
         await interaction.response.send_message(
             "❌ Please answer with A, B, C, or D.",
             ephemeral=True
@@ -963,6 +1048,7 @@ async def quiz_answer(interaction: discord.Interaction, question_number: int, ch
     
     state = QUIZ_STATE.get(interaction.channel_id)
     if not state:
+        discord_logger.warning(f"/quiz_answer no quiz in channel {interaction.channel_id} for user {interaction.user.name}({interaction.user.id})")
         await interaction.response.send_message(
             "❌ No quiz is running in this channel. Use `/quiz_start` to begin!",
             ephemeral=True
@@ -971,6 +1057,7 @@ async def quiz_answer(interaction: discord.Interaction, question_number: int, ch
     
     # Check if quiz has ended
     if datetime.utcnow() >= state["end_time"]:
+        discord_logger.warning(f"/quiz_answer after quiz ended in channel {interaction.channel_id} for user {interaction.user.name}({interaction.user.id})")
         await interaction.response.send_message(
             "❌ This quiz has ended! Results are being calculated.",
             ephemeral=True
@@ -980,6 +1067,7 @@ async def quiz_answer(interaction: discord.Interaction, question_number: int, ch
     # Validate question number
     question_idx = question_number - 1
     if question_idx < 0 or question_idx >= len(state["questions"]):
+        discord_logger.error(f"/quiz_answer invalid question number {question_number} from user {interaction.user.name}({interaction.user.id}) in channel {interaction.channel_id}")
         await interaction.response.send_message(
             f"❌ Invalid question number. Please choose between 1 and {len(state['questions'])}.",
             ephemeral=True
@@ -991,9 +1079,11 @@ async def quiz_answer(interaction: discord.Interaction, question_number: int, ch
     # Initialize user's answers if needed
     if user_id not in state["user_answers"]:
         state["user_answers"][user_id] = {}
+        quiz_logger.debug(f"Initialized answer dict for user {interaction.user.name}({user_id}) in channel {interaction.channel_id}")
     
     # Store the answer
     state["user_answers"][user_id][question_idx] = choice
+    quiz_logger.info(f"Stored answer via command: user={interaction.user.name}({user_id}) channel={interaction.channel_id} q={question_number} answer={choice}")
     
     # Calculate how many questions they've answered
     answered_count = len(state["user_answers"][user_id])
@@ -1002,6 +1092,8 @@ async def quiz_answer(interaction: discord.Interaction, question_number: int, ch
     time_remaining = state["end_time"] - datetime.utcnow()
     minutes_remaining = int(time_remaining.total_seconds() / 60)
     seconds_remaining = int(time_remaining.total_seconds() % 60)
+    
+    quiz_logger.debug(f"User {interaction.user.name}({user_id}) progress: {answered_count}/{total_questions} answered, {minutes_remaining}m {seconds_remaining}s remaining")
     
     await interaction.response.send_message(
         f"📝 Answer recorded for question {question_number}!\n"
@@ -1014,13 +1106,17 @@ async def quiz_answer(interaction: discord.Interaction, question_number: int, ch
 @tree.command(name="quiz_end", description="End the current quiz and show results")
 async def quiz_end(interaction: discord.Interaction):
     """End the current quiz and display results."""
+    discord_logger.info(f"/quiz_end command: user={interaction.user.name}({interaction.user.id}) guild={interaction.guild.name if interaction.guild else 'DM'}({interaction.guild_id if interaction.guild else 'N/A'}) channel={interaction.channel_id}")
+    
     # Check permissions first
     has_perms, perm_error = await check_bot_permissions(interaction)
     if not has_perms:
+        discord_logger.warning(f"/quiz_end permission denied for user {interaction.user.name}({interaction.user.id}) in channel {interaction.channel_id}")
         await interaction.response.send_message(perm_error, ephemeral=True)
         return
     
     if interaction.channel_id not in QUIZ_STATE:
+        discord_logger.warning(f"/quiz_end no quiz in channel {interaction.channel_id}")
         await interaction.response.send_message(
             "❌ No quiz is running in this channel.",
             ephemeral=True
@@ -1028,6 +1124,8 @@ async def quiz_end(interaction: discord.Interaction):
         return
     
     await interaction.response.defer()
+    
+    quiz_logger.info(f"Quiz manually ended in channel {interaction.channel_id} by user {interaction.user.name}({interaction.user.id})")
     
     # Display results
     await display_quiz_results(interaction.channel, interaction.channel_id)
@@ -1038,6 +1136,8 @@ async def quiz_end(interaction: discord.Interaction):
 @tree.command(name="quiz_score", description="Check your quiz progress")
 async def quiz_score(interaction: discord.Interaction):
     """Show your current quiz progress."""
+    discord_logger.debug(f"/quiz_score command: user={interaction.user.name}({interaction.user.id}) guild={interaction.guild.name if interaction.guild else 'DM'}({interaction.guild_id if interaction.guild else 'N/A'}) channel={interaction.channel_id}")
+    
     state = QUIZ_STATE.get(interaction.channel_id)
     if not state:
         await interaction.response.send_message(
@@ -1066,6 +1166,8 @@ async def quiz_score(interaction: discord.Interaction):
     
     answered_text = ", ".join(map(str, answered_questions)) if answered_questions else "None"
     
+    discord_logger.debug(f"User {interaction.user.name}({user_id}) progress check: {answered_count}/{total_q} questions answered")
+    
     await interaction.response.send_message(
         f"📊 **Your Quiz Progress:**\n"
         f"Answered: {answered_count}/{total_q} questions\n"
@@ -1078,6 +1180,8 @@ async def quiz_score(interaction: discord.Interaction):
 @tree.command(name="info", description="Show bot information and stats")
 async def info_command(interaction: discord.Interaction):
     """Display bot information."""
+    discord_logger.debug(f"/info command: user={interaction.user.name}({interaction.user.id}) guild={interaction.guild.name if interaction.guild else 'DM'}({interaction.guild_id if interaction.guild else 'N/A'}) channel={interaction.channel_id}")
+    
     # Check permissions first
     has_perms, perm_error = await check_bot_permissions(interaction)
     if not has_perms:
@@ -1106,6 +1210,15 @@ async def info_command(interaction: discord.Interaction):
 async def on_ready():
     """Called when the bot is ready."""
     await tree.sync()
+    discord_logger.info(f"✈️ DarkstarAIC is online!")
+    discord_logger.info(f"📚 Connected to {len(client.guilds)} server(s)")
+    discord_logger.info(f"🤖 Using GPT-4.1-mini with Assistants API v2")
+    discord_logger.info(f"Bot user: {client.user.name}#{client.user.discriminator} (ID: {client.user.id})")
+    
+    # Log guild information
+    for guild in client.guilds:
+        discord_logger.info(f"  - Guild: {guild.name} (ID: {guild.id}, Members: {guild.member_count})")
+    
     print(f"✈️ DarkstarAIC is online!")
     print(f"📚 Connected to {len(client.guilds)} server(s)")
     print(f"🤖 Using GPT-4.1-mini with Assistants API v2")
