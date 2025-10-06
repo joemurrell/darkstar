@@ -2,6 +2,12 @@
 
 **AI-powered Q&A and Quiz Discord Bot for Air Control Communication**
 
+[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
+[![Discord.py](https://img.shields.io/badge/discord.py-2.4.0-blue.svg)](https://github.com/Rapptz/discord.py)
+[![OpenAI](https://img.shields.io/badge/OpenAI-GPT--4.1--mini-green.svg)](https://platform.openai.com/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-Support-orange.svg)](https://www.buymeacoffee.com/joemurrell)
+
 DarkstarAIC is a Discord bot designed for DCS (Digital Combat Simulator) communities, providing intelligent question-answering and interactive quizzes based on Air Control Communication (ACC) documentation. Powered by OpenAI's GPT-4.1-mini with Assistants API v2, it delivers accurate, PDF-grounded responses to help pilots and controllers master ACC procedures.
 
 ## ✨ Features
@@ -13,6 +19,25 @@ DarkstarAIC is a Discord bot designed for DCS (Digital Combat Simulator) communi
 - **🔍 Smart Topic Diversity**: Quiz questions cover diverse topics from the documentation
 - **🤖 GPT-4.1-mini Powered**: Leverages OpenAI's latest model for intelligent, context-aware responses
 - **🛡️ Permission Management**: Ensures bot has necessary permissions before responding
+
+## 📺 Demo
+
+### Q&A Command
+Ask any question about ACC documentation and get instant, accurate answers:
+```
+/ask What is the proper radio phraseology for requesting takeoff clearance?
+```
+
+### Quiz Commands
+Start an interactive quiz to test your knowledge:
+```
+/quiz_start questions:8 duration:10
+/quiz_answer B
+/quiz_score
+/quiz_end
+```
+
+The bot will generate unique questions, track your progress, and provide detailed explanations with page references.
 
 ## 🚀 Quick Start
 
@@ -166,6 +191,38 @@ darkstar/
 - **Quiz Generation**: Dynamically creates diverse multiple-choice questions from documentation
 - **Session Management**: Tracks quiz sessions per Discord channel
 - **Fuzzy Matching**: Accepts approximate answers using Levenshtein distance
+
+## 🛠️ Troubleshooting
+
+### Common Issues
+
+**Bot is not responding to commands**
+- Verify the bot has proper permissions (Send Messages, Embed Links, Read Message History)
+- Check that slash commands are enabled in your server
+- Ensure the bot token is valid and the bot is online
+- Run `/info` to verify bot is working
+
+**Quiz questions are too similar**
+- The bot uses topic diversity to generate varied questions
+- Try specifying a topic hint with `/quiz_start topic:your-topic`
+- Reduce the number of questions if generation is slow
+
+**"Permission denied" errors**
+- Check bot role permissions in Discord server settings
+- Ensure bot role is above other roles in the hierarchy
+- Grant "Use Application Commands" permission
+
+**OpenAI API errors**
+- Verify your API key is valid and has sufficient credits
+- Check that the Assistant ID is correct
+- Ensure the Assistant has file search enabled and PDFs uploaded
+
+**Quiz timing out or not working**
+- Only one quiz can run per Discord channel at a time
+- End the current quiz with `/quiz_end` before starting a new one
+- Check that quiz duration is between 1-60 minutes
+
+For more help, please [open an issue](https://github.com/joemurrell/darkstar/issues) on GitHub.
 
 ## 🤝 Contributing
 
