@@ -131,6 +131,95 @@ class QuizQuestionView(discord.ui.View):
 
 # --- Helper Functions ---
 
+async def check_bot_permissions(interaction: discord.Interaction) -> Tuple[bool, Optional[str]]:
+    """
+    Check if the bot has required permissions in the current channel.
+    Returns (has_permissions, error_message).
+    
+    Required permissions:
+    - Send Messages
+    - Embed Links
+    - Read Message History
+    - View Channel
+    """
+    if not interaction.guild:
+        # DM channels - bot always has permissions
+        return True, None
+    
+    channel = interaction.channel
+    bot_member = interaction.guild.get_member(client.user.id)
+    
+    if not bot_member:
+        return False, "❌ Bot member not found in guild."
+    
+    # Get bot's effective permissions in the channel
+    bot_perms = channel.permissions_for(bot_member)
+    
+    # Define required permissions
+    required_perms = {
+        "send_messages": "Send Messages",
+        "embed_links": "Embed Links",
+        "read_message_history": "Read Message History",
+        "view_channel": "View Channel"
+    }
+    
+    # Check which permissions are missing
+    missing_perms = []
+    for perm_attr, perm_name in required_perms.items():
+        if not getattr(bot_perms, perm_attr, False):
+            missing_perms.append(perm_name)
+    
+    if not missing_perms:
+        return True, None
+    
+    # Permissions are missing - identify the cause
+    error_parts = [f"❌ **Missing Permissions in this channel:**"]
+    error_parts.append(f"Missing: {', '.join(f'**{p}**' for p in missing_perms)}")
+    error_parts.append("")
+    error_parts.append("**Cause Analysis:**")
+    
+    # Check channel overwrites to find blockers
+    blockers = []
+    
+    # Check @everyone overwrite
+    everyone_overwrite = channel.overwrites_for(interaction.guild.default_role)
+    for perm_attr, perm_name in required_perms.items():
+        perm_value = getattr(everyone_overwrite, perm_attr, None)
+        if perm_value is False:  # Explicitly denied
+            blockers.append(f"• @everyone role explicitly **denies** `{perm_name}`")
+    
+    # Check bot's role overwrites
+    for role in bot_member.roles:
+        if role == interaction.guild.default_role:
+            continue
+        role_overwrite = channel.overwrites_for(role)
+        for perm_attr, perm_name in required_perms.items():
+            perm_value = getattr(role_overwrite, perm_attr, None)
+            if perm_value is False:  # Explicitly denied
+                blockers.append(f"• Role {role.mention} explicitly **denies** `{perm_name}`")
+    
+    # Check member-specific overwrite (rare but possible)
+    member_overwrite = channel.overwrites_for(bot_member)
+    for perm_attr, perm_name in required_perms.items():
+        perm_value = getattr(member_overwrite, perm_attr, None)
+        if perm_value is False:  # Explicitly denied
+            blockers.append(f"• Bot member override explicitly **denies** `{perm_name}`")
+    
+    if blockers:
+        error_parts.extend(blockers)
+    else:
+        # No explicit denies found - must be missing from base roles
+        error_parts.append(f"• The bot's roles don't grant these permissions globally")
+        error_parts.append(f"• No channel overwrites are blocking (but none are allowing either)")
+    
+    error_parts.append("")
+    error_parts.append("**How to fix:**")
+    error_parts.append("1. Check channel permission overwrites for roles/members")
+    error_parts.append("2. Grant the bot's role the required permissions server-wide, OR")
+    error_parts.append("3. Add channel-specific permission overwrites to allow the bot")
+    
+    return False, "\n".join(error_parts)
+
 async def ask_assistant(user_msg: str, timeout: int = 30, temperature: float = None) -> str:
     """
     Ask the OpenAI Assistant a question using Assistants API v2.
@@ -749,6 +838,12 @@ async def display_quiz_results(channel, channel_id: int):
 @tree.command(name="ask", description="Ask a question about the ACC documentation")
 async def ask_command(interaction: discord.Interaction, question: str):
     """Ask the bot a question grounded in the uploaded PDF."""
+    # Check permissions first
+    has_perms, perm_error = await check_bot_permissions(interaction)
+    if not has_perms:
+        await interaction.response.send_message(perm_error, ephemeral=True)
+        return
+    
     await interaction.response.defer(thinking=True)
     
     enhanced_question = f"{question}\n\n(Answer using ONLY information from the attached PDF documentation. Include page numbers when possible. If the answer isn't in the PDF, say so clearly. Your response MUST be less than 2000 characters to fit in a Discord message.)"
@@ -765,6 +860,12 @@ async def ask_command(interaction: discord.Interaction, question: str):
 @tree.command(name="quiz_start", description="Start a quiz from the ACC documentation")
 async def quiz_start(interaction: discord.Interaction, topic: str = "", questions: int = 6, duration: int = 5):
     """Start a new quiz session in this channel."""
+    # Check permissions first
+    has_perms, perm_error = await check_bot_permissions(interaction)
+    if not has_perms:
+        await interaction.response.send_message(perm_error, ephemeral=True)
+        return
+    
     if questions < 1 or questions > 10:
         await interaction.response.send_message(
             "❌ Please choose between 1 and 10 questions.",
@@ -913,6 +1014,12 @@ async def quiz_answer(interaction: discord.Interaction, question_number: int, ch
 @tree.command(name="quiz_end", description="End the current quiz and show results")
 async def quiz_end(interaction: discord.Interaction):
     """End the current quiz and display results."""
+    # Check permissions first
+    has_perms, perm_error = await check_bot_permissions(interaction)
+    if not has_perms:
+        await interaction.response.send_message(perm_error, ephemeral=True)
+        return
+    
     if interaction.channel_id not in QUIZ_STATE:
         await interaction.response.send_message(
             "❌ No quiz is running in this channel.",
@@ -971,6 +1078,12 @@ async def quiz_score(interaction: discord.Interaction):
 @tree.command(name="info", description="Show bot information and stats")
 async def info_command(interaction: discord.Interaction):
     """Display bot information."""
+    # Check permissions first
+    has_perms, perm_error = await check_bot_permissions(interaction)
+    if not has_perms:
+        await interaction.response.send_message(perm_error, ephemeral=True)
+        return
+    
     embed = discord.Embed(
         title="✈️ DarkstarAIC",
         description="AI-powered Q&A and quiz bot for Air Control Communication",
