@@ -1,4 +1,4 @@
-# ✈️ DarkstarAIC
+# Darkstar
 
 **AI-powered Q&A and Quiz Discord Bot for Air Control Communication**
 
