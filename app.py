@@ -1195,7 +1195,7 @@ async def info_command(interaction: discord.Interaction):
     )
     embed.add_field(name="Model", value="GPT-4.1-mini", inline=True)
     embed.add_field(name="Servers", value=str(len(client.guilds)), inline=True)
-    embed.add_field(name="Version", value="1.0.2", inline=True)
+    embed.add_field(name="Version", value="1.0.0", inline=True)
     embed.add_field(
         name="Commands",
         value="• `/ask` - Ask questions\n• `/quiz_start` - Start timed quiz\n• `/quiz_answer` - Answer question\n• `/quiz_score` - View progress\n• `/quiz_end` - End quiz",
