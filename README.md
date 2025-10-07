@@ -1,6 +1,6 @@
-# Darkstar
+# DarkstarAIC
 
-**AI-powered Q&A and Quiz Discord Bot for Air Control Communication**
+**AI-powered Q&A and Quiz Discord Bot for Air Intercept Control and Air Control Communication**
 
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![Discord.py](https://img.shields.io/badge/discord.py-2.4.0-blue.svg)](https://github.com/Rapptz/discord.py)
