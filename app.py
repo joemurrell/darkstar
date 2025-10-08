@@ -1,6 +1,7 @@
 """
-DarkstarAIC - DCS Air Control Communication Discord Bot
-PDF-grounded Q&A and Quiz system using OpenAI Assistants API (GPT-4.1-mini))
+DarkstarAIC - DCS Squadron SOP Discord Bot
+Multi-server PDF-grounded Q&A and Quiz system using OpenAI Assistants API (GPT-4.1-mini)
+Supports per-server assistants and document uploads for squadron SOPs
 """
 import os
 import asyncio
@@ -9,7 +10,7 @@ import re
 import random
 import logging
 from datetime import datetime, timedelta
-from typing import List, Optional, Set, Tuple
+from typing import List, Optional, Set, Tuple, Dict
 from collections import Counter
 import discord
 from discord import app_commands
@@ -19,7 +20,8 @@ from fuzzywuzzy import fuzz
 # Environment variables
 DISCORD_TOKEN = os.environ["DISCORD_TOKEN"]
 OPENAI_API_KEY = os.environ["OPENAI_API_KEY"]
-ASSISTANT_ID = os.environ["ASSISTANT_ID"]
+# ASSISTANT_ID is now optional - will create per-guild assistants dynamically
+ASSISTANT_ID = os.environ.get("ASSISTANT_ID", None)
 
 # --- Discord client setup ---
 intents = discord.Intents.default()
@@ -67,6 +69,10 @@ api_logger.setLevel(logging.INFO)
 
 # In-memory quiz state (per-channel)
 QUIZ_STATE = {}
+
+# In-memory guild assistant storage (guild_id -> assistant_id, vector_store_id)
+# In production, this should be a database
+GUILD_ASSISTANTS: Dict[int, Dict[str, str]] = {}
 
 
 # --- Button Classes for Quiz Interaction ---
@@ -247,19 +253,111 @@ async def check_bot_permissions(interaction: discord.Interaction) -> Tuple[bool,
     
     return False, "\n".join(error_parts)
 
-async def ask_assistant(user_msg: str, timeout: int = 30, temperature: float = None) -> str:
+async def get_or_create_guild_assistant(guild_id: int, guild_name: str = None) -> Tuple[str, str]:
+    """
+    Get or create an assistant for a guild.
+    Returns (assistant_id, vector_store_id).
+    """
+    api_logger.debug(f"Getting or creating assistant for guild {guild_id} ({guild_name})")
+    
+    # Check if we already have an assistant for this guild
+    if guild_id in GUILD_ASSISTANTS:
+        guild_data = GUILD_ASSISTANTS[guild_id]
+        api_logger.debug(f"Found existing assistant for guild {guild_id}: {guild_data['assistant_id']}")
+        return guild_data["assistant_id"], guild_data.get("vector_store_id")
+    
+    # Use global ASSISTANT_ID if available (backward compatibility)
+    if ASSISTANT_ID:
+        api_logger.info(f"Using global ASSISTANT_ID for guild {guild_id}")
+        # Get or create vector store for this assistant
+        assistant = oai.beta.assistants.retrieve(ASSISTANT_ID)
+        vector_store_id = None
+        if hasattr(assistant, 'tool_resources') and assistant.tool_resources:
+            if hasattr(assistant.tool_resources, 'file_search') and assistant.tool_resources.file_search:
+                vector_stores = assistant.tool_resources.file_search.vector_store_ids
+                if vector_stores:
+                    vector_store_id = vector_stores[0]
+        
+        GUILD_ASSISTANTS[guild_id] = {
+            "assistant_id": ASSISTANT_ID,
+            "vector_store_id": vector_store_id
+        }
+        return ASSISTANT_ID, vector_store_id
+    
+    # Create a new assistant for this guild
+    api_logger.info(f"Creating new assistant for guild {guild_id} ({guild_name})")
+    
+    try:
+        # Create vector store for documents
+        vector_store = oai.beta.vector_stores.create(
+            name=f"SOP Documents - {guild_name or guild_id}"
+        )
+        api_logger.debug(f"Created vector store {vector_store.id} for guild {guild_id}")
+        
+        # Create assistant with file search enabled
+        assistant = oai.beta.assistants.create(
+            name=f"SOP Assistant - {guild_name or guild_id}",
+            instructions="""You are an expert assistant for DCS (Digital Combat Simulator) squadron Standard Operating Procedures (SOPs).
+Your role is to answer questions and generate quizzes based ONLY on the uploaded SOP documentation.
+
+When answering questions:
+- Use ONLY information from the attached documents
+- Include page numbers when referencing information
+- If information isn't in the documents, clearly state that
+- Keep responses under 2000 characters for Discord compatibility
+- Be precise and cite specific procedures
+
+When generating quiz questions:
+- Create diverse questions covering different topics
+- Use multiple-choice format (A, B, C, D)
+- Include explanations with page references
+- Focus on critical procedures and safety information""",
+            model="gpt-4o-mini",
+            tools=[{"type": "file_search"}],
+            tool_resources={
+                "file_search": {
+                    "vector_store_ids": [vector_store.id]
+                }
+            }
+        )
+        api_logger.info(f"Created assistant {assistant.id} for guild {guild_id}")
+        
+        # Store in memory
+        GUILD_ASSISTANTS[guild_id] = {
+            "assistant_id": assistant.id,
+            "vector_store_id": vector_store.id
+        }
+        
+        return assistant.id, vector_store.id
+        
+    except Exception as e:
+        api_logger.error(f"Error creating assistant for guild {guild_id}: {e}")
+        raise
+
+async def ask_assistant(user_msg: str, timeout: int = 30, temperature: float = None, guild_id: int = None) -> str:
     """
     Ask the OpenAI Assistant a question using Assistants API v2.
-    Uses File Search to ground responses in the uploaded PDF.
+    Uses File Search to ground responses in the uploaded PDF/documents.
     
     Args:
         user_msg: The message/prompt to send to the assistant
         timeout: Maximum seconds to wait for response
         temperature: Optional temperature for response generation (0.0-2.0)
+        guild_id: Guild ID to use for assistant lookup
     """
-    api_logger.debug(f"ask_assistant called: msg_len={len(user_msg)} timeout={timeout} temperature={temperature}")
+    api_logger.debug(f"ask_assistant called: msg_len={len(user_msg)} timeout={timeout} temperature={temperature} guild_id={guild_id}")
     
     try:
+        # Get assistant ID for the guild
+        if guild_id:
+            assistant_id, _ = await get_or_create_guild_assistant(guild_id)
+        elif ASSISTANT_ID:
+            assistant_id = ASSISTANT_ID
+        else:
+            raise ValueError("No assistant ID available. Please run /setup first or set ASSISTANT_ID environment variable.")
+        
+        api_logger.debug(f"Using assistant {assistant_id} for guild {guild_id}")
+        
         # Create a new thread for this question
         thread = oai.beta.threads.create()
         api_logger.debug(f"Created thread: {thread.id}")
@@ -275,7 +373,7 @@ async def ask_assistant(user_msg: str, timeout: int = 30, temperature: float = N
         # Build run parameters
         run_params = {
             "thread_id": thread.id,
-            "assistant_id": ASSISTANT_ID
+            "assistant_id": assistant_id
         }
         
         # Add optional parameters if provided
@@ -554,11 +652,16 @@ def deduplicate_questions(questions: List[dict]) -> Tuple[List[dict], List[str]]
     return unique, topics
 
 
-async def generate_quiz(topic_hint: str = "", num_questions: int = 6) -> Optional[List[dict]]:
+async def generate_quiz(topic_hint: str = "", num_questions: int = 6, guild_id: int = None) -> Optional[List[dict]]:
     """
-    Generate a quiz from the PDF using the Assistant.
+    Generate a quiz from the documents using the Assistant.
     Enforces diversity by deduplicating questions and regenerating if needed.
     Returns a list of question dicts or None on failure.
+    
+    Args:
+        topic_hint: Optional topic focus
+        num_questions: Number of questions to generate
+        guild_id: Guild ID to use for assistant lookup
     """
     max_regeneration_attempts = 3
     unique_questions = []
@@ -597,8 +700,8 @@ If you cannot generate {num_questions} distinct topics, return fewer items with 
 IMPORTANT: Return ONLY the JSON array, no other text."""
 
     # Call assistant with diversity parameters
-    api_logger.info(f"Generating quiz: topic_hint='{topic_hint}', num_questions={num_questions}")
-    reply = await ask_assistant(prompt, timeout=45, temperature=0.7)
+    api_logger.info(f"Generating quiz: topic_hint='{topic_hint}', num_questions={num_questions}, guild_id={guild_id}")
+    reply = await ask_assistant(prompt, timeout=45, temperature=0.7, guild_id=guild_id)
     
     # Log the raw assistant reply
     api_logger.debug(f"Assistant raw reply (first 1000 chars): {reply[:1000]}")
@@ -674,7 +777,7 @@ Each question MUST include a unique "topic" tag (different from: {', '.join(used
 
 IMPORTANT: Return ONLY the JSON array, no other text."""
             
-            regen_reply = await ask_assistant(regen_prompt, timeout=45, temperature=0.8)
+            regen_reply = await ask_assistant(regen_prompt, timeout=45, temperature=0.8, guild_id=guild_id)
             api_logger.debug(f"Regeneration reply (first 500 chars): {regen_reply[:500]}")
             
             try:
@@ -898,9 +1001,9 @@ async def display_quiz_results(channel, channel_id: int):
 
 # --- Discord Commands ---
 
-@tree.command(name="ask", description="Ask a question about the ACC documentation")
+@tree.command(name="ask", description="Ask a question about the squadron SOP documentation")
 async def ask_command(interaction: discord.Interaction, question: str):
-    """Ask the bot a question grounded in the uploaded PDF."""
+    """Ask the bot a question grounded in the uploaded SOP documents."""
     discord_logger.info(f"/ask command: user={interaction.user.name}({interaction.user.id}) guild={interaction.guild.name if interaction.guild else 'DM'}({interaction.guild_id if interaction.guild else 'N/A'}) channel={interaction.channel_id} question='{question[:100]}'")
     
     # Check permissions first
@@ -910,12 +1013,20 @@ async def ask_command(interaction: discord.Interaction, question: str):
         await interaction.response.send_message(perm_error, ephemeral=True)
         return
     
+    # Check if guild has setup assistant (or if global ASSISTANT_ID exists)
+    if interaction.guild_id and interaction.guild_id not in GUILD_ASSISTANTS and not ASSISTANT_ID:
+        await interaction.response.send_message(
+            "❌ This server hasn't been set up yet! An admin needs to run `/setup` first to create an assistant for this server.",
+            ephemeral=True
+        )
+        return
+    
     await interaction.response.defer(thinking=True)
     
-    enhanced_question = f"{question}\n\n(Answer using ONLY information from the attached PDF documentation. Include page numbers when possible. If the answer isn't in the PDF, say so clearly. Your response MUST be less than 2000 characters to fit in a Discord message.)"
+    enhanced_question = f"{question}\n\n(Answer using ONLY information from the attached SOP documentation. Include page numbers when possible. If the answer isn't in the documents, say so clearly. Your response MUST be less than 2000 characters to fit in a Discord message.)"
     
     api_logger.debug(f"Sending question to assistant API: '{enhanced_question[:100]}'")
-    answer = await ask_assistant(enhanced_question)
+    answer = await ask_assistant(enhanced_question, guild_id=interaction.guild_id)
     api_logger.debug(f"Received answer from assistant API (length={len(answer)})")
     
     # Discord has a 2000 character limit
@@ -927,7 +1038,7 @@ async def ask_command(interaction: discord.Interaction, question: str):
     discord_logger.info(f"/ask completed for user {interaction.user.name}({interaction.user.id})")
 
 
-@tree.command(name="quiz_start", description="Start a quiz from the ACC documentation")
+@tree.command(name="quiz_start", description="Start a quiz from the squadron SOP documentation")
 async def quiz_start(interaction: discord.Interaction, topic: str = "", questions: int = 6, duration: int = 5):
     """Start a new quiz session in this channel."""
     discord_logger.info(f"/quiz_start command: user={interaction.user.name}({interaction.user.id}) guild={interaction.guild.name if interaction.guild else 'DM'}({interaction.guild_id if interaction.guild else 'N/A'}) channel={interaction.channel_id} topic='{topic}' questions={questions} duration={duration}")
@@ -937,6 +1048,14 @@ async def quiz_start(interaction: discord.Interaction, topic: str = "", question
     if not has_perms:
         discord_logger.warning(f"/quiz_start permission denied for user {interaction.user.name}({interaction.user.id}) in channel {interaction.channel_id}")
         await interaction.response.send_message(perm_error, ephemeral=True)
+        return
+    
+    # Check if guild has setup assistant (or if global ASSISTANT_ID exists)
+    if interaction.guild_id and interaction.guild_id not in GUILD_ASSISTANTS and not ASSISTANT_ID:
+        await interaction.response.send_message(
+            "❌ This server hasn't been set up yet! An admin needs to run `/setup` first to create an assistant for this server.",
+            ephemeral=True
+        )
         return
     
     if questions < 1 or questions > 10:
@@ -966,7 +1085,7 @@ async def quiz_start(interaction: discord.Interaction, topic: str = "", question
     await interaction.response.defer(thinking=True)
     
     quiz_logger.info(f"Generating quiz: topic='{topic}' questions={questions} duration={duration} for channel {interaction.channel_id}")
-    quiz_questions = await generate_quiz(topic_hint=topic, num_questions=questions)
+    quiz_questions = await generate_quiz(topic_hint=topic, num_questions=questions, guild_id=interaction.guild_id)
     
     if not quiz_questions:
         quiz_logger.error(f"Failed to generate quiz for channel {interaction.channel_id}")
@@ -1189,16 +1308,23 @@ async def info_command(interaction: discord.Interaction):
         return
     
     embed = discord.Embed(
-        title="✈️ DarkstarAIC",
-        description="AI-powered Q&A and quiz bot for Air Control Communication",
+        title="✈️ DarkstarAIC - Squadron SOP Bot",
+        description="AI-powered Q&A and quiz bot for DCS Squadron Standard Operating Procedures",
         color=0x2d5016  # Forest green
     )
-    embed.add_field(name="Model", value="GPT-4.1-mini", inline=True)
+    embed.add_field(name="Model", value="GPT-4o-mini", inline=True)
     embed.add_field(name="Servers", value=str(len(client.guilds)), inline=True)
-    embed.add_field(name="Version", value="1.0.0", inline=True)
+    embed.add_field(name="Version", value="2.0.0", inline=True)
+    
+    # Show guild-specific assistant status
+    if interaction.guild_id:
+        has_assistant = interaction.guild_id in GUILD_ASSISTANTS or ASSISTANT_ID is not None
+        status = "✅ Configured" if has_assistant else "⚠️ Not setup (run /setup)"
+        embed.add_field(name="Server Status", value=status, inline=False)
+    
     embed.add_field(
         name="Commands",
-        value="• `/ask` - Ask questions\n• `/quiz_start` - Start timed quiz\n• `/quiz_answer` - Answer question\n• `/quiz_score` - View progress\n• `/quiz_end` - End quiz",
+        value="• `/ask` - Ask questions about SOPs\n• `/quiz_start` - Start timed quiz\n• `/quiz_answer` - Answer question\n• `/quiz_score` - View progress\n• `/quiz_end` - End quiz\n• `/setup` - Initialize server (admin)\n• `/upload_document` - Upload SOP PDF (admin)\n• `/list_documents` - List uploaded documents\n• `/remove_document` - Remove document (admin)",
         inline=False
     )
     embed.set_footer(text="Powered by OpenAI Assistants API v2")
@@ -1206,22 +1332,321 @@ async def info_command(interaction: discord.Interaction):
     await interaction.response.send_message(embed=embed)
 
 
+@tree.command(name="setup", description="Initialize the bot for this server (Admin only)")
+@app_commands.default_permissions(administrator=True)
+async def setup_command(interaction: discord.Interaction):
+    """Setup the bot for this guild by creating an assistant."""
+    discord_logger.info(f"/setup command: user={interaction.user.name}({interaction.user.id}) guild={interaction.guild.name if interaction.guild else 'DM'}({interaction.guild_id if interaction.guild else 'N/A'})")
+    
+    if not interaction.guild:
+        await interaction.response.send_message(
+            "❌ This command can only be used in a server, not in DMs.",
+            ephemeral=True
+        )
+        return
+    
+    # Check if already setup
+    if interaction.guild_id in GUILD_ASSISTANTS:
+        guild_data = GUILD_ASSISTANTS[interaction.guild_id]
+        await interaction.response.send_message(
+            f"✅ This server is already set up!\n"
+            f"• Assistant ID: `{guild_data['assistant_id']}`\n"
+            f"• Vector Store ID: `{guild_data.get('vector_store_id', 'N/A')}`\n\n"
+            f"Use `/upload_document` to add SOP documents.",
+            ephemeral=True
+        )
+        return
+    
+    # Check if using global ASSISTANT_ID
+    if ASSISTANT_ID:
+        await interaction.response.send_message(
+            f"ℹ️ Using global assistant configuration.\n"
+            f"• Assistant ID: `{ASSISTANT_ID}`\n\n"
+            f"Note: This bot is configured to use a single global assistant. For per-server assistants, remove the ASSISTANT_ID environment variable.",
+            ephemeral=True
+        )
+        return
+    
+    await interaction.response.defer(thinking=True, ephemeral=True)
+    
+    try:
+        assistant_id, vector_store_id = await get_or_create_guild_assistant(
+            interaction.guild_id,
+            interaction.guild.name
+        )
+        
+        await interaction.followup.send(
+            f"✅ **Server setup complete!**\n\n"
+            f"• Assistant ID: `{assistant_id}`\n"
+            f"• Vector Store ID: `{vector_store_id}`\n\n"
+            f"**Next steps:**\n"
+            f"1. Use `/upload_document` to upload your squadron SOP PDFs\n"
+            f"2. Users can then use `/ask` to ask questions\n"
+            f"3. Start quizzes with `/quiz_start`",
+            ephemeral=True
+        )
+        discord_logger.info(f"Setup completed for guild {interaction.guild_id} ({interaction.guild.name})")
+        
+    except Exception as e:
+        api_logger.error(f"Error setting up guild {interaction.guild_id}: {e}")
+        await interaction.followup.send(
+            f"❌ **Setup failed:** {str(e)}\n\n"
+            f"Please check the bot's API key and permissions.",
+            ephemeral=True
+        )
+
+
+@tree.command(name="upload_document", description="Upload a SOP document PDF (Admin only)")
+@app_commands.default_permissions(administrator=True)
+async def upload_document_command(interaction: discord.Interaction, file: discord.Attachment):
+    """Upload a PDF document to the guild's assistant."""
+    discord_logger.info(f"/upload_document command: user={interaction.user.name}({interaction.user.id}) guild={interaction.guild.name if interaction.guild else 'DM'}({interaction.guild_id if interaction.guild else 'N/A'}) file={file.filename}")
+    
+    if not interaction.guild:
+        await interaction.response.send_message(
+            "❌ This command can only be used in a server, not in DMs.",
+            ephemeral=True
+        )
+        return
+    
+    # Check if PDF
+    if not file.filename.lower().endswith('.pdf'):
+        await interaction.response.send_message(
+            "❌ Only PDF files are supported. Please upload a PDF document.",
+            ephemeral=True
+        )
+        return
+    
+    # Check file size (25 MB limit for Discord and OpenAI)
+    if file.size > 25 * 1024 * 1024:
+        await interaction.response.send_message(
+            "❌ File is too large. Maximum size is 25 MB.",
+            ephemeral=True
+        )
+        return
+    
+    await interaction.response.defer(thinking=True, ephemeral=True)
+    
+    try:
+        # Ensure guild has an assistant
+        assistant_id, vector_store_id = await get_or_create_guild_assistant(
+            interaction.guild_id,
+            interaction.guild.name
+        )
+        
+        if not vector_store_id:
+            await interaction.followup.send(
+                "❌ No vector store found for this server. Please run `/setup` first.",
+                ephemeral=True
+            )
+            return
+        
+        # Download the file
+        api_logger.debug(f"Downloading file {file.filename} ({file.size} bytes)")
+        file_bytes = await file.read()
+        
+        # Upload to OpenAI
+        api_logger.debug(f"Uploading {file.filename} to OpenAI")
+        uploaded_file = oai.files.create(
+            file=(file.filename, file_bytes),
+            purpose="assistants"
+        )
+        api_logger.info(f"File uploaded to OpenAI: {uploaded_file.id}")
+        
+        # Add to vector store
+        api_logger.debug(f"Adding file {uploaded_file.id} to vector store {vector_store_id}")
+        oai.beta.vector_stores.files.create(
+            vector_store_id=vector_store_id,
+            file_id=uploaded_file.id
+        )
+        api_logger.info(f"File {uploaded_file.id} added to vector store {vector_store_id}")
+        
+        await interaction.followup.send(
+            f"✅ **Document uploaded successfully!**\n\n"
+            f"• File: `{file.filename}`\n"
+            f"• Size: `{file.size / 1024:.1f} KB`\n"
+            f"• File ID: `{uploaded_file.id}`\n\n"
+            f"The document is now available for Q&A and quizzes!",
+            ephemeral=True
+        )
+        discord_logger.info(f"Document {file.filename} uploaded for guild {interaction.guild_id}")
+        
+    except Exception as e:
+        api_logger.error(f"Error uploading document for guild {interaction.guild_id}: {e}")
+        await interaction.followup.send(
+            f"❌ **Upload failed:** {str(e)}",
+            ephemeral=True
+        )
+
+
+@tree.command(name="list_documents", description="List all uploaded SOP documents")
+async def list_documents_command(interaction: discord.Interaction):
+    """List all documents in the guild's vector store."""
+    discord_logger.info(f"/list_documents command: user={interaction.user.name}({interaction.user.id}) guild={interaction.guild.name if interaction.guild else 'DM'}({interaction.guild_id if interaction.guild else 'N/A'})")
+    
+    if not interaction.guild:
+        await interaction.response.send_message(
+            "❌ This command can only be used in a server, not in DMs.",
+            ephemeral=True
+        )
+        return
+    
+    await interaction.response.defer(thinking=True, ephemeral=True)
+    
+    try:
+        # Get guild assistant info
+        if interaction.guild_id not in GUILD_ASSISTANTS and not ASSISTANT_ID:
+            await interaction.followup.send(
+                "❌ This server hasn't been set up yet. Run `/setup` first.",
+                ephemeral=True
+            )
+            return
+        
+        assistant_id, vector_store_id = await get_or_create_guild_assistant(
+            interaction.guild_id,
+            interaction.guild.name
+        )
+        
+        if not vector_store_id:
+            await interaction.followup.send(
+                "❌ No vector store found for this server.",
+                ephemeral=True
+            )
+            return
+        
+        # List files in vector store
+        api_logger.debug(f"Listing files in vector store {vector_store_id}")
+        vector_store_files = oai.beta.vector_stores.files.list(
+            vector_store_id=vector_store_id
+        )
+        
+        files_list = list(vector_store_files.data)
+        
+        if not files_list:
+            await interaction.followup.send(
+                "📄 **No documents uploaded yet.**\n\n"
+                "Use `/upload_document` to add SOP PDFs.",
+                ephemeral=True
+            )
+            return
+        
+        # Get file details
+        embed = discord.Embed(
+            title=f"📚 Uploaded Documents ({len(files_list)})",
+            description=f"Documents in this server's knowledge base:",
+            color=0x2d5016
+        )
+        
+        for vs_file in files_list[:25]:  # Limit to 25 to avoid embed limits
+            try:
+                file_details = oai.files.retrieve(vs_file.id)
+                embed.add_field(
+                    name=f"📄 {file_details.filename}",
+                    value=f"ID: `{vs_file.id}`\nSize: `{file_details.bytes / 1024:.1f} KB`",
+                    inline=False
+                )
+            except Exception as e:
+                api_logger.warning(f"Could not retrieve file details for {vs_file.id}: {e}")
+                embed.add_field(
+                    name=f"📄 File {vs_file.id}",
+                    value=f"ID: `{vs_file.id}`",
+                    inline=False
+                )
+        
+        if len(files_list) > 25:
+            embed.set_footer(text=f"Showing 25 of {len(files_list)} documents")
+        
+        await interaction.followup.send(embed=embed, ephemeral=True)
+        
+    except Exception as e:
+        api_logger.error(f"Error listing documents for guild {interaction.guild_id}: {e}")
+        await interaction.followup.send(
+            f"❌ **Error listing documents:** {str(e)}",
+            ephemeral=True
+        )
+
+
+@tree.command(name="remove_document", description="Remove a SOP document by file ID (Admin only)")
+@app_commands.default_permissions(administrator=True)
+async def remove_document_command(interaction: discord.Interaction, file_id: str):
+    """Remove a document from the guild's vector store."""
+    discord_logger.info(f"/remove_document command: user={interaction.user.name}({interaction.user.id}) guild={interaction.guild.name if interaction.guild else 'DM'}({interaction.guild_id if interaction.guild else 'N/A'}) file_id={file_id}")
+    
+    if not interaction.guild:
+        await interaction.response.send_message(
+            "❌ This command can only be used in a server, not in DMs.",
+            ephemeral=True
+        )
+        return
+    
+    await interaction.response.defer(thinking=True, ephemeral=True)
+    
+    try:
+        # Get guild assistant info
+        if interaction.guild_id not in GUILD_ASSISTANTS and not ASSISTANT_ID:
+            await interaction.followup.send(
+                "❌ This server hasn't been set up yet.",
+                ephemeral=True
+            )
+            return
+        
+        assistant_id, vector_store_id = await get_or_create_guild_assistant(
+            interaction.guild_id,
+            interaction.guild.name
+        )
+        
+        if not vector_store_id:
+            await interaction.followup.send(
+                "❌ No vector store found for this server.",
+                ephemeral=True
+            )
+            return
+        
+        # Remove file from vector store
+        api_logger.debug(f"Removing file {file_id} from vector store {vector_store_id}")
+        oai.beta.vector_stores.files.delete(
+            vector_store_id=vector_store_id,
+            file_id=file_id
+        )
+        api_logger.info(f"File {file_id} removed from vector store {vector_store_id}")
+        
+        await interaction.followup.send(
+            f"✅ **Document removed successfully!**\n\n"
+            f"• File ID: `{file_id}`\n\n"
+            f"The document is no longer available for Q&A and quizzes.",
+            ephemeral=True
+        )
+        discord_logger.info(f"Document {file_id} removed from guild {interaction.guild_id}")
+        
+    except Exception as e:
+        api_logger.error(f"Error removing document {file_id} for guild {interaction.guild_id}: {e}")
+        await interaction.followup.send(
+            f"❌ **Remove failed:** {str(e)}\n\n"
+            f"Make sure the file ID is correct. Use `/list_documents` to see available files.",
+            ephemeral=True
+        )
+
+
 @client.event
 async def on_ready():
     """Called when the bot is ready."""
     await tree.sync()
-    discord_logger.info(f"✈️ DarkstarAIC is online!")
+    discord_logger.info(f"✈️ DarkstarAIC Squadron SOP Bot is online!")
     discord_logger.info(f"📚 Connected to {len(client.guilds)} server(s)")
-    discord_logger.info(f"🤖 Using GPT-4.1-mini with Assistants API v2")
+    discord_logger.info(f"🤖 Using GPT-4o-mini with Assistants API v2")
+    discord_logger.info(f"🔧 Multi-server mode: {'Global Assistant' if ASSISTANT_ID else 'Per-Server Assistants'}")
     discord_logger.info(f"Bot user: {client.user.name}#{client.user.discriminator} (ID: {client.user.id})")
     
     # Log guild information
     for guild in client.guilds:
-        discord_logger.info(f"  - Guild: {guild.name} (ID: {guild.id}, Members: {guild.member_count})")
+        has_assistant = guild.id in GUILD_ASSISTANTS or ASSISTANT_ID is not None
+        status = "✅" if has_assistant else "⚠️"
+        discord_logger.info(f"  {status} Guild: {guild.name} (ID: {guild.id}, Members: {guild.member_count})")
     
-    print(f"✈️ DarkstarAIC is online!")
+    print(f"✈️ DarkstarAIC Squadron SOP Bot is online!")
     print(f"📚 Connected to {len(client.guilds)} server(s)")
-    print(f"🤖 Using GPT-4.1-mini with Assistants API v2")
+    print(f"🤖 Using GPT-4o-mini with Assistants API v2")
+    print(f"🔧 Mode: {'Global Assistant' if ASSISTANT_ID else 'Per-Server Assistants'}")
 
 
 if __name__ == "__main__":
