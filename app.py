@@ -927,9 +927,9 @@ async def ask_command(interaction: discord.Interaction, question: str):
     discord_logger.info(f"/ask completed for user {interaction.user.name}({interaction.user.id})")
 
 
-@tree.command(name="quiz_start", description="Start a quiz from the ACC documentation")
+@tree.command(name="quiz_start", description="Start a quiz from the ACC documentation. Defaults to 5 questions with a 15 minute duration.")
 async def quiz_start(interaction: discord.Interaction, topic: str = "", questions: int = 5, duration: int = 15):
-    """Start a new quiz session in this channel. Defaults to 5 questions with a 15 minute duration."""
+    """Start a new quiz session in this channel."""
     discord_logger.info(f"/quiz_start command: user={interaction.user.name}({interaction.user.id}) guild={interaction.guild.name if interaction.guild else 'DM'}({interaction.guild_id if interaction.guild else 'N/A'}) channel={interaction.channel_id} topic='{topic}' questions={questions} duration={duration}")
     
     # Check permissions first
