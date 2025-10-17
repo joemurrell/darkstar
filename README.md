@@ -47,15 +47,10 @@ The bot will generate unique questions, track your progress, and provide detaile
 
 - **`/quiz_start [topic] [questions] [duration]`** - Start a quiz session
   - `topic` (optional): Focus on specific topics
-  - `questions` (optional): Number of questions (1-10, default: 6)
-  - `duration` (optional): Quiz duration in minutes (1-60, default: 5)
+  - `questions` (optional): Number of questions (1-10, default: 5)
+  - `duration` (optional): Quiz duration in minutes (1-480, default: 15)
   ```
   /quiz_start topic:radio-procedures questions:8 duration:10
-  ```
-
-- **`/quiz_answer <answer>`** - Answer the current quiz question
-  ```
-  /quiz_answer A
   ```
 
 - **`/quiz_score`** - View your current quiz progress
