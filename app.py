@@ -928,8 +928,8 @@ async def ask_command(interaction: discord.Interaction, question: str):
 
 
 @tree.command(name="quiz_start", description="Start a quiz from the ACC documentation")
-async def quiz_start(interaction: discord.Interaction, topic: str = "", questions: int = 6, duration: int = 5):
-    """Start a new quiz session in this channel."""
+async def quiz_start(interaction: discord.Interaction, topic: str = "", questions: int = 5, duration: int = 15):
+    """Start a new quiz session in this channel. Defaults to 5 questions with a 15 minute duration."""
     discord_logger.info(f"/quiz_start command: user={interaction.user.name}({interaction.user.id}) guild={interaction.guild.name if interaction.guild else 'DM'}({interaction.guild_id if interaction.guild else 'N/A'}) channel={interaction.channel_id} topic='{topic}' questions={questions} duration={duration}")
     
     # Check permissions first
@@ -947,10 +947,10 @@ async def quiz_start(interaction: discord.Interaction, topic: str = "", question
         )
         return
     
-    if duration < 1 or duration > 60:
+    if duration < 1 or duration > 480:
         discord_logger.warning(f"/quiz_start invalid duration {duration} from user {interaction.user.name}({interaction.user.id})")
         await interaction.response.send_message(
-            "❌ Please choose a duration between 1 and 60 minutes.",
+            "❌ Please choose a duration between 1 and 480 minutes.",
             ephemeral=True
         )
         return
