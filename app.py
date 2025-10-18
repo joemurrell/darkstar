@@ -1,6 +1,6 @@
 """
 DarkstarAIC - DCS Air Control Communication Discord Bot
-PDF-grounded Q&A and Quiz system using OpenAI Assistants API (GPT-4.1-mini))
+PDF-grounded Q&A and Quiz system using OpenAI Responses API
 """
 import os
 import asyncio
@@ -27,11 +27,8 @@ intents.message_content = True
 client = discord.Client(intents=intents)
 tree = app_commands.CommandTree(client)
 
-# --- OpenAI client (with v2 assistants) ---
-oai = OpenAI(
-    api_key=OPENAI_API_KEY,
-    default_headers={"OpenAI-Beta": "assistants=v2"}
-)
+# --- OpenAI client ---
+oai = OpenAI(api_key=OPENAI_API_KEY)
 
 # Configure logging for Railway compatibility
 # Railway prefers structured JSON logs with clear levels
@@ -67,6 +64,13 @@ api_logger.setLevel(logging.INFO)
 
 # In-memory quiz state (per-channel)
 QUIZ_STATE = {}
+
+# Assistant configuration (cached from ASSISTANT_ID)
+ASSISTANT_CONFIG = {
+    "instructions": None,
+    "model": None,
+    "vector_store_ids": []
+}
 
 
 # --- Button Classes for Quiz Interaction ---
@@ -247,9 +251,49 @@ async def check_bot_permissions(interaction: discord.Interaction) -> Tuple[bool,
     
     return False, "\n".join(error_parts)
 
+async def initialize_assistant_config():
+    """
+    Retrieve assistant configuration from the ASSISTANT_ID and cache it.
+    This is called once on startup to get instructions, model, and vector store IDs.
+    """
+    try:
+        api_logger.info(f"Retrieving assistant configuration for {ASSISTANT_ID}")
+        
+        # Retrieve assistant details using beta API (still needed for this)
+        assistant = oai.beta.assistants.retrieve(assistant_id=ASSISTANT_ID)
+        
+        # Cache the configuration
+        ASSISTANT_CONFIG["instructions"] = assistant.instructions
+        ASSISTANT_CONFIG["model"] = assistant.model
+        
+        # Extract vector store IDs from tools
+        vector_store_ids = []
+        if assistant.tools:
+            for tool in assistant.tools:
+                if hasattr(tool, 'type') and tool.type == "file_search":
+                    if hasattr(tool, 'file_search') and hasattr(tool.file_search, 'vector_store_ids'):
+                        vector_store_ids.extend(tool.file_search.vector_store_ids)
+        
+        ASSISTANT_CONFIG["vector_store_ids"] = vector_store_ids
+        
+        api_logger.info(f"Assistant config cached: model={ASSISTANT_CONFIG['model']}, "
+                       f"vector_stores={len(vector_store_ids)}, "
+                       f"instructions_len={len(ASSISTANT_CONFIG['instructions']) if ASSISTANT_CONFIG['instructions'] else 0}")
+        
+        return True
+        
+    except Exception as e:
+        api_logger.error(f"Failed to retrieve assistant configuration: {e}", exc_info=True)
+        # Set defaults if retrieval fails
+        ASSISTANT_CONFIG["instructions"] = "You are a helpful assistant."
+        ASSISTANT_CONFIG["model"] = "gpt-4o-mini"
+        ASSISTANT_CONFIG["vector_store_ids"] = []
+        return False
+
+
 async def ask_assistant(user_msg: str, timeout: int = 30, temperature: float = None) -> str:
     """
-    Ask the OpenAI Assistant a question using Assistants API v2.
+    Ask the OpenAI Assistant a question using Responses API.
     Uses File Search to ground responses in the uploaded PDF.
     
     Args:
@@ -260,71 +304,54 @@ async def ask_assistant(user_msg: str, timeout: int = 30, temperature: float = N
     api_logger.debug(f"ask_assistant called: msg_len={len(user_msg)} timeout={timeout} temperature={temperature}")
     
     try:
-        # Create a new thread for this question
-        thread = oai.beta.threads.create()
-        api_logger.debug(f"Created thread: {thread.id}")
-        
-        # Add user message to thread
-        oai.beta.threads.messages.create(
-            thread_id=thread.id,
-            role="user",
-            content=user_msg
-        )
-        api_logger.debug(f"Added message to thread {thread.id}")
-        
-        # Build run parameters
-        run_params = {
-            "thread_id": thread.id,
-            "assistant_id": ASSISTANT_ID
+        # Build request parameters for Responses API
+        request_params = {
+            "model": ASSISTANT_CONFIG["model"],
+            "instructions": ASSISTANT_CONFIG["instructions"],
+            "input": user_msg,
         }
+        
+        # Add file search tool if vector stores are configured
+        if ASSISTANT_CONFIG["vector_store_ids"]:
+            request_params["tools"] = [
+                {
+                    "type": "file_search",
+                    "vector_store_ids": ASSISTANT_CONFIG["vector_store_ids"]
+                }
+            ]
         
         # Add optional parameters if provided
         if temperature is not None:
-            run_params["temperature"] = temperature
+            request_params["temperature"] = temperature
         
-        # Create and run the assistant (v2 API)
-        run = oai.beta.threads.runs.create(**run_params)
-        api_logger.debug(f"Created run: {run.id} for thread {thread.id}")
+        api_logger.debug(f"Creating response with model={ASSISTANT_CONFIG['model']}")
         
-        # Poll until complete (with timeout)
-        elapsed = 0
-        while elapsed < timeout:
-            run = oai.beta.threads.runs.retrieve(
-                thread_id=thread.id,
-                run_id=run.id
-            )
+        # Create response using Responses API (non-streaming)
+        response = oai.responses.create(**request_params)
+        
+        api_logger.info(f"Response received: id={response.id} status={response.status}")
+        
+        # Extract text from response
+        if response.output and len(response.output) > 0:
+            # Get the first output item
+            output_item = response.output[0]
             
-            if run.status in ("completed", "failed", "cancelled", "expired"):
-                break
-                
-            await asyncio.sleep(0.7)
-            elapsed += 0.7
-        
-        api_logger.info(f"Run completed: status={run.status} elapsed={elapsed:.1f}s thread={thread.id}")
-        
-        if run.status != "completed":
-            api_logger.warning(f"Assistant didn't respond in time: status={run.status} thread={thread.id}")
-            return f"⚠️ Assistant didn't respond in time (status: {run.status}). Try again."
-        
-        # Retrieve messages
-        messages = oai.beta.threads.messages.list(thread_id=thread.id)
-        
-        # Find the latest assistant message
-        for msg in messages.data:
-            if msg.role == "assistant":
+            # Handle different output types
+            if hasattr(output_item, 'content'):
+                # Extract text content
                 chunks = []
-                for content in msg.content:
+                for content in output_item.content:
                     if content.type == "text":
-                        text = content.text.value
+                        text = content.text
                         # Remove citation markers like 【4:2†source】
                         text = re.sub(r'【[^】]*】', '', text)
                         chunks.append(text)
                 
-                response = "\n".join(chunks) if chunks else "No response from assistant."
-                api_logger.info(f"Assistant response received: length={len(response)} thread={thread.id}")
-                return response
+                result = "\n".join(chunks) if chunks else "No response from assistant."
+                api_logger.info(f"Assistant response received: length={len(result)}")
+                return result
         
-        api_logger.warning(f"No assistant message found in thread {thread.id}")
+        api_logger.warning("No output content found in response")
         return "No response from assistant."
         
     except Exception as e:
@@ -1193,7 +1220,7 @@ async def info_command(interaction: discord.Interaction):
         description="AI-powered Q&A and quiz bot for Air Control Communication",
         color=0x2d5016  # Forest green
     )
-    embed.add_field(name="Model", value="GPT-4.1-mini", inline=True)
+    embed.add_field(name="Model", value=ASSISTANT_CONFIG.get("model", "GPT-4o-mini"), inline=True)
     embed.add_field(name="Servers", value=str(len(client.guilds)), inline=True)
     embed.add_field(name="Version", value="1.0.0", inline=True)
     embed.add_field(
@@ -1201,7 +1228,7 @@ async def info_command(interaction: discord.Interaction):
         value="• `/ask` - Ask questions\n• `/quiz_start` - Start timed quiz\n• `/quiz_answer` - Answer question\n• `/quiz_score` - View progress\n• `/quiz_end` - End quiz",
         inline=False
     )
-    embed.set_footer(text="Powered by OpenAI Assistants API v2")
+    embed.set_footer(text="Powered by OpenAI Responses API")
     
     await interaction.response.send_message(embed=embed)
 
@@ -1209,10 +1236,14 @@ async def info_command(interaction: discord.Interaction):
 @client.event
 async def on_ready():
     """Called when the bot is ready."""
+    # Initialize assistant configuration from ASSISTANT_ID
+    discord_logger.info("Initializing assistant configuration...")
+    await initialize_assistant_config()
+    
     await tree.sync()
     discord_logger.info(f"✈️ DarkstarAIC is online!")
     discord_logger.info(f"📚 Connected to {len(client.guilds)} server(s)")
-    discord_logger.info(f"🤖 Using GPT-4.1-mini with Assistants API v2")
+    discord_logger.info(f"🤖 Using {ASSISTANT_CONFIG['model']} with Responses API")
     discord_logger.info(f"Bot user: {client.user.name}#{client.user.discriminator} (ID: {client.user.id})")
     
     # Log guild information
@@ -1221,7 +1252,7 @@ async def on_ready():
     
     print(f"✈️ DarkstarAIC is online!")
     print(f"📚 Connected to {len(client.guilds)} server(s)")
-    print(f"🤖 Using GPT-4.1-mini with Assistants API v2")
+    print(f"🤖 Using {ASSISTANT_CONFIG['model']} with Responses API")
 
 
 if __name__ == "__main__":
