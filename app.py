@@ -336,20 +336,21 @@ async def ask_assistant(user_msg: str, timeout: int = 30, temperature: float = N
             # Get the first output item
             output_item = response.output[0]
             
-            # Handle different output types
-            if hasattr(output_item, 'content'):
-                # Extract text content
-                chunks = []
-                for content in output_item.content:
-                    if content.type == "text":
-                        text = content.text
-                        # Remove citation markers like 【4:2†source】
-                        text = re.sub(r'【[^】]*】', '', text)
-                        chunks.append(text)
-                
-                result = "\n".join(chunks) if chunks else "No response from assistant."
-                api_logger.info(f"Assistant response received: length={len(result)}")
-                return result
+            # Handle message output type
+            if hasattr(output_item, 'type') and output_item.type == 'message':
+                if hasattr(output_item, 'content'):
+                    # Extract text content
+                    chunks = []
+                    for content in output_item.content:
+                        if hasattr(content, 'type') and content.type == "output_text":
+                            text = content.text
+                            # Remove citation markers like 【4:2†source】
+                            text = re.sub(r'【[^】]*】', '', text)
+                            chunks.append(text)
+                    
+                    result = "\n".join(chunks) if chunks else "No response from assistant."
+                    api_logger.info(f"Assistant response received: length={len(result)}")
+                    return result
         
         api_logger.warning("No output content found in response")
         return "No response from assistant."
