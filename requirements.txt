@@ -1,5 +1,5 @@
 discord.py==2.4.0
-openai==2.2.0
+openai==2.3.0
 httpx==0.27.2
 fuzzywuzzy==0.18.0
 python-Levenshtein==0.27.1
