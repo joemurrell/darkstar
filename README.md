@@ -15,7 +15,7 @@ DarkstarAIC is a Discord bot designed for DCS (Digital Combat Simulator) communi
 - **📚 PDF-Grounded Q&A**: Ask questions about ACC documentation and get accurate answers with page references
 - **🎯 Interactive Quizzes**: Test your knowledge with automatically generated multiple-choice quizzes
 - **⏱️ Timed Quiz Sessions**: Create time-limited quizzes (1-60 minutes) with customizable question counts
--- **🔍 Smart Topic Diversity**: Quiz questions cover diverse topics from the documentation
+- **🔍 Smart Topic Diversity**: Quiz questions cover diverse topics from the documentation
 - **🤖 GPT-4.1-mini Powered**: Leverages OpenAI's latest model for intelligent, context-aware responses
 
 
