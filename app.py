@@ -11,10 +11,10 @@ import logging
 from datetime import datetime, timedelta
 from typing import List, Optional, Set, Tuple
 from collections import Counter
+from difflib import SequenceMatcher
 import discord
 from discord import app_commands
 from openai import OpenAI
-from fuzzywuzzy import fuzz
 
 # Environment variables
 DISCORD_TOKEN = os.environ["DISCORD_TOKEN"]
@@ -23,7 +23,6 @@ ASSISTANT_ID = os.environ["ASSISTANT_ID"]
 
 # --- Discord client setup ---
 intents = discord.Intents.default()
-intents.message_content = True
 client = discord.Client(intents=intents)
 tree = app_commands.CommandTree(client)
 
@@ -35,19 +34,11 @@ oai = OpenAI(api_key=OPENAI_API_KEY)
 # Reference: https://docs.railway.com/guides/logs
 import sys
 
-# Create logs directory for file logging
-log_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "logs")
-os.makedirs(log_dir, exist_ok=True)
-
-# Configure logging with proper levels and formatting
-# Railway will capture stdout/stderr and parse JSON if available
+# Configure logging - stdout only (Railway captures stdout)
 logging.basicConfig(
-    level=logging.DEBUG,  # Capture all levels
+    level=logging.INFO,
     format='%(asctime)s | %(levelname)-8s | %(name)s | %(funcName)s:%(lineno)d | %(message)s',
-    handlers=[
-        logging.FileHandler(os.path.join(log_dir, 'darkstar.log')),
-        logging.StreamHandler(sys.stdout)
-    ]
+    handlers=[logging.StreamHandler(sys.stdout)]
 )
 
 # Create logger instances for different components
@@ -55,12 +46,6 @@ logger = logging.getLogger(__name__)
 discord_logger = logging.getLogger('discord_bot')
 quiz_logger = logging.getLogger('quiz')
 api_logger = logging.getLogger('openai_api')
-
-# Set levels for different loggers
-logger.setLevel(logging.DEBUG)
-discord_logger.setLevel(logging.DEBUG)
-quiz_logger.setLevel(logging.DEBUG)
-api_logger.setLevel(logging.INFO)
 
 # In-memory quiz state (per-channel)
 QUIZ_STATE = {}
@@ -536,7 +521,7 @@ def are_questions_similar(q1: dict, q2: dict, topic1: str, topic2: str) -> bool:
     text1 = q1.get("q", "")
     text2 = q2.get("q", "")
     
-    if fuzz.ratio(text1.lower(), text2.lower()) > 85:
+    if SequenceMatcher(None, text1.lower(), text2.lower()).ratio() * 100 > 85:
         return True
     
     # Check keyword overlap
