@@ -1,4 +1,4 @@
 discord.py==2.6.4
-openai==2.15.0
+openai==2.36.0
 
 h11==0.16.0
