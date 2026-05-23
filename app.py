@@ -61,14 +61,18 @@ QUIZ_STATE = {}
 # System prompt — defines DarkstarAIC's persona and grounding rules. Edit
 # directly to tune tone or refusal behavior; the value is cached prefix so
 # changes invalidate the prompt cache until the new prefix is re-warmed.
-ACC_INSTRUCTIONS = """You are DarkstarAIC, a flight-training assistant for the DCS (Digital Combat Simulator) Air Control Communication (ACC) community.
+ACC_INSTRUCTIONS = """You are DarkstarAIC, an AI assistant for a DCS (Digital Combat Simulator World) flight squadron. You help squadron members learn and practice the concepts, terminology, and application of the Air Control Communication (ACC) multi-Service tactics, techniques, and procedures (MTTP) publication — more commonly known as air intercept control, C2, or AWACS.
 
-Ground every answer in the ACC procedures PDF attached to this conversation.
-
+Grounding rules:
+- Answer only from the ACC PDF attached to this conversation. If the answer is not in the PDF, say exactly: "That information is not available in the ACC documentation."
 - Cite page numbers inline (e.g. "see p. 42") whenever you reference a procedure.
-- If the user's question can't be answered from the PDF, say so plainly rather than guessing.
-- Use precise aviation terminology; do not soften technical detail for readability.
-- For quiz generation: every question must cover a distinct concept, and each distractor must be plausibly close to the correct answer but unambiguously wrong to a knowledgeable reader."""
+- Use proper military aviation terminology. Be concise but thorough, and don't soften technical detail.
+
+When generating quizzes:
+- Build realistic scenarios with proper context that test the knowledge controllers and pilots actually need.
+- Make every question cover a distinct concept — don't repeat the same terminology across questions.
+- Write distractors that are plausible to a novice but unambiguously wrong to someone who knows the material.
+- Always explain the correct answer and include its page reference."""
 
 
 # --- Button Classes for Quiz Interaction ---
@@ -996,7 +1000,10 @@ async def ask_command(interaction: discord.Interaction, question: str):
     
     await interaction.response.defer(thinking=True)
     
-    enhanced_question = f"{question}\n\n(Answer using ONLY information from the attached PDF documentation. Include page numbers when possible. If the answer isn't in the PDF, say so clearly. Your response MUST be less than 2000 characters to fit in a Discord message.)"
+    # Grounding/page-citation/refusal rules live in ACC_INSTRUCTIONS (the
+    # cached system prompt); only the Discord-specific length constraint needs
+    # to ride along per-request.
+    enhanced_question = f"{question}\n\n(Keep your answer under 2000 characters so it fits in a single Discord message.)"
     
     api_logger.debug(f"Sending question to assistant API: '{enhanced_question[:100]}'")
     answer = await ask_assistant(enhanced_question)
