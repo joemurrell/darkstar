@@ -276,18 +276,26 @@ async def initialize_assistant_config():
         return False
 
 
-async def ask_assistant(user_msg: str, timeout: int = 30, temperature: float = None) -> str:
+async def ask_assistant(
+    user_msg: str,
+    timeout: int = 30,
+    temperature: float = None,
+    response_format: Optional[dict] = None,
+) -> str:
     """
     Ask the OpenAI Assistant a question using Responses API.
     Uses File Search to ground responses in the uploaded PDF.
-    
+
     Args:
         user_msg: The message/prompt to send to the assistant
         timeout: Maximum seconds to wait for response
         temperature: Optional temperature for response generation (0.0-2.0)
+        response_format: Optional OpenAI structured-output format dict (e.g. a
+            json_schema spec). When provided, forces the model to return valid
+            JSON matching the schema, eliminating fragile post-hoc parsing.
     """
-    api_logger.debug(f"ask_assistant called: msg_len={len(user_msg)} timeout={timeout} temperature={temperature}")
-    
+    api_logger.debug(f"ask_assistant called: msg_len={len(user_msg)} timeout={timeout} temperature={temperature} structured={response_format is not None}")
+
     try:
         # Build request parameters for Responses API
         request_params = {
@@ -295,7 +303,7 @@ async def ask_assistant(user_msg: str, timeout: int = 30, temperature: float = N
             "instructions": ASSISTANT_CONFIG["instructions"],
             "input": user_msg,
         }
-        
+
         # Add file search tool if vector stores are configured
         if ASSISTANT_CONFIG["vector_store_ids"]:
             request_params["tools"] = [
@@ -304,11 +312,15 @@ async def ask_assistant(user_msg: str, timeout: int = 30, temperature: float = N
                     "vector_store_ids": ASSISTANT_CONFIG["vector_store_ids"]
                 }
             ]
-        
+
         # Add optional parameters if provided
         if temperature is not None:
             request_params["temperature"] = temperature
-        
+
+        # Structured outputs are passed via the Responses-API `text.format` slot.
+        if response_format is not None:
+            request_params["text"] = {"format": response_format}
+
         api_logger.debug(f"Creating response with model={ASSISTANT_CONFIG['model']} timeout={timeout}s")
 
         # Create response using Responses API (non-streaming). The timeout
@@ -389,41 +401,28 @@ def format_mcq(question: str, options: List[str], question_num: int = None, tota
 def shuffle_quiz_options(question: dict) -> dict:
     """
     Shuffle the options in a quiz question and update the correct answer letter.
-    Returns a new dict with shuffled options and updated answer.
+    Returns a new dict with shuffled options + updated answer; preserves every
+    other field from the original (topic, page, and anything else the LLM
+    emits).
     """
     # Get the original correct answer index (A=0, B=1, C=2, D=3)
     answer_letter = question["answer"].strip().upper()
     answer_index = ord(answer_letter) - ord('A')
-    
-    # Create a list of (option_text, is_correct) tuples
+
     options_with_correctness = [
-        (opt, i == answer_index) 
+        (opt, i == answer_index)
         for i, opt in enumerate(question["options"])
     ]
-    
-    # Shuffle the options
     random.shuffle(options_with_correctness)
-    
-    # Find the new position of the correct answer
+
     new_answer_index = next(
-        i for i, (_, is_correct) in enumerate(options_with_correctness) 
+        i for i, (_, is_correct) in enumerate(options_with_correctness)
         if is_correct
     )
-    
-    # Create the shuffled question, preserving optional fields
-    shuffled_question = {
-        "q": question["q"],
-        "options": [opt for opt, _ in options_with_correctness],
-        "answer": chr(ord('A') + new_answer_index),
-        "explain": question["explain"]
-    }
-    
-    # Preserve optional topic and page fields if present
-    if "topic" in question:
-        shuffled_question["topic"] = question["topic"]
-    if "page" in question:
-        shuffled_question["page"] = question["page"]
-    
+
+    shuffled_question = dict(question)
+    shuffled_question["options"] = [opt for opt, _ in options_with_correctness]
+    shuffled_question["answer"] = chr(ord('A') + new_answer_index)
     return shuffled_question
 
 
@@ -569,199 +568,185 @@ def deduplicate_questions(questions: List[dict]) -> Tuple[List[dict], List[str]]
     return unique, topics
 
 
+# OpenAI Responses-API structured-output spec for quiz generation. The model
+# is forced to return an object with a `questions` array whose items have all
+# required fields (including `topic`, which the dedup logic depends on).
+QUIZ_RESPONSE_FORMAT = {
+    "type": "json_schema",
+    "name": "quiz_questions",
+    "strict": True,
+    "schema": {
+        "type": "object",
+        "additionalProperties": False,
+        "properties": {
+            "questions": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "additionalProperties": False,
+                    "properties": {
+                        "q": {"type": "string"},
+                        "options": {"type": "array", "items": {"type": "string"}},
+                        "answer": {"type": "string", "enum": ["A", "B", "C", "D"]},
+                        "explain": {"type": "string"},
+                        "page": {"type": "integer"},
+                        "topic": {"type": "string"},
+                    },
+                    "required": ["q", "options", "answer", "explain", "page", "topic"],
+                },
+            }
+        },
+        "required": ["questions"],
+    },
+}
+
+
+def parse_quiz_response(reply: str) -> List[dict]:
+    """
+    Parse an assistant reply into a list of raw question dicts.
+    Tolerates legacy ```json fenced responses for safety; structured outputs
+    should already produce a bare JSON object.
+    """
+    reply_clean = reply.strip()
+    if reply_clean.startswith("```json"):
+        reply_clean = reply_clean[7:]
+    elif reply_clean.startswith("```"):
+        reply_clean = reply_clean[3:]
+    if reply_clean.endswith("```"):
+        reply_clean = reply_clean[:-3]
+    reply_clean = reply_clean.strip()
+
+    data = json.loads(reply_clean)
+    # Structured output: {"questions": [...]}. Permissive fallback: bare list.
+    if isinstance(data, dict) and isinstance(data.get("questions"), list):
+        return data["questions"]
+    if isinstance(data, list):
+        return data
+    return []
+
+
+def validate_quiz_questions(items: List[dict]) -> List[dict]:
+    """Filter to questions with the required shape; normalize the answer letter."""
+    valid = []
+    for item in items:
+        if not all(k in item for k in ("q", "options", "answer", "explain")):
+            continue
+        if not isinstance(item["options"], list) or len(item["options"]) != 4:
+            continue
+        item["answer"] = str(item["answer"]).strip().upper()
+        if item["answer"] not in ("A", "B", "C", "D"):
+            continue
+        valid.append(item)
+    return valid
+
+
 async def generate_quiz(topic_hint: str = "", num_questions: int = 6) -> Optional[List[dict]]:
     """
     Generate a quiz from the PDF using the Assistant.
-    Enforces diversity by deduplicating questions and regenerating if needed.
+    Uses OpenAI structured outputs to guarantee well-formed JSON with the
+    required topic field, then deduplicates and regenerates for diversity.
     Returns a list of question dicts or None on failure.
     """
     max_regeneration_attempts = 3
-    unique_questions = []
-    used_topics = []
-    
-    # Initial prompt with diversity requirements
-    prompt = f"""Generate {num_questions} multiple-choice questions based ONLY on the attached PDF.
 
-Requirements:
-- Each question must have exactly 4 options
-- Include the correct answer (A, B, C, or D)
-- Provide a brief explanation with page number citation
-- Focus on practical knowledge for DCS pilots
-- Ensure every question covers a different topic or concept from the PDF and avoid repeating the same keywords across multiple questions (for example, do NOT repeat 'PUSHING' or 'FUMBLE')
+    prompt = (
+        f"Generate {num_questions} multiple-choice questions based ONLY on the attached PDF.\n\n"
+        "Requirements:\n"
+        "- Each question must have exactly 4 options\n"
+        "- Provide a brief explanation with a page reference like (p.XX) in `explain`\n"
+        "- Set `page` to the integer page number from the PDF\n"
+        "- Set `topic` to a short hyphenated tag identifying the concept (e.g. \"fuel-system\", \"emergency-procedures\")\n"
+        "- Focus on practical knowledge for DCS pilots\n"
+        "- Every question must cover a different topic from the others; do not repeat distinctive keywords\n\n"
+        + (f"Topic focus: {topic_hint}" if topic_hint else "Cover various topics from the document.")
+    )
 
-{f'Topic focus: {topic_hint}' if topic_hint else 'Cover various topics from the document.'}
-
-Return ONLY a valid JSON array with this exact structure:
-[
-  {{
-    "q": "Question text here?",
-    "options": ["Option A text", "Option B text", "Option C text", "Option D text"],
-    "answer": "A",
-    "explain": "Brief explanation with page reference (p.XX)",
-    "page": 12,
-    "topic": "engine-trim"
-  }}
-]
-
-Each question MUST include:
-- "topic": A short hyphenated tag or 2-3 word phrase identifying the concept (e.g., "fuel-system", "emergency-procedures", "engine-trim")
-- "page": The page number from the PDF where this information is found
-
-If you cannot generate {num_questions} distinct topics, return fewer items with a "note" field explaining why.
-
-IMPORTANT: Return ONLY the JSON array, no other text."""
-
-    # Call assistant with diversity parameters
     api_logger.info(f"Generating quiz: topic_hint='{topic_hint}', num_questions={num_questions}")
-    reply = await ask_assistant(prompt, timeout=45, temperature=0.7)
-    
-    # Log the raw assistant reply
+    reply = await ask_assistant(
+        prompt, timeout=45, temperature=0.7, response_format=QUIZ_RESPONSE_FORMAT,
+    )
     api_logger.debug(f"Assistant raw reply (first 1000 chars): {reply[:1000]}")
-    
+
     try:
-        # Try to extract JSON from the response
-        reply_clean = reply.strip()
-        if reply_clean.startswith("```json"):
-            reply_clean = reply_clean[7:]
-        if reply_clean.startswith("```"):
-            reply_clean = reply_clean[3:]
-        if reply_clean.endswith("```"):
-            reply_clean = reply_clean[:-3]
-        
-        reply_clean = reply_clean.strip()
-        
-        data = json.loads(reply_clean)
-        
-        # Validate questions
-        valid_questions = []
-        for item in data:
-            if all(k in item for k in ("q", "options", "answer", "explain")):
-                if len(item["options"]) == 4:
-                    item["answer"] = item["answer"].strip().upper()
-                    if item["answer"] in ["A", "B", "C", "D"]:
-                        valid_questions.append(item)
-        
+        valid_questions = validate_quiz_questions(parse_quiz_response(reply))
+
         if not valid_questions:
             api_logger.warning("No valid questions returned from assistant")
             return None
-        
-        # Deduplicate initial set
+
         unique_questions, used_topics = deduplicate_questions(valid_questions)
-        api_logger.info(f"After deduplication: {len(unique_questions)} unique out of {len(valid_questions)} initial questions")
+        api_logger.info(
+            f"After deduplication: {len(unique_questions)} unique out of "
+            f"{len(valid_questions)} initial questions"
+        )
         api_logger.info(f"Used topics: {used_topics}")
-        
+
         # Regeneration loop if we don't have enough unique questions
         attempt = 0
         while len(unique_questions) < num_questions and attempt < max_regeneration_attempts:
             attempt += 1
             needed = num_questions - len(unique_questions)
-            
-            api_logger.info(f"Regeneration attempt {attempt}/{max_regeneration_attempts}: need {needed} more questions")
-            
-            # Build regeneration prompt with excluded topics
-            regen_prompt = f"""Generate {needed + 2} additional multiple-choice questions based ONLY on the attached PDF.
+            api_logger.info(
+                f"Regeneration attempt {attempt}/{max_regeneration_attempts}: "
+                f"need {needed} more questions"
+            )
 
-IMPORTANT: Do NOT generate questions about these topics (already covered): {', '.join(used_topics)}
+            regen_prompt = (
+                f"Generate {needed + 2} additional multiple-choice questions based ONLY on the attached PDF.\n\n"
+                f"Do NOT repeat any of these topics (already covered): {', '.join(used_topics)}\n\n"
+                "Same requirements as before: 4 options, A/B/C/D answer letter, explanation with page reference, integer page, hyphenated topic tag.\n"
+                "Each new question must have a unique topic tag different from the ones listed above.\n\n"
+                + (f"Topic focus: {topic_hint}" if topic_hint else "Cover various unused topics from the document.")
+            )
 
-Requirements:
-- Each question must have exactly 4 options
-- Include the correct answer (A, B, C, or D)
-- Provide a brief explanation with page number citation
-- Focus on practical knowledge for DCS pilots
-- Each question MUST cover a DIFFERENT topic from those listed above
-- Ensure every question has a unique topic tag
-
-{f'Topic focus: {topic_hint}' if topic_hint else 'Cover various topics from the document.'}
-
-Return ONLY a valid JSON array with this exact structure:
-[
-  {{
-    "q": "Question text here?",
-    "options": ["Option A text", "Option B text", "Option C text", "Option D text"],
-    "answer": "A",
-    "explain": "Brief explanation with page reference (p.XX)",
-    "page": 12,
-    "topic": "unique-topic-tag"
-  }}
-]
-
-Each question MUST include a unique "topic" tag (different from: {', '.join(used_topics)}).
-
-IMPORTANT: Return ONLY the JSON array, no other text."""
-            
-            regen_reply = await ask_assistant(regen_prompt, timeout=45, temperature=0.8)
+            regen_reply = await ask_assistant(
+                regen_prompt, timeout=45, temperature=0.8, response_format=QUIZ_RESPONSE_FORMAT,
+            )
             api_logger.debug(f"Regeneration reply (first 500 chars): {regen_reply[:500]}")
-            
+
             try:
-                # Parse regenerated questions
-                regen_clean = regen_reply.strip()
-                if regen_clean.startswith("```json"):
-                    regen_clean = regen_clean[7:]
-                if regen_clean.startswith("```"):
-                    regen_clean = regen_clean[3:]
-                if regen_clean.endswith("```"):
-                    regen_clean = regen_clean[:-3]
-                
-                regen_clean = regen_clean.strip()
-                regen_data = json.loads(regen_clean)
-                
-                # Validate regenerated questions
-                regen_valid = []
-                for item in regen_data:
-                    if all(k in item for k in ("q", "options", "answer", "explain")):
-                        if len(item["options"]) == 4:
-                            item["answer"] = item["answer"].strip().upper()
-                            if item["answer"] in ["A", "B", "C", "D"]:
-                                regen_valid.append(item)
-                
-                # Add non-duplicate questions
+                regen_valid = validate_quiz_questions(parse_quiz_response(regen_reply))
+
                 for q in regen_valid:
                     topic = extract_topic_from_question(q)
-                    
-                    # Check if similar to existing questions
-                    is_duplicate = False
-                    for existing_q, existing_topic in zip(unique_questions, used_topics):
-                        if are_questions_similar(q, existing_q, topic, existing_topic):
-                            is_duplicate = True
-                            break
-                    
+                    is_duplicate = any(
+                        are_questions_similar(q, existing_q, topic, existing_topic)
+                        for existing_q, existing_topic in zip(unique_questions, used_topics)
+                    )
                     if not is_duplicate:
                         unique_questions.append(q)
                         used_topics.append(topic)
                         api_logger.debug(f"Added new unique question with topic: {topic}")
-                        
-                        # Stop if we have enough
                         if len(unique_questions) >= num_questions:
                             break
-                
-            except (json.JSONDecodeError, Exception) as e:
-                api_logger.error(f"Error parsing regeneration attempt {attempt}: {e}")
+            except json.JSONDecodeError as e:
+                api_logger.error(f"JSON parse error in regeneration attempt {attempt}: {e}")
                 continue
-        
-        # Log final results
+
         final_count = len(unique_questions)
         api_logger.info(f"Final quiz: {final_count} unique questions (requested: {num_questions})")
         api_logger.info(f"Final topics: {used_topics}")
-        
-        # Return the requested number or what we have
+
         if final_count >= num_questions:
             result = unique_questions[:num_questions]
             api_logger.info(f"Returning {len(result)} questions")
             return result
         elif final_count > 0:
-            # Return what we have with a note
-            api_logger.warning(f"Could only generate {final_count} unique questions (requested {num_questions})")
+            api_logger.warning(
+                f"Could only generate {final_count} unique questions "
+                f"(requested {num_questions})"
+            )
             return unique_questions
         else:
             api_logger.error("Failed to generate any unique questions")
             return None
-        
+
     except json.JSONDecodeError as e:
         api_logger.error(f"JSON parse error: {e}")
         api_logger.error(f"Response was: {reply[:500]}")
         return None
     except Exception as e:
-        api_logger.error(f"Quiz generation error: {e}")
+        api_logger.error(f"Quiz generation error: {e}", exc_info=True)
         return None
 
 
@@ -790,12 +775,19 @@ async def auto_end_quiz(channel_id: int, channel, duration_minutes: int):
 async def display_quiz_results(channel, channel_id: int):
     """Display quiz results and clean up state."""
     quiz_logger.info(f"Displaying quiz results for channel {channel_id}")
-    
+
     state = QUIZ_STATE.get(channel_id)
     if not state:
         quiz_logger.warning(f"No quiz state found for channel {channel_id}")
         return
-    
+
+    # Cancel the scheduled auto-end task if it hasn't already fired. Skip when
+    # we *are* the auto-end task, since cancelling self raises CancelledError.
+    end_task = state.get("end_task")
+    if end_task and not end_task.done() and end_task is not asyncio.current_task():
+        end_task.cancel()
+        quiz_logger.debug(f"Cancelled scheduled auto-end task for channel {channel_id}")
+
     questions = state["questions"]
     user_answers = state["user_answers"]
     
@@ -1007,11 +999,15 @@ async def quiz_start(interaction: discord.Interaction, topic: str = "", question
     }
     
     quiz_logger.info(f"Quiz started in channel {interaction.channel_id} by user {interaction.user.name}({interaction.user.id}): {len(shuffled_questions)} questions, {duration} minutes")
-    
+
     topic_text = f" (Topic: {topic})" if topic else ""
-    
-    # Schedule auto-end task
-    asyncio.create_task(auto_end_quiz(interaction.channel_id, interaction.channel, duration))
+
+    # Schedule auto-end task and hold a strong reference in QUIZ_STATE so it
+    # isn't garbage-collected mid-sleep, and so /quiz_end can cancel it.
+    end_task = asyncio.create_task(
+        auto_end_quiz(interaction.channel_id, interaction.channel, duration)
+    )
+    QUIZ_STATE[interaction.channel_id]["end_task"] = end_task
     
     # Send initial message with embed
     start_embed = discord.Embed(
