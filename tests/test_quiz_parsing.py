@@ -87,3 +87,24 @@ def test_validate_rejects_non_list_options():
     items = [{**_q(), "options": "ABCD"}]
     valid = app.validate_quiz_questions(items)
     assert valid == []
+
+
+def test_validate_skips_non_dict_items():
+    """
+    parse_quiz_response's bare-array fallback doesn't enforce element shape,
+    so validate must defensively skip ints, strings, and other non-dicts
+    rather than raising TypeError on `k in item`.
+    """
+    items = [_q(), 42, "not a dict", None, [1, 2, 3], _q("Q2")]
+    valid = app.validate_quiz_questions(items)
+    assert len(valid) == 2
+    assert valid[0]["q"] == "Q1"
+    assert valid[1]["q"] == "Q2"
+
+
+def test_validate_does_not_mutate_input():
+    """Normalizing the answer letter must not modify the caller's dicts."""
+    original = {**_q(), "answer": " b "}
+    items = [original]
+    app.validate_quiz_questions(items)
+    assert original["answer"] == " b "

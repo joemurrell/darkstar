@@ -702,13 +702,21 @@ def parse_quiz_response(reply: str) -> List[dict]:
 
 
 def validate_quiz_questions(items: List[dict]) -> List[dict]:
-    """Filter to questions with the required shape; normalize the answer letter."""
+    """
+    Filter to questions with the required shape; normalize the answer letter.
+    Returns shallow-copied dicts so the caller's data isn't mutated. Skips
+    any non-dict items defensively, since the bare-array fallback path in
+    parse_quiz_response doesn't enforce element shape.
+    """
     valid = []
-    for item in items:
-        if not all(k in item for k in ("q", "options", "answer", "explain")):
+    for raw in items:
+        if not isinstance(raw, dict):
             continue
-        if not isinstance(item["options"], list) or len(item["options"]) != 4:
+        if not all(k in raw for k in ("q", "options", "answer", "explain")):
             continue
+        if not isinstance(raw["options"], list) or len(raw["options"]) != 4:
+            continue
+        item = dict(raw)
         item["answer"] = str(item["answer"]).strip().upper()
         if item["answer"] not in ("A", "B", "C", "D"):
             continue
@@ -832,18 +840,25 @@ async def auto_end_quiz(channel_id: int, channel, duration_minutes: int):
     
     try:
         await asyncio.sleep(duration_minutes * 60)
-        
+
         # Check if quiz still exists
         state = QUIZ_STATE.get(channel_id)
         if not state:
             quiz_logger.warning(f"Auto-end: quiz no longer exists in channel {channel_id}")
             return
-        
+
         quiz_logger.info(f"Auto-ending quiz in channel {channel_id} after {duration_minutes} minutes")
-        
+
         # Calculate and display results
         await display_quiz_results(channel, channel_id)
-        
+
+    except asyncio.CancelledError:
+        # /quiz_end cancels this task; that's expected, not an error. The
+        # `except Exception` arm below would not catch this in Python 3.8+
+        # (CancelledError inherits from BaseException), but be explicit so
+        # the cancellation path is visible to readers.
+        quiz_logger.debug(f"Auto-end task cancelled for channel {channel_id}")
+        raise
     except Exception as e:
         quiz_logger.error(f"Error in auto_end_quiz for channel {channel_id}: {e}", exc_info=True)
 
