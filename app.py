@@ -8,13 +8,13 @@ import json
 import re
 import random
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import List, Optional, Set, Tuple
 from collections import Counter
 from difflib import SequenceMatcher
 import discord
 from discord import app_commands
-from openai import OpenAI
+from openai import AsyncOpenAI, APITimeoutError
 
 # Environment variables
 DISCORD_TOKEN = os.environ["DISCORD_TOKEN"]
@@ -27,7 +27,7 @@ client = discord.Client(intents=intents)
 tree = app_commands.CommandTree(client)
 
 # --- OpenAI client ---
-oai = OpenAI(api_key=OPENAI_API_KEY)
+oai = AsyncOpenAI(api_key=OPENAI_API_KEY)
 
 # Configure logging for Railway compatibility
 # Railway prefers structured JSON logs with clear levels
@@ -86,7 +86,7 @@ class QuizAnswerButton(discord.ui.Button):
             return
         
         # Check if quiz has ended
-        if datetime.utcnow() >= state["end_time"]:
+        if datetime.now(timezone.utc) >= state["end_time"]:
             quiz_logger.warning(f"User {interaction.user.name}({interaction.user.id}) attempted to answer after quiz ended in channel {interaction.channel_id}")
             await interaction.response.send_message(
                 "❌ This quiz has ended! Results are being calculated.",
@@ -98,7 +98,7 @@ class QuizAnswerButton(discord.ui.Button):
         if self.question_idx < 0 or self.question_idx >= len(state["questions"]):
             quiz_logger.error(f"Invalid question index {self.question_idx} for user {interaction.user.name}({interaction.user.id}) in channel {interaction.channel_id}")
             await interaction.response.send_message(
-                f"❌ Invalid question.",
+                "❌ Invalid question.",
                 ephemeral=True
             )
             return
@@ -118,12 +118,10 @@ class QuizAnswerButton(discord.ui.Button):
         answered_count = len(state["user_answers"][user_id])
         total_questions = len(state["questions"])
         
-        time_remaining = state["end_time"] - datetime.utcnow()
-        minutes_remaining = int(time_remaining.total_seconds() / 60)
-        seconds_remaining = int(time_remaining.total_seconds() % 60)
-        
+        minutes_remaining, seconds_remaining = format_time_remaining(state["end_time"])
+
         quiz_logger.debug(f"User {interaction.user.name}({user_id}) progress: {answered_count}/{total_questions} answered, {minutes_remaining}m {seconds_remaining}s remaining")
-        
+
         await interaction.response.send_message(
             f"📝 Answer **{self.choice}** recorded for question {self.question_idx + 1}!\n"
             f"📊 You've answered {answered_count}/{total_questions} questions.\n"
@@ -171,12 +169,15 @@ async def check_bot_permissions(interaction: discord.Interaction) -> Tuple[bool,
     # Get bot's effective permissions in the channel
     bot_perms = channel.permissions_for(bot_member)
     
-    # Define required permissions
+    # Define required permissions. `use_application_commands` is what gates
+    # slash commands from appearing in the first place, so missing it is a
+    # very common cause of "the bot doesn't see my command".
     required_perms = {
         "send_messages": "Send Messages",
         "embed_links": "Embed Links",
         "read_message_history": "Read Message History",
-        "view_channel": "View Channel"
+        "view_channel": "View Channel",
+        "use_application_commands": "Use Application Commands",
     }
     
     # Check which permissions are missing
@@ -189,7 +190,7 @@ async def check_bot_permissions(interaction: discord.Interaction) -> Tuple[bool,
         return True, None
     
     # Permissions are missing - identify the cause
-    error_parts = [f"❌ **Missing Permissions in this channel:**"]
+    error_parts = ["❌ **Missing Permissions in this channel:**"]
     error_parts.append(f"Missing: {', '.join(f'**{p}**' for p in missing_perms)}")
     error_parts.append("")
     error_parts.append("**Cause Analysis:**")
@@ -225,16 +226,21 @@ async def check_bot_permissions(interaction: discord.Interaction) -> Tuple[bool,
         error_parts.extend(blockers)
     else:
         # No explicit denies found - must be missing from base roles
-        error_parts.append(f"• The bot's roles don't grant these permissions globally")
-        error_parts.append(f"• No channel overwrites are blocking (but none are allowing either)")
+        error_parts.append("• The bot's roles don't grant these permissions globally")
+        error_parts.append("• No channel overwrites are blocking (but none are allowing either)")
     
     error_parts.append("")
     error_parts.append("**How to fix:**")
     error_parts.append("1. Check channel permission overwrites for roles/members")
     error_parts.append("2. Grant the bot's role the required permissions server-wide, OR")
     error_parts.append("3. Add channel-specific permission overwrites to allow the bot")
-    
-    return False, "\n".join(error_parts)
+
+    message = "\n".join(error_parts)
+    # Discord interaction messages cap at 2000 chars. With many roles/blockers
+    # this diagnostic can blow past that and the whole send fails silently.
+    if len(message) > 1900:
+        message = message[:1897] + "..."
+    return False, message
 
 async def initialize_assistant_config():
     """
@@ -245,7 +251,7 @@ async def initialize_assistant_config():
         api_logger.info(f"Retrieving assistant configuration for {ASSISTANT_ID}")
         
         # Retrieve assistant details using beta API (still needed for this)
-        assistant = oai.beta.assistants.retrieve(assistant_id=ASSISTANT_ID)
+        assistant = await oai.beta.assistants.retrieve(assistant_id=ASSISTANT_ID)
         
         # Cache the configuration
         ASSISTANT_CONFIG["instructions"] = assistant.instructions
@@ -276,18 +282,42 @@ async def initialize_assistant_config():
         return False
 
 
-async def ask_assistant(user_msg: str, timeout: int = 30, temperature: float = None) -> str:
+def model_supports_temperature(model: Optional[str]) -> bool:
+    """
+    Reasoning models (o1, o3, o4) and the gpt-5 family reject the temperature
+    parameter entirely. Default to True for unknown models.
+    """
+    if not model:
+        return True
+    lower = model.lower()
+    return not (
+        lower.startswith("o1")
+        or lower.startswith("o3")
+        or lower.startswith("o4")
+        or lower.startswith("gpt-5")
+    )
+
+
+async def ask_assistant(
+    user_msg: str,
+    timeout: int = 30,
+    temperature: float = None,
+    response_format: Optional[dict] = None,
+) -> str:
     """
     Ask the OpenAI Assistant a question using Responses API.
     Uses File Search to ground responses in the uploaded PDF.
-    
+
     Args:
         user_msg: The message/prompt to send to the assistant
         timeout: Maximum seconds to wait for response
         temperature: Optional temperature for response generation (0.0-2.0)
+        response_format: Optional OpenAI structured-output format dict (e.g. a
+            json_schema spec). When provided, forces the model to return valid
+            JSON matching the schema, eliminating fragile post-hoc parsing.
     """
-    api_logger.debug(f"ask_assistant called: msg_len={len(user_msg)} timeout={timeout} temperature={temperature}")
-    
+    api_logger.debug(f"ask_assistant called: msg_len={len(user_msg)} timeout={timeout} temperature={temperature} structured={response_format is not None}")
+
     try:
         # Build request parameters for Responses API
         request_params = {
@@ -295,7 +325,7 @@ async def ask_assistant(user_msg: str, timeout: int = 30, temperature: float = N
             "instructions": ASSISTANT_CONFIG["instructions"],
             "input": user_msg,
         }
-        
+
         # Add file search tool if vector stores are configured
         if ASSISTANT_CONFIG["vector_store_ids"]:
             request_params["tools"] = [
@@ -304,45 +334,105 @@ async def ask_assistant(user_msg: str, timeout: int = 30, temperature: float = N
                     "vector_store_ids": ASSISTANT_CONFIG["vector_store_ids"]
                 }
             ]
-        
-        # Add optional parameters if provided
-        if temperature is not None:
+
+        # Add optional parameters if provided. Skip temperature for models
+        # that reject it (reasoning models, gpt-5 family) to avoid 400 errors.
+        if temperature is not None and model_supports_temperature(ASSISTANT_CONFIG.get("model")):
             request_params["temperature"] = temperature
-        
-        api_logger.debug(f"Creating response with model={ASSISTANT_CONFIG['model']}")
-        
-        # Create response using Responses API (non-streaming)
-        response = oai.responses.create(**request_params)
-        
+
+        # Structured outputs are passed via the Responses-API `text.format` slot.
+        if response_format is not None:
+            request_params["text"] = {"format": response_format}
+
+        api_logger.debug(f"Creating response with model={ASSISTANT_CONFIG['model']} timeout={timeout}s")
+
+        # Create response using Responses API (non-streaming). The timeout
+        # kwarg is honored by the OpenAI SDK and raises APITimeoutError if
+        # exceeded.
+        response = await oai.responses.create(**request_params, timeout=timeout)
+
         api_logger.info(f"Response received: id={response.id} status={response.status}")
-        
-        # Extract text from response
-        if response.output and len(response.output) > 0:
-            # Get the first output item
-            output_item = response.output[0]
-            
-            # Handle message output type
-            if hasattr(output_item, 'type') and output_item.type == 'message':
-                if hasattr(output_item, 'content'):
-                    # Extract text content
-                    chunks = []
-                    for content in output_item.content:
-                        if hasattr(content, 'type') and content.type == "output_text":
-                            text = content.text
-                            # Remove citation markers like 【4:2†source】
-                            text = re.sub(r'【[^】]*】', '', text)
-                            chunks.append(text)
-                    
-                    result = "\n".join(chunks) if chunks else "No response from assistant."
-                    api_logger.info(f"Assistant response received: length={len(result)}")
-                    return result
-        
-        api_logger.warning("No output content found in response")
-        return "No response from assistant."
-        
+
+        # Extract text from message output items. The output list can contain
+        # tool-call items (e.g. file_search_call) before the message, so we
+        # iterate every item rather than indexing [0].
+        chunks = []
+        for output_item in (response.output or []):
+            if getattr(output_item, "type", None) != "message":
+                continue
+            for content in getattr(output_item, "content", None) or []:
+                if getattr(content, "type", None) == "output_text":
+                    # Remove citation markers like 【4:2†source】
+                    text = re.sub(r'【[^】]*】', '', content.text)
+                    chunks.append(text)
+
+        if not chunks:
+            api_logger.warning("No message output content found in response")
+            return "No response from assistant."
+
+        result = "\n".join(chunks)
+        api_logger.info(f"Assistant response received: length={len(result)}")
+        return result
+
+    except APITimeoutError:
+        api_logger.error(f"OpenAI request timed out after {timeout}s")
+        return "❌ The AI took too long to respond. Please try again in a moment."
     except Exception as e:
         api_logger.error(f"Error asking assistant: {e}", exc_info=True)
         return f"❌ Error communicating with AI: {str(e)}"
+
+
+def format_time_remaining(end_time: datetime) -> Tuple[int, int]:
+    """
+    Return (minutes, seconds) of time remaining until end_time, bounded at 0
+    so callers don't display negative durations during the race between an
+    end-time check and a display update.
+    """
+    delta = end_time - datetime.now(timezone.utc)
+    total = max(0, int(delta.total_seconds()))
+    return total // 60, total % 60
+
+
+def truncate_for_discord(text: str, limit: int = 2000) -> str:
+    """
+    Truncate text to fit Discord's per-message char limit, closing any open
+    triple-backtick fence so markdown rendering doesn't break.
+    """
+    if len(text) <= limit:
+        return text
+    # Reserve room for the ellipsis and a possible closing fence on its own line.
+    head = text[: limit - 8]
+    if head.count("```") % 2 == 1:
+        head = head.rstrip() + "\n```"
+    return head + "..."
+
+
+def chunk_mentions(user_ids: List[str], base_name: str, max_chars: int = 1024) -> List[Tuple[str, str]]:
+    """
+    Pack a list of user IDs into Discord embed fields under the 1024-char value
+    limit. Returns a list of (field_name, field_value) tuples; pages are
+    suffixed when more than one field is needed.
+    """
+    if not user_ids:
+        return []
+    pages: List[str] = []
+    current: List[str] = []
+    current_len = 0
+    for uid in user_ids:
+        mention = f"<@{uid}>"
+        addition = len(mention) + (2 if current else 0)  # ", " separator
+        if current and current_len + addition > max_chars:
+            pages.append(", ".join(current))
+            current = [mention]
+            current_len = len(mention)
+        else:
+            current.append(mention)
+            current_len += addition
+    if current:
+        pages.append(", ".join(current))
+    if len(pages) == 1:
+        return [(base_name, pages[0])]
+    return [(f"{base_name} ({i+1}/{len(pages)})", page) for i, page in enumerate(pages)]
 
 
 def format_mcq(question: str, options: List[str], question_num: int = None, total: int = None) -> discord.Embed:
@@ -387,41 +477,28 @@ def format_mcq(question: str, options: List[str], question_num: int = None, tota
 def shuffle_quiz_options(question: dict) -> dict:
     """
     Shuffle the options in a quiz question and update the correct answer letter.
-    Returns a new dict with shuffled options and updated answer.
+    Returns a new dict with shuffled options + updated answer; preserves every
+    other field from the original (topic, page, and anything else the LLM
+    emits).
     """
     # Get the original correct answer index (A=0, B=1, C=2, D=3)
     answer_letter = question["answer"].strip().upper()
     answer_index = ord(answer_letter) - ord('A')
-    
-    # Create a list of (option_text, is_correct) tuples
+
     options_with_correctness = [
-        (opt, i == answer_index) 
+        (opt, i == answer_index)
         for i, opt in enumerate(question["options"])
     ]
-    
-    # Shuffle the options
     random.shuffle(options_with_correctness)
-    
-    # Find the new position of the correct answer
+
     new_answer_index = next(
-        i for i, (_, is_correct) in enumerate(options_with_correctness) 
+        i for i, (_, is_correct) in enumerate(options_with_correctness)
         if is_correct
     )
-    
-    # Create the shuffled question, preserving optional fields
-    shuffled_question = {
-        "q": question["q"],
-        "options": [opt for opt, _ in options_with_correctness],
-        "answer": chr(ord('A') + new_answer_index),
-        "explain": question["explain"]
-    }
-    
-    # Preserve optional topic and page fields if present
-    if "topic" in question:
-        shuffled_question["topic"] = question["topic"]
-    if "page" in question:
-        shuffled_question["page"] = question["page"]
-    
+
+    shuffled_question = dict(question)
+    shuffled_question["options"] = [opt for opt, _ in options_with_correctness]
+    shuffled_question["answer"] = chr(ord('A') + new_answer_index)
     return shuffled_question
 
 
@@ -567,199 +644,193 @@ def deduplicate_questions(questions: List[dict]) -> Tuple[List[dict], List[str]]
     return unique, topics
 
 
+# OpenAI Responses-API structured-output spec for quiz generation. The model
+# is forced to return an object with a `questions` array whose items have all
+# required fields (including `topic`, which the dedup logic depends on).
+QUIZ_RESPONSE_FORMAT = {
+    "type": "json_schema",
+    "name": "quiz_questions",
+    "strict": True,
+    "schema": {
+        "type": "object",
+        "additionalProperties": False,
+        "properties": {
+            "questions": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "additionalProperties": False,
+                    "properties": {
+                        "q": {"type": "string"},
+                        "options": {"type": "array", "items": {"type": "string"}},
+                        "answer": {"type": "string", "enum": ["A", "B", "C", "D"]},
+                        "explain": {"type": "string"},
+                        "page": {"type": "integer"},
+                        "topic": {"type": "string"},
+                    },
+                    "required": ["q", "options", "answer", "explain", "page", "topic"],
+                },
+            }
+        },
+        "required": ["questions"],
+    },
+}
+
+
+def parse_quiz_response(reply: str) -> List[dict]:
+    """
+    Parse an assistant reply into a list of raw question dicts.
+    Tolerates legacy ```json fenced responses for safety; structured outputs
+    should already produce a bare JSON object.
+    """
+    reply_clean = reply.strip()
+    if reply_clean.startswith("```json"):
+        reply_clean = reply_clean[7:]
+    elif reply_clean.startswith("```"):
+        reply_clean = reply_clean[3:]
+    if reply_clean.endswith("```"):
+        reply_clean = reply_clean[:-3]
+    reply_clean = reply_clean.strip()
+
+    data = json.loads(reply_clean)
+    # Structured output: {"questions": [...]}. Permissive fallback: bare list.
+    if isinstance(data, dict) and isinstance(data.get("questions"), list):
+        return data["questions"]
+    if isinstance(data, list):
+        return data
+    return []
+
+
+def validate_quiz_questions(items: List[dict]) -> List[dict]:
+    """
+    Filter to questions with the required shape; normalize the answer letter.
+    Returns shallow-copied dicts so the caller's data isn't mutated. Skips
+    any non-dict items defensively, since the bare-array fallback path in
+    parse_quiz_response doesn't enforce element shape.
+    """
+    valid = []
+    for raw in items:
+        if not isinstance(raw, dict):
+            continue
+        if not all(k in raw for k in ("q", "options", "answer", "explain")):
+            continue
+        if not isinstance(raw["options"], list) or len(raw["options"]) != 4:
+            continue
+        item = dict(raw)
+        item["answer"] = str(item["answer"]).strip().upper()
+        if item["answer"] not in ("A", "B", "C", "D"):
+            continue
+        valid.append(item)
+    return valid
+
+
 async def generate_quiz(topic_hint: str = "", num_questions: int = 6) -> Optional[List[dict]]:
     """
     Generate a quiz from the PDF using the Assistant.
-    Enforces diversity by deduplicating questions and regenerating if needed.
+    Uses OpenAI structured outputs to guarantee well-formed JSON with the
+    required topic field, then deduplicates and regenerates for diversity.
     Returns a list of question dicts or None on failure.
     """
     max_regeneration_attempts = 3
-    unique_questions = []
-    used_topics = []
-    
-    # Initial prompt with diversity requirements
-    prompt = f"""Generate {num_questions} multiple-choice questions based ONLY on the attached PDF.
 
-Requirements:
-- Each question must have exactly 4 options
-- Include the correct answer (A, B, C, or D)
-- Provide a brief explanation with page number citation
-- Focus on practical knowledge for DCS pilots
-- Ensure every question covers a different topic or concept from the PDF and avoid repeating the same keywords across multiple questions (for example, do NOT repeat 'PUSHING' or 'FUMBLE')
+    prompt = (
+        f"Generate {num_questions} multiple-choice questions based ONLY on the attached PDF.\n\n"
+        "Requirements:\n"
+        "- Each question must have exactly 4 options\n"
+        "- Provide a brief explanation with a page reference like (p.XX) in `explain`\n"
+        "- Set `page` to the integer page number from the PDF\n"
+        "- Set `topic` to a short hyphenated tag identifying the concept (e.g. \"fuel-system\", \"emergency-procedures\")\n"
+        "- Focus on practical knowledge for DCS pilots\n"
+        "- Every question must cover a different topic from the others; do not repeat distinctive keywords\n\n"
+        + (f"Topic focus: {topic_hint}" if topic_hint else "Cover various topics from the document.")
+    )
 
-{f'Topic focus: {topic_hint}' if topic_hint else 'Cover various topics from the document.'}
-
-Return ONLY a valid JSON array with this exact structure:
-[
-  {{
-    "q": "Question text here?",
-    "options": ["Option A text", "Option B text", "Option C text", "Option D text"],
-    "answer": "A",
-    "explain": "Brief explanation with page reference (p.XX)",
-    "page": 12,
-    "topic": "engine-trim"
-  }}
-]
-
-Each question MUST include:
-- "topic": A short hyphenated tag or 2-3 word phrase identifying the concept (e.g., "fuel-system", "emergency-procedures", "engine-trim")
-- "page": The page number from the PDF where this information is found
-
-If you cannot generate {num_questions} distinct topics, return fewer items with a "note" field explaining why.
-
-IMPORTANT: Return ONLY the JSON array, no other text."""
-
-    # Call assistant with diversity parameters
     api_logger.info(f"Generating quiz: topic_hint='{topic_hint}', num_questions={num_questions}")
-    reply = await ask_assistant(prompt, timeout=45, temperature=0.7)
-    
-    # Log the raw assistant reply
+    reply = await ask_assistant(
+        prompt, timeout=45, temperature=0.7, response_format=QUIZ_RESPONSE_FORMAT,
+    )
     api_logger.debug(f"Assistant raw reply (first 1000 chars): {reply[:1000]}")
-    
+
     try:
-        # Try to extract JSON from the response
-        reply_clean = reply.strip()
-        if reply_clean.startswith("```json"):
-            reply_clean = reply_clean[7:]
-        if reply_clean.startswith("```"):
-            reply_clean = reply_clean[3:]
-        if reply_clean.endswith("```"):
-            reply_clean = reply_clean[:-3]
-        
-        reply_clean = reply_clean.strip()
-        
-        data = json.loads(reply_clean)
-        
-        # Validate questions
-        valid_questions = []
-        for item in data:
-            if all(k in item for k in ("q", "options", "answer", "explain")):
-                if len(item["options"]) == 4:
-                    item["answer"] = item["answer"].strip().upper()
-                    if item["answer"] in ["A", "B", "C", "D"]:
-                        valid_questions.append(item)
-        
+        valid_questions = validate_quiz_questions(parse_quiz_response(reply))
+
         if not valid_questions:
             api_logger.warning("No valid questions returned from assistant")
             return None
-        
-        # Deduplicate initial set
+
         unique_questions, used_topics = deduplicate_questions(valid_questions)
-        api_logger.info(f"After deduplication: {len(unique_questions)} unique out of {len(valid_questions)} initial questions")
+        api_logger.info(
+            f"After deduplication: {len(unique_questions)} unique out of "
+            f"{len(valid_questions)} initial questions"
+        )
         api_logger.info(f"Used topics: {used_topics}")
-        
+
         # Regeneration loop if we don't have enough unique questions
         attempt = 0
         while len(unique_questions) < num_questions and attempt < max_regeneration_attempts:
             attempt += 1
             needed = num_questions - len(unique_questions)
-            
-            api_logger.info(f"Regeneration attempt {attempt}/{max_regeneration_attempts}: need {needed} more questions")
-            
-            # Build regeneration prompt with excluded topics
-            regen_prompt = f"""Generate {needed + 2} additional multiple-choice questions based ONLY on the attached PDF.
+            api_logger.info(
+                f"Regeneration attempt {attempt}/{max_regeneration_attempts}: "
+                f"need {needed} more questions"
+            )
 
-IMPORTANT: Do NOT generate questions about these topics (already covered): {', '.join(used_topics)}
+            regen_prompt = (
+                f"Generate {needed + 2} additional multiple-choice questions based ONLY on the attached PDF.\n\n"
+                f"Do NOT repeat any of these topics (already covered): {', '.join(used_topics)}\n\n"
+                "Same requirements as before: 4 options, A/B/C/D answer letter, explanation with page reference, integer page, hyphenated topic tag.\n"
+                "Each new question must have a unique topic tag different from the ones listed above.\n\n"
+                + (f"Topic focus: {topic_hint}" if topic_hint else "Cover various unused topics from the document.")
+            )
 
-Requirements:
-- Each question must have exactly 4 options
-- Include the correct answer (A, B, C, or D)
-- Provide a brief explanation with page number citation
-- Focus on practical knowledge for DCS pilots
-- Each question MUST cover a DIFFERENT topic from those listed above
-- Ensure every question has a unique topic tag
-
-{f'Topic focus: {topic_hint}' if topic_hint else 'Cover various topics from the document.'}
-
-Return ONLY a valid JSON array with this exact structure:
-[
-  {{
-    "q": "Question text here?",
-    "options": ["Option A text", "Option B text", "Option C text", "Option D text"],
-    "answer": "A",
-    "explain": "Brief explanation with page reference (p.XX)",
-    "page": 12,
-    "topic": "unique-topic-tag"
-  }}
-]
-
-Each question MUST include a unique "topic" tag (different from: {', '.join(used_topics)}).
-
-IMPORTANT: Return ONLY the JSON array, no other text."""
-            
-            regen_reply = await ask_assistant(regen_prompt, timeout=45, temperature=0.8)
+            regen_reply = await ask_assistant(
+                regen_prompt, timeout=45, temperature=0.8, response_format=QUIZ_RESPONSE_FORMAT,
+            )
             api_logger.debug(f"Regeneration reply (first 500 chars): {regen_reply[:500]}")
-            
+
             try:
-                # Parse regenerated questions
-                regen_clean = regen_reply.strip()
-                if regen_clean.startswith("```json"):
-                    regen_clean = regen_clean[7:]
-                if regen_clean.startswith("```"):
-                    regen_clean = regen_clean[3:]
-                if regen_clean.endswith("```"):
-                    regen_clean = regen_clean[:-3]
-                
-                regen_clean = regen_clean.strip()
-                regen_data = json.loads(regen_clean)
-                
-                # Validate regenerated questions
-                regen_valid = []
-                for item in regen_data:
-                    if all(k in item for k in ("q", "options", "answer", "explain")):
-                        if len(item["options"]) == 4:
-                            item["answer"] = item["answer"].strip().upper()
-                            if item["answer"] in ["A", "B", "C", "D"]:
-                                regen_valid.append(item)
-                
-                # Add non-duplicate questions
+                regen_valid = validate_quiz_questions(parse_quiz_response(regen_reply))
+
                 for q in regen_valid:
                     topic = extract_topic_from_question(q)
-                    
-                    # Check if similar to existing questions
-                    is_duplicate = False
-                    for existing_q, existing_topic in zip(unique_questions, used_topics):
-                        if are_questions_similar(q, existing_q, topic, existing_topic):
-                            is_duplicate = True
-                            break
-                    
+                    is_duplicate = any(
+                        are_questions_similar(q, existing_q, topic, existing_topic)
+                        for existing_q, existing_topic in zip(unique_questions, used_topics)
+                    )
                     if not is_duplicate:
                         unique_questions.append(q)
                         used_topics.append(topic)
                         api_logger.debug(f"Added new unique question with topic: {topic}")
-                        
-                        # Stop if we have enough
                         if len(unique_questions) >= num_questions:
                             break
-                
-            except (json.JSONDecodeError, Exception) as e:
-                api_logger.error(f"Error parsing regeneration attempt {attempt}: {e}")
+            except json.JSONDecodeError as e:
+                api_logger.error(f"JSON parse error in regeneration attempt {attempt}: {e}")
                 continue
-        
-        # Log final results
+
         final_count = len(unique_questions)
         api_logger.info(f"Final quiz: {final_count} unique questions (requested: {num_questions})")
         api_logger.info(f"Final topics: {used_topics}")
-        
-        # Return the requested number or what we have
+
         if final_count >= num_questions:
             result = unique_questions[:num_questions]
             api_logger.info(f"Returning {len(result)} questions")
             return result
         elif final_count > 0:
-            # Return what we have with a note
-            api_logger.warning(f"Could only generate {final_count} unique questions (requested {num_questions})")
+            api_logger.warning(
+                f"Could only generate {final_count} unique questions "
+                f"(requested {num_questions})"
+            )
             return unique_questions
         else:
             api_logger.error("Failed to generate any unique questions")
             return None
-        
+
     except json.JSONDecodeError as e:
         api_logger.error(f"JSON parse error: {e}")
         api_logger.error(f"Response was: {reply[:500]}")
         return None
     except Exception as e:
-        api_logger.error(f"Quiz generation error: {e}")
+        api_logger.error(f"Quiz generation error: {e}", exc_info=True)
         return None
 
 
@@ -769,18 +840,25 @@ async def auto_end_quiz(channel_id: int, channel, duration_minutes: int):
     
     try:
         await asyncio.sleep(duration_minutes * 60)
-        
+
         # Check if quiz still exists
         state = QUIZ_STATE.get(channel_id)
         if not state:
             quiz_logger.warning(f"Auto-end: quiz no longer exists in channel {channel_id}")
             return
-        
+
         quiz_logger.info(f"Auto-ending quiz in channel {channel_id} after {duration_minutes} minutes")
-        
+
         # Calculate and display results
         await display_quiz_results(channel, channel_id)
-        
+
+    except asyncio.CancelledError:
+        # /quiz_end cancels this task; that's expected, not an error. The
+        # `except Exception` arm below would not catch this in Python 3.8+
+        # (CancelledError inherits from BaseException), but be explicit so
+        # the cancellation path is visible to readers.
+        quiz_logger.debug(f"Auto-end task cancelled for channel {channel_id}")
+        raise
     except Exception as e:
         quiz_logger.error(f"Error in auto_end_quiz for channel {channel_id}: {e}", exc_info=True)
 
@@ -788,12 +866,19 @@ async def auto_end_quiz(channel_id: int, channel, duration_minutes: int):
 async def display_quiz_results(channel, channel_id: int):
     """Display quiz results and clean up state."""
     quiz_logger.info(f"Displaying quiz results for channel {channel_id}")
-    
+
     state = QUIZ_STATE.get(channel_id)
     if not state:
         quiz_logger.warning(f"No quiz state found for channel {channel_id}")
         return
-    
+
+    # Cancel the scheduled auto-end task if it hasn't already fired. Skip when
+    # we *are* the auto-end task, since cancelling self raises CancelledError.
+    end_task = state.get("end_task")
+    if end_task and not end_task.done() and end_task is not asyncio.current_task():
+        end_task.cancel()
+        quiz_logger.debug(f"Cancelled scheduled auto-end task for channel {channel_id}")
+
     questions = state["questions"]
     user_answers = state["user_answers"]
     
@@ -827,11 +912,29 @@ async def display_quiz_results(channel, channel_id: int):
     )
     
     if scores_sorted:
-        leaderboard_text = "\n".join(
+        # Pack score lines into multiple fields if needed to stay under
+        # Discord's 1024-char per-field-value limit (~20 lines per field).
+        lines = [
             f"{'🥇' if i == 0 else '🥈' if i == 1 else '🥉' if i == 2 else '📊'} <@{uid}>: **{score}/{total_questions}** ({int(score/total_questions*100)}%)"
             for i, (uid, score) in enumerate(scores_sorted)
-        )
-        leaderboard_embed.add_field(name="Final Scores", value=leaderboard_text, inline=False)
+        ]
+        pages: List[str] = []
+        current: List[str] = []
+        current_len = 0
+        for line in lines:
+            addition = len(line) + (1 if current else 0)  # newline separator
+            if current and current_len + addition > 1024:
+                pages.append("\n".join(current))
+                current = [line]
+                current_len = len(line)
+            else:
+                current.append(line)
+                current_len += addition
+        if current:
+            pages.append("\n".join(current))
+        for i, page in enumerate(pages):
+            name = "Final Scores" if len(pages) == 1 else f"Final Scores ({i+1}/{len(pages)})"
+            leaderboard_embed.add_field(name=name, value=page, inline=False)
         quiz_logger.info(f"Leaderboard: {[(uid, score) for uid, score in scores_sorted]}")
     else:
         leaderboard_embed.description = "No one submitted answers!"
@@ -871,25 +974,12 @@ async def display_quiz_results(channel, channel_id: int):
         quiz_logger.debug(f"Question {idx+1} correct users: {correct_users}")
         quiz_logger.debug(f"Question {idx+1} incorrect users: {incorrect_users}")
         
-        # Show who answered correctly
-        if correct_users:
-            correct_mentions = ", ".join(f"<@{uid}>" for uid in correct_users)
-            quiz_logger.debug(f"Question {idx+1} correct mentions string (len={len(correct_mentions)}): {correct_mentions}")
-            result_embed.add_field(
-                name="✅ Answered Correctly",
-                value=correct_mentions,
-                inline=False
-            )
-        
-        # Show who answered incorrectly
-        if incorrect_users:
-            incorrect_mentions = ", ".join(f"<@{uid}>" for uid in incorrect_users)
-            quiz_logger.debug(f"Question {idx+1} incorrect mentions string (len={len(incorrect_mentions)}): {incorrect_mentions}")
-            result_embed.add_field(
-                name="❌ Answered Incorrectly",
-                value=incorrect_mentions,
-                inline=False
-            )
+        # Show who answered correctly / incorrectly, chunked to stay under
+        # Discord's 1024-char per-field-value limit.
+        for name, value in chunk_mentions(correct_users, "✅ Answered Correctly"):
+            result_embed.add_field(name=name, value=value, inline=False)
+        for name, value in chunk_mentions(incorrect_users, "❌ Answered Incorrectly"):
+            result_embed.add_field(name=name, value=value, inline=False)
         
         # Show explanation
         result_embed.add_field(
@@ -930,12 +1020,14 @@ async def ask_command(interaction: discord.Interaction, question: str):
     api_logger.debug(f"Sending question to assistant API: '{enhanced_question[:100]}'")
     answer = await ask_assistant(enhanced_question)
     api_logger.debug(f"Received answer from assistant API (length={len(answer)})")
-    
-    # Discord has a 2000 character limit
-    if len(answer) > 1998:
-        answer = answer[:1997] + "..."
-        api_logger.warning(f"Answer truncated to 1998 characters")
-    
+
+    # Discord has a 2000 character limit per message; close any open code fence
+    # before truncating so markdown rendering doesn't break.
+    original_len = len(answer)
+    answer = truncate_for_discord(answer)
+    if len(answer) != original_len:
+        api_logger.warning(f"Answer truncated from {original_len} to {len(answer)} characters")
+
     await interaction.followup.send(answer)
     discord_logger.info(f"/ask completed for user {interaction.user.name}({interaction.user.id})")
 
@@ -960,10 +1052,10 @@ async def quiz_start(interaction: discord.Interaction, topic: str = "", question
         )
         return
     
-    if duration < 1 or duration > 480:
+    if duration < 1 or duration > 60:
         discord_logger.warning(f"/quiz_start invalid duration {duration} from user {interaction.user.name}({interaction.user.id})")
         await interaction.response.send_message(
-            "❌ Please choose a duration between 1 and 480 minutes.",
+            "❌ Please choose a duration between 1 and 60 minutes.",
             ephemeral=True
         )
         return
@@ -994,7 +1086,7 @@ async def quiz_start(interaction: discord.Interaction, topic: str = "", question
     # Shuffle the options for each question to randomize correct answer position
     shuffled_questions = [shuffle_quiz_options(q) for q in quiz_questions]
     
-    end_time = datetime.utcnow() + timedelta(minutes=duration)
+    end_time = datetime.now(timezone.utc) + timedelta(minutes=duration)
     
     QUIZ_STATE[interaction.channel_id] = {
         "questions": shuffled_questions,
@@ -1005,11 +1097,15 @@ async def quiz_start(interaction: discord.Interaction, topic: str = "", question
     }
     
     quiz_logger.info(f"Quiz started in channel {interaction.channel_id} by user {interaction.user.name}({interaction.user.id}): {len(shuffled_questions)} questions, {duration} minutes")
-    
+
     topic_text = f" (Topic: {topic})" if topic else ""
-    
-    # Schedule auto-end task
-    asyncio.create_task(auto_end_quiz(interaction.channel_id, interaction.channel, duration))
+
+    # Schedule auto-end task and hold a strong reference in QUIZ_STATE so it
+    # isn't garbage-collected mid-sleep, and so /quiz_end can cancel it.
+    end_task = asyncio.create_task(
+        auto_end_quiz(interaction.channel_id, interaction.channel, duration)
+    )
+    QUIZ_STATE[interaction.channel_id]["end_task"] = end_task
     
     # Send initial message with embed
     start_embed = discord.Embed(
@@ -1069,7 +1165,7 @@ async def quiz_answer(interaction: discord.Interaction, question_number: int, ch
         return
     
     # Check if quiz has ended
-    if datetime.utcnow() >= state["end_time"]:
+    if datetime.now(timezone.utc) >= state["end_time"]:
         discord_logger.warning(f"/quiz_answer after quiz ended in channel {interaction.channel_id} for user {interaction.user.name}({interaction.user.id})")
         await interaction.response.send_message(
             "❌ This quiz has ended! Results are being calculated.",
@@ -1102,12 +1198,10 @@ async def quiz_answer(interaction: discord.Interaction, question_number: int, ch
     answered_count = len(state["user_answers"][user_id])
     total_questions = len(state["questions"])
     
-    time_remaining = state["end_time"] - datetime.utcnow()
-    minutes_remaining = int(time_remaining.total_seconds() / 60)
-    seconds_remaining = int(time_remaining.total_seconds() % 60)
-    
+    minutes_remaining, seconds_remaining = format_time_remaining(state["end_time"])
+
     quiz_logger.debug(f"User {interaction.user.name}({user_id}) progress: {answered_count}/{total_questions} answered, {minutes_remaining}m {seconds_remaining}s remaining")
-    
+
     await interaction.response.send_message(
         f"📝 Answer recorded for question {question_number}!\n"
         f"📊 You've answered {answered_count}/{total_questions} questions.\n"
@@ -1128,22 +1222,45 @@ async def quiz_end(interaction: discord.Interaction):
         await interaction.response.send_message(perm_error, ephemeral=True)
         return
     
-    if interaction.channel_id not in QUIZ_STATE:
+    state = QUIZ_STATE.get(interaction.channel_id)
+    if state is None:
         discord_logger.warning(f"/quiz_end no quiz in channel {interaction.channel_id}")
         await interaction.response.send_message(
             "❌ No quiz is running in this channel.",
             ephemeral=True
         )
         return
-    
+
+    # Only the initiator or a moderator (manage_messages in guild channels)
+    # may end the quiz. In DMs there's no manage_messages so only the
+    # initiator qualifies — which is fine since DMs are 1:1 anyway.
+    initiator_id = state.get("initiator")
+    is_initiator = interaction.user.id == initiator_id
+    is_mod = (
+        interaction.guild is not None
+        and interaction.channel.permissions_for(interaction.user).manage_messages
+    )
+    if not (is_initiator or is_mod):
+        discord_logger.warning(
+            f"/quiz_end refused: user {interaction.user.name}({interaction.user.id}) is "
+            f"neither initiator ({initiator_id}) nor moderator in channel {interaction.channel_id}"
+        )
+        await interaction.response.send_message(
+            f"❌ Only the quiz initiator (<@{initiator_id}>) or a moderator can end this quiz.",
+            ephemeral=True,
+        )
+        return
+
     await interaction.response.defer()
-    
+
     quiz_logger.info(f"Quiz manually ended in channel {interaction.channel_id} by user {interaction.user.name}({interaction.user.id})")
-    
+
     # Display results
     await display_quiz_results(interaction.channel, interaction.channel_id)
-    
-    await interaction.followup.send("🛑 Quiz ended by moderator.")
+
+    await interaction.followup.send(
+        f"🛑 Quiz ended by <@{interaction.user.id}>."
+    )
 
 
 @tree.command(name="quiz_score", description="Check your quiz progress")
@@ -1167,9 +1284,7 @@ async def quiz_score(interaction: discord.Interaction):
     else:
         answered_count = len(state["user_answers"][user_id])
     
-    time_remaining = state["end_time"] - datetime.utcnow()
-    minutes_remaining = max(0, int(time_remaining.total_seconds() / 60))
-    seconds_remaining = max(0, int(time_remaining.total_seconds() % 60))
+    minutes_remaining, seconds_remaining = format_time_remaining(state["end_time"])
     
     # Show which questions have been answered
     answered_questions = []
@@ -1211,7 +1326,14 @@ async def info_command(interaction: discord.Interaction):
     embed.add_field(name="Version", value="1.0.0", inline=True)
     embed.add_field(
         name="Commands",
-        value="• `/ask` - Ask questions\n• `/quiz_start` - Start timed quiz\n• `/quiz_answer` - Answer question\n• `/quiz_score` - View progress\n• `/quiz_end` - End quiz",
+        value=(
+            "• `/ask` - Ask questions about the documentation\n"
+            "• `/quiz_start` - Start a timed quiz (1-60 min, 1-10 questions)\n"
+            "• `/quiz_answer` - Submit an answer by question number (alternative to buttons)\n"
+            "• `/quiz_score` - View your progress in the running quiz\n"
+            "• `/quiz_end` - End the running quiz (initiator/mod only)\n"
+            "• `/info` - Show this info panel"
+        ),
         inline=False
     )
     embed.set_footer(text="Powered by OpenAI Responses API")
@@ -1227,7 +1349,7 @@ async def on_ready():
     await initialize_assistant_config()
     
     await tree.sync()
-    discord_logger.info(f"✈️ DarkstarAIC is online!")
+    discord_logger.info("✈️ DarkstarAIC is online!")
     discord_logger.info(f"📚 Connected to {len(client.guilds)} server(s)")
     discord_logger.info(f"🤖 Using {ASSISTANT_CONFIG['model']} with Responses API")
     discord_logger.info(f"Bot user: {client.user.name}#{client.user.discriminator} (ID: {client.user.id})")
@@ -1236,7 +1358,7 @@ async def on_ready():
     for guild in client.guilds:
         discord_logger.info(f"  - Guild: {guild.name} (ID: {guild.id}, Members: {guild.member_count})")
     
-    print(f"✈️ DarkstarAIC is online!")
+    print("✈️ DarkstarAIC is online!")
     print(f"📚 Connected to {len(client.guilds)} server(s)")
     print(f"🤖 Using {ASSISTANT_CONFIG['model']} with Responses API")
 
