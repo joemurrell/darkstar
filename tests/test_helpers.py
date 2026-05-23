@@ -92,21 +92,19 @@ def test_chunk_mentions_respects_max_chars():
 
 # --- model_supports_temperature ---
 
-def test_temperature_supported_for_gpt_4_family():
-    assert app.model_supports_temperature("gpt-4o-mini")
-    assert app.model_supports_temperature("gpt-4.1")
-    assert app.model_supports_temperature("gpt-4o")
+def test_temperature_supported_for_haiku_and_sonnet():
+    assert app.model_supports_temperature("claude-haiku-4-5")
+    assert app.model_supports_temperature("claude-sonnet-4-6")
 
 
-def test_temperature_rejected_for_reasoning_models():
-    assert not app.model_supports_temperature("o1-mini")
-    assert not app.model_supports_temperature("o3-pro")
-    assert not app.model_supports_temperature("o4-mini")
+def test_temperature_supported_for_opus_4_6():
+    # Opus 4.6 and earlier accept temperature; only Opus 4.7+ rejects it.
+    assert app.model_supports_temperature("claude-opus-4-6")
+    assert app.model_supports_temperature("claude-opus-4-5")
 
 
-def test_temperature_rejected_for_gpt5_family():
-    assert not app.model_supports_temperature("gpt-5")
-    assert not app.model_supports_temperature("gpt-5-turbo")
+def test_temperature_rejected_for_opus_4_7():
+    assert not app.model_supports_temperature("claude-opus-4-7")
 
 
 def test_temperature_default_true_for_unknown_or_none():

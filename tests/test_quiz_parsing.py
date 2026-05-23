@@ -1,7 +1,10 @@
-"""Tests for parse_quiz_response and validate_quiz_questions."""
-import json
-import pytest
+"""
+Tests for validate_quiz_questions.
 
+`parse_quiz_response` is gone — we now use Claude's forced tool-use, which
+returns a parsed dict directly on the tool_use block. validate_quiz_questions
+remains as the second line of defense against malformed tool inputs.
+"""
 import app
 
 
@@ -14,38 +17,6 @@ def _q(q="Q1", answer="A", n_opts=4):
         "page": 1,
         "topic": "test-topic",
     }
-
-
-def test_parse_bare_json_object():
-    reply = json.dumps({"questions": [_q()]})
-    result = app.parse_quiz_response(reply)
-    assert len(result) == 1
-    assert result[0]["q"] == "Q1"
-
-
-def test_parse_json_code_fence():
-    reply = "```json\n" + json.dumps({"questions": [_q("Q2", "B")]}) + "\n```"
-    result = app.parse_quiz_response(reply)
-    assert len(result) == 1
-    assert result[0]["answer"] == "B"
-
-
-def test_parse_plain_code_fence():
-    reply = "```\n" + json.dumps({"questions": [_q()]}) + "\n```"
-    result = app.parse_quiz_response(reply)
-    assert len(result) == 1
-
-
-def test_parse_bare_array_legacy_fallback():
-    """If the model returns a bare array instead of {questions: [...]}, still parse it."""
-    reply = json.dumps([_q()])
-    result = app.parse_quiz_response(reply)
-    assert len(result) == 1
-
-
-def test_parse_invalid_json_raises_json_error():
-    with pytest.raises(json.JSONDecodeError):
-        app.parse_quiz_response("not json at all")
 
 
 def test_validate_keeps_well_formed():
@@ -91,9 +62,9 @@ def test_validate_rejects_non_list_options():
 
 def test_validate_skips_non_dict_items():
     """
-    parse_quiz_response's bare-array fallback doesn't enforce element shape,
-    so validate must defensively skip ints, strings, and other non-dicts
-    rather than raising TypeError on `k in item`.
+    Defensive: even though Claude's input_schema enforces shape, validate
+    still skips ints / strings / Nones rather than raising TypeError on
+    `k in item`.
     """
     items = [_q(), 42, "not a dict", None, [1, 2, 3], _q("Q2")]
     valid = app.validate_quiz_questions(items)
@@ -108,3 +79,21 @@ def test_validate_does_not_mutate_input():
     items = [original]
     app.validate_quiz_questions(items)
     assert original["answer"] == " b "
+
+
+def test_quiz_tool_schema_shape():
+    """
+    Sanity-check the QUIZ_TOOL spec — Claude rejects schemas that violate
+    structured-output constraints (e.g. missing additionalProperties: false).
+    """
+    schema = app.QUIZ_TOOL["input_schema"]
+    assert schema["type"] == "object"
+    assert schema["additionalProperties"] is False
+    question_schema = schema["properties"]["questions"]["items"]
+    assert question_schema["additionalProperties"] is False
+    # Topic + page must be required so the dedup logic can't collapse on
+    # missing topics — see CLAUDE.md → Deduplication.
+    assert set(question_schema["required"]) == {
+        "q", "options", "answer", "explain", "page", "topic"
+    }
+    assert question_schema["properties"]["answer"]["enum"] == ["A", "B", "C", "D"]

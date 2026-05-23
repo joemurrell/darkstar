@@ -1,33 +1,41 @@
 """
 DarkstarAIC - DCS Air Control Communication Discord Bot
-PDF-grounded Q&A and Quiz system using OpenAI Responses API
+PDF-grounded Q&A and Quiz system using the Anthropic Claude API
+(Files API for PDF attachment + prompt caching + tool-use structured output).
 """
 import os
 import asyncio
-import json
-import re
 import random
 import logging
 from datetime import datetime, timedelta, timezone
-from typing import List, Optional, Set, Tuple
+from typing import List, Optional, Set, Tuple, Union
 from collections import Counter
 from difflib import SequenceMatcher
+import re
 import discord
 from discord import app_commands
-from openai import AsyncOpenAI, APITimeoutError
+from anthropic import AsyncAnthropic, APITimeoutError
 
 # Environment variables
 DISCORD_TOKEN = os.environ["DISCORD_TOKEN"]
-OPENAI_API_KEY = os.environ["OPENAI_API_KEY"]
-ASSISTANT_ID = os.environ["ASSISTANT_ID"]
+ANTHROPIC_API_KEY = os.environ["ANTHROPIC_API_KEY"]
+# File ID returned by Anthropic's Files API for the ACC reference PDF.
+# Upload once with scripts/upload_pdf.py and set the resulting value here.
+ACC_FILE_ID = os.environ["ACC_FILE_ID"]
+# Claude model to use. Defaults to Haiku 4.5 for cost; bump to
+# claude-sonnet-4-6 for higher-quality quiz generation.
+CLAUDE_MODEL = os.environ.get("CLAUDE_MODEL", "claude-haiku-4-5")
 
 # --- Discord client setup ---
 intents = discord.Intents.default()
 client = discord.Client(intents=intents)
 tree = app_commands.CommandTree(client)
 
-# --- OpenAI client ---
-oai = AsyncOpenAI(api_key=OPENAI_API_KEY)
+# --- Anthropic client ---
+anthropic_client = AsyncAnthropic(api_key=ANTHROPIC_API_KEY)
+
+# Beta header required for the Files API (PDF attachment via file_id).
+ANTHROPIC_BETAS = ["files-api-2025-04-14"]
 
 # Configure logging for Railway compatibility
 # Railway prefers structured JSON logs with clear levels
@@ -45,17 +53,22 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 discord_logger = logging.getLogger('discord_bot')
 quiz_logger = logging.getLogger('quiz')
-api_logger = logging.getLogger('openai_api')
+api_logger = logging.getLogger('anthropic_api')
 
 # In-memory quiz state (per-channel)
 QUIZ_STATE = {}
 
-# Assistant configuration (cached from ASSISTANT_ID)
-ASSISTANT_CONFIG = {
-    "instructions": None,
-    "model": None,
-    "vector_store_ids": []
-}
+# System prompt — defines DarkstarAIC's persona and grounding rules. Edit
+# directly to tune tone or refusal behavior; the value is cached prefix so
+# changes invalidate the prompt cache until the new prefix is re-warmed.
+ACC_INSTRUCTIONS = """You are DarkstarAIC, a flight-training assistant for the DCS (Digital Combat Simulator) Air Control Communication (ACC) community.
+
+Ground every answer in the ACC procedures PDF attached to this conversation.
+
+- Cite page numbers inline (e.g. "see p. 42") whenever you reference a procedure.
+- If the user's question can't be answered from the PDF, say so plainly rather than guessing.
+- Use precise aviation terminology; do not soften technical detail for readability.
+- For quiz generation: every question must cover a distinct concept, and each distractor must be plausibly close to the correct answer but unambiguously wrong to a knowledgeable reader."""
 
 
 # --- Button Classes for Quiz Interaction ---
@@ -242,132 +255,119 @@ async def check_bot_permissions(interaction: discord.Interaction) -> Tuple[bool,
         message = message[:1897] + "..."
     return False, message
 
-async def initialize_assistant_config():
-    """
-    Retrieve assistant configuration from the ASSISTANT_ID and cache it.
-    This is called once on startup to get instructions, model, and vector store IDs.
-    """
-    try:
-        api_logger.info(f"Retrieving assistant configuration for {ASSISTANT_ID}")
-        
-        # Retrieve assistant details using beta API (still needed for this)
-        assistant = await oai.beta.assistants.retrieve(assistant_id=ASSISTANT_ID)
-        
-        # Cache the configuration
-        ASSISTANT_CONFIG["instructions"] = assistant.instructions
-        ASSISTANT_CONFIG["model"] = assistant.model
-        
-        # Extract vector store IDs from tools
-        vector_store_ids = []
-        if assistant.tools:
-            for tool in assistant.tools:
-                if hasattr(tool, 'type') and tool.type == "file_search":
-                    if hasattr(tool, 'file_search') and hasattr(tool.file_search, 'vector_store_ids'):
-                        vector_store_ids.extend(tool.file_search.vector_store_ids)
-        
-        ASSISTANT_CONFIG["vector_store_ids"] = vector_store_ids
-        
-        api_logger.info(f"Assistant config cached: model={ASSISTANT_CONFIG['model']}, "
-                       f"vector_stores={len(vector_store_ids)}, "
-                       f"instructions_len={len(ASSISTANT_CONFIG['instructions']) if ASSISTANT_CONFIG['instructions'] else 0}")
-        
-        return True
-        
-    except Exception as e:
-        api_logger.error(f"Failed to retrieve assistant configuration: {e}", exc_info=True)
-        # Set defaults if retrieval fails
-        ASSISTANT_CONFIG["instructions"] = "You are a helpful assistant."
-        ASSISTANT_CONFIG["model"] = "gpt-4o-mini"
-        ASSISTANT_CONFIG["vector_store_ids"] = []
-        return False
-
-
 def model_supports_temperature(model: Optional[str]) -> bool:
     """
-    Reasoning models (o1, o3, o4) and the gpt-5 family reject the temperature
-    parameter entirely. Default to True for unknown models.
+    Claude Opus 4.7 removed the `temperature` parameter and returns 400 if it
+    is sent. All earlier Claude models (Sonnet 4.6, Haiku 4.5, Opus 4.6 and
+    older) accept it. Defaults to True for unknown / non-Claude models.
     """
     if not model:
         return True
-    lower = model.lower()
-    return not (
-        lower.startswith("o1")
-        or lower.startswith("o3")
-        or lower.startswith("o4")
-        or lower.startswith("gpt-5")
-    )
+    return not model.startswith("claude-opus-4-7")
 
 
 async def ask_assistant(
     user_msg: str,
     timeout: int = 30,
-    temperature: float = None,
-    response_format: Optional[dict] = None,
-) -> str:
+    temperature: Optional[float] = None,
+    tool: Optional[dict] = None,
+) -> Union[str, dict, None]:
     """
-    Ask the OpenAI Assistant a question using Responses API.
-    Uses File Search to ground responses in the uploaded PDF.
+    Ask Claude a question grounded in the ACC PDF (attached via Files API).
+
+    System prompt and PDF are both marked with `cache_control: ephemeral`
+    so the ~50K-token prefix is served from cache on every request after
+    the first one in a 5-minute window.
 
     Args:
-        user_msg: The message/prompt to send to the assistant
-        timeout: Maximum seconds to wait for response
-        temperature: Optional temperature for response generation (0.0-2.0)
-        response_format: Optional OpenAI structured-output format dict (e.g. a
-            json_schema spec). When provided, forces the model to return valid
-            JSON matching the schema, eliminating fragile post-hoc parsing.
+        user_msg: The user question / quiz prompt.
+        timeout: Maximum seconds before the SDK raises APITimeoutError.
+        temperature: Optional temperature (Claude accepts 0.0-1.0). Skipped
+            on models that reject it (Opus 4.7).
+        tool: Optional tool spec dict (`name`, `description`, `input_schema`).
+            When provided, Claude is forced to call exactly this tool and the
+            tool's input dict is returned directly — no JSON parsing needed.
+            Returns None if Claude refuses or no tool_use block is emitted.
+
+    Returns:
+        - str: plain-text response when `tool` is None.
+        - dict: parsed tool input when `tool` is provided.
+        - None: when forced tool-use was requested but the model refused.
     """
-    api_logger.debug(f"ask_assistant called: msg_len={len(user_msg)} timeout={timeout} temperature={temperature} structured={response_format is not None}")
+    api_logger.debug(
+        f"ask_assistant called: msg_len={len(user_msg)} timeout={timeout} "
+        f"temperature={temperature} tool={tool['name'] if tool else None}"
+    )
+
+    request_params = {
+        "model": CLAUDE_MODEL,
+        "max_tokens": 4096,
+        # System prompt is cached so the ~5-min window covers a typical
+        # interactive session at near-zero cost.
+        "system": [
+            {
+                "type": "text",
+                "text": ACC_INSTRUCTIONS,
+                "cache_control": {"type": "ephemeral"},
+            }
+        ],
+        "messages": [
+            {
+                "role": "user",
+                "content": [
+                    # PDF goes first in the user message so a cache breakpoint
+                    # on it covers the whole ~50K-token prefix; the varying
+                    # user question lands after the breakpoint.
+                    {
+                        "type": "document",
+                        "source": {"type": "file", "file_id": ACC_FILE_ID},
+                        "cache_control": {"type": "ephemeral"},
+                    },
+                    {"type": "text", "text": user_msg},
+                ],
+            }
+        ],
+        "betas": ANTHROPIC_BETAS,
+    }
+
+    if temperature is not None and model_supports_temperature(CLAUDE_MODEL):
+        request_params["temperature"] = temperature
+
+    if tool is not None:
+        request_params["tools"] = [tool]
+        request_params["tool_choice"] = {"type": "tool", "name": tool["name"]}
+        # Give forced tool-use plenty of room — quiz schemas with N questions
+        # generate a few KB of structured output.
+        request_params["max_tokens"] = 16000
 
     try:
-        # Build request parameters for Responses API
-        request_params = {
-            "model": ASSISTANT_CONFIG["model"],
-            "instructions": ASSISTANT_CONFIG["instructions"],
-            "input": user_msg,
-        }
+        response = await anthropic_client.beta.messages.create(
+            **request_params, timeout=timeout
+        )
 
-        # Add file search tool if vector stores are configured
-        if ASSISTANT_CONFIG["vector_store_ids"]:
-            request_params["tools"] = [
-                {
-                    "type": "file_search",
-                    "vector_store_ids": ASSISTANT_CONFIG["vector_store_ids"]
-                }
-            ]
+        usage = response.usage
+        api_logger.info(
+            f"Response received: id={response.id} stop_reason={response.stop_reason} "
+            f"input={usage.input_tokens} cache_read={usage.cache_read_input_tokens} "
+            f"cache_write={usage.cache_creation_input_tokens} output={usage.output_tokens}"
+        )
 
-        # Add optional parameters if provided. Skip temperature for models
-        # that reject it (reasoning models, gpt-5 family) to avoid 400 errors.
-        if temperature is not None and model_supports_temperature(ASSISTANT_CONFIG.get("model")):
-            request_params["temperature"] = temperature
+        if response.stop_reason == "refusal":
+            api_logger.warning("Claude refused the request")
+            return None if tool is not None else "❌ The AI declined to answer this question."
 
-        # Structured outputs are passed via the Responses-API `text.format` slot.
-        if response_format is not None:
-            request_params["text"] = {"format": response_format}
+        # Forced tool-use path: return the parsed tool input dict.
+        if tool is not None:
+            for block in response.content:
+                if block.type == "tool_use" and block.name == tool["name"]:
+                    return block.input
+            api_logger.warning(f"Forced tool {tool['name']} but no tool_use block in response")
+            return None
 
-        api_logger.debug(f"Creating response with model={ASSISTANT_CONFIG['model']} timeout={timeout}s")
-
-        # Create response using Responses API (non-streaming). The timeout
-        # kwarg is honored by the OpenAI SDK and raises APITimeoutError if
-        # exceeded.
-        response = await oai.responses.create(**request_params, timeout=timeout)
-
-        api_logger.info(f"Response received: id={response.id} status={response.status}")
-
-        # Extract text from message output items. The output list can contain
-        # tool-call items (e.g. file_search_call) before the message, so we
-        # iterate every item rather than indexing [0].
-        chunks = []
-        for output_item in (response.output or []):
-            if getattr(output_item, "type", None) != "message":
-                continue
-            for content in getattr(output_item, "content", None) or []:
-                if getattr(content, "type", None) == "output_text":
-                    # Remove citation markers like 【4:2†source】
-                    text = re.sub(r'【[^】]*】', '', content.text)
-                    chunks.append(text)
-
+        # Plain-text path: concatenate text blocks.
+        chunks = [block.text for block in response.content if block.type == "text"]
         if not chunks:
-            api_logger.warning("No message output content found in response")
+            api_logger.warning("No text content found in response")
             return "No response from assistant."
 
         result = "\n".join(chunks)
@@ -375,11 +375,12 @@ async def ask_assistant(
         return result
 
     except APITimeoutError:
-        api_logger.error(f"OpenAI request timed out after {timeout}s")
-        return "❌ The AI took too long to respond. Please try again in a moment."
+        api_logger.error(f"Anthropic request timed out after {timeout}s")
+        msg = "❌ The AI took too long to respond. Please try again in a moment."
+        return None if tool is not None else msg
     except Exception as e:
         api_logger.error(f"Error asking assistant: {e}", exc_info=True)
-        return f"❌ Error communicating with AI: {str(e)}"
+        return None if tool is not None else f"❌ Error communicating with AI: {str(e)}"
 
 
 def format_time_remaining(end_time: datetime) -> Tuple[int, int]:
@@ -647,11 +648,19 @@ def deduplicate_questions(questions: List[dict]) -> Tuple[List[dict], List[str]]
 # OpenAI Responses-API structured-output spec for quiz generation. The model
 # is forced to return an object with a `questions` array whose items have all
 # required fields (including `topic`, which the dedup logic depends on).
-QUIZ_RESPONSE_FORMAT = {
-    "type": "json_schema",
-    "name": "quiz_questions",
-    "strict": True,
-    "schema": {
+# Forced tool spec for quiz generation. Claude is required to call this tool
+# (via tool_choice), and the parsed dict comes back directly on the tool_use
+# block — no JSON-string parsing, no fence-stripping, no validation against
+# free-form text. The tool's input_schema is the structured-output spec.
+QUIZ_TOOL = {
+    "name": "submit_quiz",
+    "description": (
+        "Submit a set of multiple-choice quiz questions about the attached "
+        "ACC PDF. Every question must have exactly 4 options, a correct "
+        "answer letter, an explanation with a page reference, the page "
+        "number as an integer, and a short hyphenated topic tag."
+    ),
+    "input_schema": {
         "type": "object",
         "additionalProperties": False,
         "properties": {
@@ -677,36 +686,12 @@ QUIZ_RESPONSE_FORMAT = {
 }
 
 
-def parse_quiz_response(reply: str) -> List[dict]:
-    """
-    Parse an assistant reply into a list of raw question dicts.
-    Tolerates legacy ```json fenced responses for safety; structured outputs
-    should already produce a bare JSON object.
-    """
-    reply_clean = reply.strip()
-    if reply_clean.startswith("```json"):
-        reply_clean = reply_clean[7:]
-    elif reply_clean.startswith("```"):
-        reply_clean = reply_clean[3:]
-    if reply_clean.endswith("```"):
-        reply_clean = reply_clean[:-3]
-    reply_clean = reply_clean.strip()
-
-    data = json.loads(reply_clean)
-    # Structured output: {"questions": [...]}. Permissive fallback: bare list.
-    if isinstance(data, dict) and isinstance(data.get("questions"), list):
-        return data["questions"]
-    if isinstance(data, list):
-        return data
-    return []
-
-
 def validate_quiz_questions(items: List[dict]) -> List[dict]:
     """
     Filter to questions with the required shape; normalize the answer letter.
     Returns shallow-copied dicts so the caller's data isn't mutated. Skips
-    any non-dict items defensively, since the bare-array fallback path in
-    parse_quiz_response doesn't enforce element shape.
+    any non-dict items defensively — the tool input_schema enforces shape on
+    Claude's side but the validator is the second line of defense.
     """
     valid = []
     for raw in items:
@@ -724,17 +709,28 @@ def validate_quiz_questions(items: List[dict]) -> List[dict]:
     return valid
 
 
+async def _request_quiz_questions(prompt: str, temperature: float) -> List[dict]:
+    """Single quiz-generation API call. Returns validated questions or []."""
+    result = await ask_assistant(
+        prompt, timeout=45, temperature=temperature, tool=QUIZ_TOOL,
+    )
+    if not isinstance(result, dict) or "questions" not in result:
+        api_logger.warning(f"submit_quiz returned no questions: {type(result).__name__}")
+        return []
+    return validate_quiz_questions(result["questions"])
+
+
 async def generate_quiz(topic_hint: str = "", num_questions: int = 6) -> Optional[List[dict]]:
     """
-    Generate a quiz from the PDF using the Assistant.
-    Uses OpenAI structured outputs to guarantee well-formed JSON with the
-    required topic field, then deduplicates and regenerates for diversity.
-    Returns a list of question dicts or None on failure.
+    Generate a quiz from the PDF using Claude.
+    Forces tool-use against QUIZ_TOOL so the response is a validated dict,
+    then deduplicates and regenerates for diversity. Returns a list of
+    question dicts or None on failure.
     """
     max_regeneration_attempts = 3
 
     prompt = (
-        f"Generate {num_questions} multiple-choice questions based ONLY on the attached PDF.\n\n"
+        f"Generate {num_questions} multiple-choice questions based ONLY on the attached ACC PDF.\n\n"
         "Requirements:\n"
         "- Each question must have exactly 4 options\n"
         "- Provide a brief explanation with a page reference like (p.XX) in `explain`\n"
@@ -743,16 +739,13 @@ async def generate_quiz(topic_hint: str = "", num_questions: int = 6) -> Optiona
         "- Focus on practical knowledge for DCS pilots\n"
         "- Every question must cover a different topic from the others; do not repeat distinctive keywords\n\n"
         + (f"Topic focus: {topic_hint}" if topic_hint else "Cover various topics from the document.")
+        + "\n\nCall the submit_quiz tool with your questions."
     )
 
     api_logger.info(f"Generating quiz: topic_hint='{topic_hint}', num_questions={num_questions}")
-    reply = await ask_assistant(
-        prompt, timeout=45, temperature=0.7, response_format=QUIZ_RESPONSE_FORMAT,
-    )
-    api_logger.debug(f"Assistant raw reply (first 1000 chars): {reply[:1000]}")
 
     try:
-        valid_questions = validate_quiz_questions(parse_quiz_response(reply))
+        valid_questions = await _request_quiz_questions(prompt, temperature=0.7)
 
         if not valid_questions:
             api_logger.warning("No valid questions returned from assistant")
@@ -765,7 +758,7 @@ async def generate_quiz(topic_hint: str = "", num_questions: int = 6) -> Optiona
         )
         api_logger.info(f"Used topics: {used_topics}")
 
-        # Regeneration loop if we don't have enough unique questions
+        # Regeneration loop if we don't have enough unique questions.
         attempt = 0
         while len(unique_questions) < num_questions and attempt < max_regeneration_attempts:
             attempt += 1
@@ -776,36 +769,28 @@ async def generate_quiz(topic_hint: str = "", num_questions: int = 6) -> Optiona
             )
 
             regen_prompt = (
-                f"Generate {needed + 2} additional multiple-choice questions based ONLY on the attached PDF.\n\n"
+                f"Generate {needed + 2} additional multiple-choice questions based ONLY on the attached ACC PDF.\n\n"
                 f"Do NOT repeat any of these topics (already covered): {', '.join(used_topics)}\n\n"
                 "Same requirements as before: 4 options, A/B/C/D answer letter, explanation with page reference, integer page, hyphenated topic tag.\n"
                 "Each new question must have a unique topic tag different from the ones listed above.\n\n"
                 + (f"Topic focus: {topic_hint}" if topic_hint else "Cover various unused topics from the document.")
+                + "\n\nCall the submit_quiz tool with your questions."
             )
 
-            regen_reply = await ask_assistant(
-                regen_prompt, timeout=45, temperature=0.8, response_format=QUIZ_RESPONSE_FORMAT,
-            )
-            api_logger.debug(f"Regeneration reply (first 500 chars): {regen_reply[:500]}")
+            regen_valid = await _request_quiz_questions(regen_prompt, temperature=0.8)
 
-            try:
-                regen_valid = validate_quiz_questions(parse_quiz_response(regen_reply))
-
-                for q in regen_valid:
-                    topic = extract_topic_from_question(q)
-                    is_duplicate = any(
-                        are_questions_similar(q, existing_q, topic, existing_topic)
-                        for existing_q, existing_topic in zip(unique_questions, used_topics)
-                    )
-                    if not is_duplicate:
-                        unique_questions.append(q)
-                        used_topics.append(topic)
-                        api_logger.debug(f"Added new unique question with topic: {topic}")
-                        if len(unique_questions) >= num_questions:
-                            break
-            except json.JSONDecodeError as e:
-                api_logger.error(f"JSON parse error in regeneration attempt {attempt}: {e}")
-                continue
+            for q in regen_valid:
+                topic = extract_topic_from_question(q)
+                is_duplicate = any(
+                    are_questions_similar(q, existing_q, topic, existing_topic)
+                    for existing_q, existing_topic in zip(unique_questions, used_topics)
+                )
+                if not is_duplicate:
+                    unique_questions.append(q)
+                    used_topics.append(topic)
+                    api_logger.debug(f"Added new unique question with topic: {topic}")
+                    if len(unique_questions) >= num_questions:
+                        break
 
         final_count = len(unique_questions)
         api_logger.info(f"Final quiz: {final_count} unique questions (requested: {num_questions})")
@@ -825,10 +810,6 @@ async def generate_quiz(topic_hint: str = "", num_questions: int = 6) -> Optiona
             api_logger.error("Failed to generate any unique questions")
             return None
 
-    except json.JSONDecodeError as e:
-        api_logger.error(f"JSON parse error: {e}")
-        api_logger.error(f"Response was: {reply[:500]}")
-        return None
     except Exception as e:
         api_logger.error(f"Quiz generation error: {e}", exc_info=True)
         return None
@@ -1321,7 +1302,7 @@ async def info_command(interaction: discord.Interaction):
         description="AI-powered Q&A and quiz bot for Air Control Communication",
         color=0x2d5016  # Forest green
     )
-    embed.add_field(name="Model", value=ASSISTANT_CONFIG.get("model", "GPT-4o-mini"), inline=True)
+    embed.add_field(name="Model", value=CLAUDE_MODEL, inline=True)
     embed.add_field(name="Servers", value=str(len(client.guilds)), inline=True)
     embed.add_field(name="Version", value="1.0.0", inline=True)
     embed.add_field(
@@ -1336,31 +1317,27 @@ async def info_command(interaction: discord.Interaction):
         ),
         inline=False
     )
-    embed.set_footer(text="Powered by OpenAI Responses API")
-    
+    embed.set_footer(text="Powered by the Anthropic Claude API")
+
     await interaction.response.send_message(embed=embed)
 
 
 @client.event
 async def on_ready():
     """Called when the bot is ready."""
-    # Initialize assistant configuration from ASSISTANT_ID
-    discord_logger.info("Initializing assistant configuration...")
-    await initialize_assistant_config()
-    
     await tree.sync()
     discord_logger.info("✈️ DarkstarAIC is online!")
     discord_logger.info(f"📚 Connected to {len(client.guilds)} server(s)")
-    discord_logger.info(f"🤖 Using {ASSISTANT_CONFIG['model']} with Responses API")
+    discord_logger.info(f"🤖 Using {CLAUDE_MODEL} via Anthropic Claude API (file_id={ACC_FILE_ID})")
     discord_logger.info(f"Bot user: {client.user.name}#{client.user.discriminator} (ID: {client.user.id})")
-    
+
     # Log guild information
     for guild in client.guilds:
         discord_logger.info(f"  - Guild: {guild.name} (ID: {guild.id}, Members: {guild.member_count})")
-    
+
     print("✈️ DarkstarAIC is online!")
     print(f"📚 Connected to {len(client.guilds)} server(s)")
-    print(f"🤖 Using {ASSISTANT_CONFIG['model']} with Responses API")
+    print(f"🤖 Using {CLAUDE_MODEL} via Anthropic Claude API")
 
 
 if __name__ == "__main__":
