@@ -3,12 +3,12 @@
 **AI-powered Q&A and Quiz Discord Bot for Air Intercept Control and Air Control Communication**
 
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
-[![Discord.py](https://img.shields.io/badge/discord.py-2.4.0-blue.svg)](https://github.com/Rapptz/discord.py)
-[![OpenAI](https://img.shields.io/badge/OpenAI-GPT--4.1--mini-green.svg)](https://platform.openai.com/)
+[![Discord.py](https://img.shields.io/badge/discord.py-2.7.1-blue.svg)](https://github.com/Rapptz/discord.py)
+[![Anthropic](https://img.shields.io/badge/Anthropic-Claude-orange.svg)](https://www.anthropic.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-Support-orange.svg)](https://www.buymeacoffee.com/joemurrell)
 
-DarkstarAIC is a Discord bot designed for DCS (Digital Combat Simulator) communities, providing intelligent question-answering and interactive quizzes based on Air Control Communication (ACC) documentation. Powered by OpenAI's GPT-4.1-mini with Assistants API v2, it delivers accurate, PDF-grounded responses to help pilots and controllers master ACC procedures. FOR SIMULATION USE ONLY.
+DarkstarAIC is a Discord bot designed for DCS (Digital Combat Simulator) communities, providing intelligent question-answering and interactive quizzes based on Air Control Communication (ACC) documentation. Powered by Anthropic's Claude API with the Files API for PDF grounding, prompt caching, and tool-use structured output, it delivers accurate page-referenced answers to help pilots and controllers master ACC procedures. FOR SIMULATION USE ONLY.
 
 ## ✨ Features
 
@@ -16,7 +16,7 @@ DarkstarAIC is a Discord bot designed for DCS (Digital Combat Simulator) communi
 - **🎯 Interactive Quizzes**: Test your knowledge with automatically generated multiple-choice quizzes
 - **⏱️ Timed Quiz Sessions**: Create time-limited quizzes (1-60 minutes) with customizable question counts
 - **🔍 Smart Topic Diversity**: Quiz questions cover diverse topics from the documentation
-- **🤖 GPT-4.1-mini Powered**: Leverages OpenAI's latest model for intelligent, context-aware responses
+- **🤖 Claude Haiku 4.5**: Fast, cost-efficient Claude model with native PDF understanding and prompt caching (~10% input cost for the cached PDF prefix)
 
 
 ## 📺 Demo
