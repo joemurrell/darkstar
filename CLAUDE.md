@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-DarkstarAIC is a single-file Discord bot (`app.py`) that provides PDF-grounded Q&A and timed multiple-choice quizzes for the DCS Air Control Communication community. It uses the OpenAI Responses API with a `file_search` tool backed by a vector store. Deployed on Railway via Docker.
+DarkstarAIC is a single-file Discord bot (`app.py`) that provides PDF-grounded Q&A and timed multiple-choice quizzes for the DCS Air Control Communication community. It uses the OpenAI Responses API (via `AsyncOpenAI`) with a `file_search` tool backed by a vector store. Deployed on Railway via Docker.
 
 ## Running
 
@@ -50,41 +50,53 @@ The bot was migrated from the Assistants API to the Responses API (see `MIGRATIO
 
 ### Quiz state
 
-`QUIZ_STATE: dict[int, dict]` is a module-level dict keyed by Discord `channel_id`. Each entry holds the question list (shuffled), per-user answers, end time, duration, and initiator user ID.
+`QUIZ_STATE: dict[int, dict]` is a module-level dict keyed by Discord `channel_id`. Each entry holds the question list (shuffled), per-user answers, end time, duration, initiator user ID, and the `auto_end_quiz` task handle.
 
 **This is in-memory only.** Any process restart (deploy, Railway OOM, crash) wipes all in-flight quizzes with no recovery. Only one quiz per channel at a time.
 
-`auto_end_quiz` is scheduled via `asyncio.create_task(...)` at quiz start; the task reference is **not stored**, and is not cancelled on `/quiz_end`. Long quizzes leave orphan sleep tasks alive until their timer fires.
+`auto_end_quiz` is scheduled via `asyncio.create_task(...)` at quiz start; the task handle is stored in `state["end_task"]` to keep it from being GC'd and so `display_quiz_results` can cancel it on manual `/quiz_end`. The cancel path skips itself when invoked from inside the auto-end task to avoid `CancelledError` on self.
 
 ### Quiz generation pipeline
 
 `generate_quiz` is the most complex function. The flow:
 
-1. Build prompt asking for N MCQs with `q`, `options`, `answer`, `explain`, `topic`, `page` fields
-2. Call `ask_assistant` with `temperature=0.7`
-3. Strip ```` ```json ```` fences, parse JSON
-4. Validate (require `q`/`options`/`answer`/`explain` only — `topic` and `page` are **not** enforced)
+1. Build prompt asking for N MCQs covering distinct topics
+2. Call `ask_assistant` with `temperature=0.7` and `response_format=QUIZ_RESPONSE_FORMAT` (strict json_schema requiring `q`, `options`, `answer` ∈ {A,B,C,D}, `explain`, `page`, `topic`)
+3. `parse_quiz_response` extracts the `questions` array (with permissive ```` ```json ```` fence stripping as a fallback)
+4. `validate_quiz_questions` filters to items with exactly 4 options and a valid answer letter
 5. Run `deduplicate_questions` (see below)
-6. If under target count, regenerate up to 3 times with an "exclude these topics" prompt at `temperature=0.8`
-7. Shuffle each question's options via `shuffle_quiz_options` (re-letters the correct answer)
+6. If under target count, regenerate up to 3 times at `temperature=0.8` with an "exclude these topics" prompt (also schema-constrained)
+7. Shuffle each question's options via `shuffle_quiz_options` (re-letters the correct answer, preserves every other field)
 
 ### Deduplication
 
 Three signals in `are_questions_similar`:
 
-1. **Exact topic-tag match** — short-circuits to `True`. Combined with `extract_topic_from_question` returning `"unknown"` when the `topic` field is missing, this means **any two questions both lacking `topic` collapse to one**.
+1. **Exact topic-tag match** — short-circuits to `True`. Because `QUIZ_RESPONSE_FORMAT` makes `topic` required, this no longer collapses multiple "unknown" questions into one (the previous behavior).
 2. Fuzzy text ratio > 85% via `difflib.SequenceMatcher`
 3. Top-5 keyword overlap > 40% (after stopword removal)
 
-If you touch this logic, also update the topic-field validation in `generate_quiz` — they're coupled.
+If you touch the schema and remove the `topic` requirement, restore the validation guard before relying on the dedup logic — they're coupled.
 
 ### Response parsing in `ask_assistant`
 
-Citation markers like `【4:2†source】` are stripped via regex before returning. Only `response.output[0]` is inspected for the `message` type — when `file_search` actually fires, the first output item may be a `file_search_call` and the message will be silently skipped.
+Citation markers like `【4:2†source】` are stripped via regex before returning. The code iterates every item in `response.output` looking for `message` types and skips tool-call items (e.g. `file_search_call`), so a tool-call landing before the message no longer swallows the response.
+
+`ask_assistant` also accepts a `response_format` dict that gets wired into the Responses-API `text.format` slot for structured outputs. Pass `model_supports_temperature(model)` is consulted before sending `temperature` — reasoning models (o1/o3/o4) and the gpt-5 family reject it.
 
 ### Permissions
 
-`check_bot_permissions` builds a multi-line diagnostic string by walking `@everyone`, each bot role, and any member-specific overwrite. It does **not** check the `applications.commands` scope. DMs short-circuit to "ok".
+`check_bot_permissions` builds a multi-line diagnostic string by walking `@everyone`, each bot role, and any member-specific overwrite. It checks `send_messages`, `embed_links`, `read_message_history`, `view_channel`, and `use_application_commands`. The final message is truncated at 1900 chars to stay inside Discord's 2000-char interaction limit. DMs short-circuit to "ok".
+
+### Discord limit helpers
+
+Three small helpers near `format_mcq` exist to keep Discord output inside platform limits:
+
+- `format_time_remaining(end_time)` — `(minutes, seconds)` bounded at 0, used everywhere the bot displays a countdown
+- `truncate_for_discord(text, limit=2000)` — closes any open triple-backtick fence before truncating so markdown stays well-formed
+- `chunk_mentions(user_ids, base_name)` — packs `<@id>` strings into 1024-char embed-field-value chunks; paginates field name as `"<base> (1/2)"` etc. when needed
+
+If you display user mentions or LLM-generated prose, route through these rather than building strings inline.
 
 ### Logging
 

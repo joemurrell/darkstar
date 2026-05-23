@@ -48,9 +48,15 @@ The bot will generate unique questions, track your progress, and provide detaile
 - **`/quiz_start [topic] [questions] [duration]`** - Start a quiz session
   - `topic` (optional): Focus on specific topics
   - `questions` (optional): Number of questions (1-10, default: 5)
-  - `duration` (optional): Quiz duration in minutes (1-480, default: 15)
+  - `duration` (optional): Quiz duration in minutes (1-60, default: 15)
   ```
   /quiz_start topic:radio-procedures questions:8 duration:10
+  ```
+
+- **`/quiz_answer <question_number> <choice>`** - Submit an answer by question number
+  (alternative to clicking the buttons under each question)
+  ```
+  /quiz_answer question_number:3 choice:B
   ```
 
 - **`/quiz_score`** - View your current quiz progress
@@ -58,7 +64,8 @@ The bot will generate unique questions, track your progress, and provide detaile
   /quiz_score
   ```
 
-- **`/quiz_end`** - End the current quiz and view final results
+- **`/quiz_end`** - End the current quiz and view final results.
+  Only the quiz initiator or a user with **Manage Messages** can end a running quiz.
   ```
   /quiz_end
   ```

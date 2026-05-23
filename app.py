@@ -118,12 +118,10 @@ class QuizAnswerButton(discord.ui.Button):
         answered_count = len(state["user_answers"][user_id])
         total_questions = len(state["questions"])
         
-        time_remaining = state["end_time"] - datetime.now(timezone.utc)
-        minutes_remaining = int(time_remaining.total_seconds() / 60)
-        seconds_remaining = int(time_remaining.total_seconds() % 60)
-        
+        minutes_remaining, seconds_remaining = format_time_remaining(state["end_time"])
+
         quiz_logger.debug(f"User {interaction.user.name}({user_id}) progress: {answered_count}/{total_questions} answered, {minutes_remaining}m {seconds_remaining}s remaining")
-        
+
         await interaction.response.send_message(
             f"📝 Answer **{self.choice}** recorded for question {self.question_idx + 1}!\n"
             f"📊 You've answered {answered_count}/{total_questions} questions.\n"
@@ -171,12 +169,15 @@ async def check_bot_permissions(interaction: discord.Interaction) -> Tuple[bool,
     # Get bot's effective permissions in the channel
     bot_perms = channel.permissions_for(bot_member)
     
-    # Define required permissions
+    # Define required permissions. `use_application_commands` is what gates
+    # slash commands from appearing in the first place, so missing it is a
+    # very common cause of "the bot doesn't see my command".
     required_perms = {
         "send_messages": "Send Messages",
         "embed_links": "Embed Links",
         "read_message_history": "Read Message History",
-        "view_channel": "View Channel"
+        "view_channel": "View Channel",
+        "use_application_commands": "Use Application Commands",
     }
     
     # Check which permissions are missing
@@ -233,8 +234,13 @@ async def check_bot_permissions(interaction: discord.Interaction) -> Tuple[bool,
     error_parts.append("1. Check channel permission overwrites for roles/members")
     error_parts.append("2. Grant the bot's role the required permissions server-wide, OR")
     error_parts.append("3. Add channel-specific permission overwrites to allow the bot")
-    
-    return False, "\n".join(error_parts)
+
+    message = "\n".join(error_parts)
+    # Discord interaction messages cap at 2000 chars. With many roles/blockers
+    # this diagnostic can blow past that and the whole send fails silently.
+    if len(message) > 1900:
+        message = message[:1897] + "..."
+    return False, message
 
 async def initialize_assistant_config():
     """
@@ -276,6 +282,22 @@ async def initialize_assistant_config():
         return False
 
 
+def model_supports_temperature(model: Optional[str]) -> bool:
+    """
+    Reasoning models (o1, o3, o4) and the gpt-5 family reject the temperature
+    parameter entirely. Default to True for unknown models.
+    """
+    if not model:
+        return True
+    lower = model.lower()
+    return not (
+        lower.startswith("o1")
+        or lower.startswith("o3")
+        or lower.startswith("o4")
+        or lower.startswith("gpt-5")
+    )
+
+
 async def ask_assistant(
     user_msg: str,
     timeout: int = 30,
@@ -313,8 +335,9 @@ async def ask_assistant(
                 }
             ]
 
-        # Add optional parameters if provided
-        if temperature is not None:
+        # Add optional parameters if provided. Skip temperature for models
+        # that reject it (reasoning models, gpt-5 family) to avoid 400 errors.
+        if temperature is not None and model_supports_temperature(ASSISTANT_CONFIG.get("model")):
             request_params["temperature"] = temperature
 
         # Structured outputs are passed via the Responses-API `text.format` slot.
@@ -357,6 +380,59 @@ async def ask_assistant(
     except Exception as e:
         api_logger.error(f"Error asking assistant: {e}", exc_info=True)
         return f"❌ Error communicating with AI: {str(e)}"
+
+
+def format_time_remaining(end_time: datetime) -> Tuple[int, int]:
+    """
+    Return (minutes, seconds) of time remaining until end_time, bounded at 0
+    so callers don't display negative durations during the race between an
+    end-time check and a display update.
+    """
+    delta = end_time - datetime.now(timezone.utc)
+    total = max(0, int(delta.total_seconds()))
+    return total // 60, total % 60
+
+
+def truncate_for_discord(text: str, limit: int = 2000) -> str:
+    """
+    Truncate text to fit Discord's per-message char limit, closing any open
+    triple-backtick fence so markdown rendering doesn't break.
+    """
+    if len(text) <= limit:
+        return text
+    # Reserve room for the ellipsis and a possible closing fence on its own line.
+    head = text[: limit - 8]
+    if head.count("```") % 2 == 1:
+        head = head.rstrip() + "\n```"
+    return head + "..."
+
+
+def chunk_mentions(user_ids: List[str], base_name: str, max_chars: int = 1024) -> List[Tuple[str, str]]:
+    """
+    Pack a list of user IDs into Discord embed fields under the 1024-char value
+    limit. Returns a list of (field_name, field_value) tuples; pages are
+    suffixed when more than one field is needed.
+    """
+    if not user_ids:
+        return []
+    pages: List[str] = []
+    current: List[str] = []
+    current_len = 0
+    for uid in user_ids:
+        mention = f"<@{uid}>"
+        addition = len(mention) + (2 if current else 0)  # ", " separator
+        if current and current_len + addition > max_chars:
+            pages.append(", ".join(current))
+            current = [mention]
+            current_len = len(mention)
+        else:
+            current.append(mention)
+            current_len += addition
+    if current:
+        pages.append(", ".join(current))
+    if len(pages) == 1:
+        return [(base_name, pages[0])]
+    return [(f"{base_name} ({i+1}/{len(pages)})", page) for i, page in enumerate(pages)]
 
 
 def format_mcq(question: str, options: List[str], question_num: int = None, total: int = None) -> discord.Embed:
@@ -821,11 +897,29 @@ async def display_quiz_results(channel, channel_id: int):
     )
     
     if scores_sorted:
-        leaderboard_text = "\n".join(
+        # Pack score lines into multiple fields if needed to stay under
+        # Discord's 1024-char per-field-value limit (~20 lines per field).
+        lines = [
             f"{'🥇' if i == 0 else '🥈' if i == 1 else '🥉' if i == 2 else '📊'} <@{uid}>: **{score}/{total_questions}** ({int(score/total_questions*100)}%)"
             for i, (uid, score) in enumerate(scores_sorted)
-        )
-        leaderboard_embed.add_field(name="Final Scores", value=leaderboard_text, inline=False)
+        ]
+        pages: List[str] = []
+        current: List[str] = []
+        current_len = 0
+        for line in lines:
+            addition = len(line) + (1 if current else 0)  # newline separator
+            if current and current_len + addition > 1024:
+                pages.append("\n".join(current))
+                current = [line]
+                current_len = len(line)
+            else:
+                current.append(line)
+                current_len += addition
+        if current:
+            pages.append("\n".join(current))
+        for i, page in enumerate(pages):
+            name = "Final Scores" if len(pages) == 1 else f"Final Scores ({i+1}/{len(pages)})"
+            leaderboard_embed.add_field(name=name, value=page, inline=False)
         quiz_logger.info(f"Leaderboard: {[(uid, score) for uid, score in scores_sorted]}")
     else:
         leaderboard_embed.description = "No one submitted answers!"
@@ -865,25 +959,12 @@ async def display_quiz_results(channel, channel_id: int):
         quiz_logger.debug(f"Question {idx+1} correct users: {correct_users}")
         quiz_logger.debug(f"Question {idx+1} incorrect users: {incorrect_users}")
         
-        # Show who answered correctly
-        if correct_users:
-            correct_mentions = ", ".join(f"<@{uid}>" for uid in correct_users)
-            quiz_logger.debug(f"Question {idx+1} correct mentions string (len={len(correct_mentions)}): {correct_mentions}")
-            result_embed.add_field(
-                name="✅ Answered Correctly",
-                value=correct_mentions,
-                inline=False
-            )
-        
-        # Show who answered incorrectly
-        if incorrect_users:
-            incorrect_mentions = ", ".join(f"<@{uid}>" for uid in incorrect_users)
-            quiz_logger.debug(f"Question {idx+1} incorrect mentions string (len={len(incorrect_mentions)}): {incorrect_mentions}")
-            result_embed.add_field(
-                name="❌ Answered Incorrectly",
-                value=incorrect_mentions,
-                inline=False
-            )
+        # Show who answered correctly / incorrectly, chunked to stay under
+        # Discord's 1024-char per-field-value limit.
+        for name, value in chunk_mentions(correct_users, "✅ Answered Correctly"):
+            result_embed.add_field(name=name, value=value, inline=False)
+        for name, value in chunk_mentions(incorrect_users, "❌ Answered Incorrectly"):
+            result_embed.add_field(name=name, value=value, inline=False)
         
         # Show explanation
         result_embed.add_field(
@@ -924,12 +1005,14 @@ async def ask_command(interaction: discord.Interaction, question: str):
     api_logger.debug(f"Sending question to assistant API: '{enhanced_question[:100]}'")
     answer = await ask_assistant(enhanced_question)
     api_logger.debug(f"Received answer from assistant API (length={len(answer)})")
-    
-    # Discord has a 2000 character limit
-    if len(answer) > 1998:
-        answer = answer[:1997] + "..."
-        api_logger.warning(f"Answer truncated to 1998 characters")
-    
+
+    # Discord has a 2000 character limit per message; close any open code fence
+    # before truncating so markdown rendering doesn't break.
+    original_len = len(answer)
+    answer = truncate_for_discord(answer)
+    if len(answer) != original_len:
+        api_logger.warning(f"Answer truncated from {original_len} to {len(answer)} characters")
+
     await interaction.followup.send(answer)
     discord_logger.info(f"/ask completed for user {interaction.user.name}({interaction.user.id})")
 
@@ -954,10 +1037,10 @@ async def quiz_start(interaction: discord.Interaction, topic: str = "", question
         )
         return
     
-    if duration < 1 or duration > 480:
+    if duration < 1 or duration > 60:
         discord_logger.warning(f"/quiz_start invalid duration {duration} from user {interaction.user.name}({interaction.user.id})")
         await interaction.response.send_message(
-            "❌ Please choose a duration between 1 and 480 minutes.",
+            "❌ Please choose a duration between 1 and 60 minutes.",
             ephemeral=True
         )
         return
@@ -1100,12 +1183,10 @@ async def quiz_answer(interaction: discord.Interaction, question_number: int, ch
     answered_count = len(state["user_answers"][user_id])
     total_questions = len(state["questions"])
     
-    time_remaining = state["end_time"] - datetime.now(timezone.utc)
-    minutes_remaining = int(time_remaining.total_seconds() / 60)
-    seconds_remaining = int(time_remaining.total_seconds() % 60)
-    
+    minutes_remaining, seconds_remaining = format_time_remaining(state["end_time"])
+
     quiz_logger.debug(f"User {interaction.user.name}({user_id}) progress: {answered_count}/{total_questions} answered, {minutes_remaining}m {seconds_remaining}s remaining")
-    
+
     await interaction.response.send_message(
         f"📝 Answer recorded for question {question_number}!\n"
         f"📊 You've answered {answered_count}/{total_questions} questions.\n"
@@ -1126,22 +1207,45 @@ async def quiz_end(interaction: discord.Interaction):
         await interaction.response.send_message(perm_error, ephemeral=True)
         return
     
-    if interaction.channel_id not in QUIZ_STATE:
+    state = QUIZ_STATE.get(interaction.channel_id)
+    if state is None:
         discord_logger.warning(f"/quiz_end no quiz in channel {interaction.channel_id}")
         await interaction.response.send_message(
             "❌ No quiz is running in this channel.",
             ephemeral=True
         )
         return
-    
+
+    # Only the initiator or a moderator (manage_messages in guild channels)
+    # may end the quiz. In DMs there's no manage_messages so only the
+    # initiator qualifies — which is fine since DMs are 1:1 anyway.
+    initiator_id = state.get("initiator")
+    is_initiator = interaction.user.id == initiator_id
+    is_mod = (
+        interaction.guild is not None
+        and interaction.channel.permissions_for(interaction.user).manage_messages
+    )
+    if not (is_initiator or is_mod):
+        discord_logger.warning(
+            f"/quiz_end refused: user {interaction.user.name}({interaction.user.id}) is "
+            f"neither initiator ({initiator_id}) nor moderator in channel {interaction.channel_id}"
+        )
+        await interaction.response.send_message(
+            f"❌ Only the quiz initiator (<@{initiator_id}>) or a moderator can end this quiz.",
+            ephemeral=True,
+        )
+        return
+
     await interaction.response.defer()
-    
+
     quiz_logger.info(f"Quiz manually ended in channel {interaction.channel_id} by user {interaction.user.name}({interaction.user.id})")
-    
+
     # Display results
     await display_quiz_results(interaction.channel, interaction.channel_id)
-    
-    await interaction.followup.send("🛑 Quiz ended by moderator.")
+
+    await interaction.followup.send(
+        f"🛑 Quiz ended by <@{interaction.user.id}>."
+    )
 
 
 @tree.command(name="quiz_score", description="Check your quiz progress")
@@ -1165,9 +1269,7 @@ async def quiz_score(interaction: discord.Interaction):
     else:
         answered_count = len(state["user_answers"][user_id])
     
-    time_remaining = state["end_time"] - datetime.now(timezone.utc)
-    minutes_remaining = max(0, int(time_remaining.total_seconds() / 60))
-    seconds_remaining = max(0, int(time_remaining.total_seconds() % 60))
+    minutes_remaining, seconds_remaining = format_time_remaining(state["end_time"])
     
     # Show which questions have been answered
     answered_questions = []
@@ -1209,7 +1311,14 @@ async def info_command(interaction: discord.Interaction):
     embed.add_field(name="Version", value="1.0.0", inline=True)
     embed.add_field(
         name="Commands",
-        value="• `/ask` - Ask questions\n• `/quiz_start` - Start timed quiz\n• `/quiz_answer` - Answer question\n• `/quiz_score` - View progress\n• `/quiz_end` - End quiz",
+        value=(
+            "• `/ask` - Ask questions about the documentation\n"
+            "• `/quiz_start` - Start a timed quiz (1-60 min, 1-10 questions)\n"
+            "• `/quiz_answer` - Submit an answer by question number (alternative to buttons)\n"
+            "• `/quiz_score` - View your progress in the running quiz\n"
+            "• `/quiz_end` - End the running quiz (initiator/mod only)\n"
+            "• `/info` - Show this info panel"
+        ),
         inline=False
     )
     embed.set_footer(text="Powered by OpenAI Responses API")
