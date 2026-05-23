@@ -8,13 +8,13 @@ import json
 import re
 import random
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import List, Optional, Set, Tuple
 from collections import Counter
 from difflib import SequenceMatcher
 import discord
 from discord import app_commands
-from openai import OpenAI
+from openai import AsyncOpenAI, APITimeoutError
 
 # Environment variables
 DISCORD_TOKEN = os.environ["DISCORD_TOKEN"]
@@ -27,7 +27,7 @@ client = discord.Client(intents=intents)
 tree = app_commands.CommandTree(client)
 
 # --- OpenAI client ---
-oai = OpenAI(api_key=OPENAI_API_KEY)
+oai = AsyncOpenAI(api_key=OPENAI_API_KEY)
 
 # Configure logging for Railway compatibility
 # Railway prefers structured JSON logs with clear levels
@@ -86,7 +86,7 @@ class QuizAnswerButton(discord.ui.Button):
             return
         
         # Check if quiz has ended
-        if datetime.utcnow() >= state["end_time"]:
+        if datetime.now(timezone.utc) >= state["end_time"]:
             quiz_logger.warning(f"User {interaction.user.name}({interaction.user.id}) attempted to answer after quiz ended in channel {interaction.channel_id}")
             await interaction.response.send_message(
                 "❌ This quiz has ended! Results are being calculated.",
@@ -118,7 +118,7 @@ class QuizAnswerButton(discord.ui.Button):
         answered_count = len(state["user_answers"][user_id])
         total_questions = len(state["questions"])
         
-        time_remaining = state["end_time"] - datetime.utcnow()
+        time_remaining = state["end_time"] - datetime.now(timezone.utc)
         minutes_remaining = int(time_remaining.total_seconds() / 60)
         seconds_remaining = int(time_remaining.total_seconds() % 60)
         
@@ -245,7 +245,7 @@ async def initialize_assistant_config():
         api_logger.info(f"Retrieving assistant configuration for {ASSISTANT_ID}")
         
         # Retrieve assistant details using beta API (still needed for this)
-        assistant = oai.beta.assistants.retrieve(assistant_id=ASSISTANT_ID)
+        assistant = await oai.beta.assistants.retrieve(assistant_id=ASSISTANT_ID)
         
         # Cache the configuration
         ASSISTANT_CONFIG["instructions"] = assistant.instructions
@@ -309,37 +309,39 @@ async def ask_assistant(user_msg: str, timeout: int = 30, temperature: float = N
         if temperature is not None:
             request_params["temperature"] = temperature
         
-        api_logger.debug(f"Creating response with model={ASSISTANT_CONFIG['model']}")
-        
-        # Create response using Responses API (non-streaming)
-        response = oai.responses.create(**request_params)
-        
+        api_logger.debug(f"Creating response with model={ASSISTANT_CONFIG['model']} timeout={timeout}s")
+
+        # Create response using Responses API (non-streaming). The timeout
+        # kwarg is honored by the OpenAI SDK and raises APITimeoutError if
+        # exceeded.
+        response = await oai.responses.create(**request_params, timeout=timeout)
+
         api_logger.info(f"Response received: id={response.id} status={response.status}")
-        
-        # Extract text from response
-        if response.output and len(response.output) > 0:
-            # Get the first output item
-            output_item = response.output[0]
-            
-            # Handle message output type
-            if hasattr(output_item, 'type') and output_item.type == 'message':
-                if hasattr(output_item, 'content'):
-                    # Extract text content
-                    chunks = []
-                    for content in output_item.content:
-                        if hasattr(content, 'type') and content.type == "output_text":
-                            text = content.text
-                            # Remove citation markers like 【4:2†source】
-                            text = re.sub(r'【[^】]*】', '', text)
-                            chunks.append(text)
-                    
-                    result = "\n".join(chunks) if chunks else "No response from assistant."
-                    api_logger.info(f"Assistant response received: length={len(result)}")
-                    return result
-        
-        api_logger.warning("No output content found in response")
-        return "No response from assistant."
-        
+
+        # Extract text from message output items. The output list can contain
+        # tool-call items (e.g. file_search_call) before the message, so we
+        # iterate every item rather than indexing [0].
+        chunks = []
+        for output_item in (response.output or []):
+            if getattr(output_item, "type", None) != "message":
+                continue
+            for content in getattr(output_item, "content", None) or []:
+                if getattr(content, "type", None) == "output_text":
+                    # Remove citation markers like 【4:2†source】
+                    text = re.sub(r'【[^】]*】', '', content.text)
+                    chunks.append(text)
+
+        if not chunks:
+            api_logger.warning("No message output content found in response")
+            return "No response from assistant."
+
+        result = "\n".join(chunks)
+        api_logger.info(f"Assistant response received: length={len(result)}")
+        return result
+
+    except APITimeoutError:
+        api_logger.error(f"OpenAI request timed out after {timeout}s")
+        return "❌ The AI took too long to respond. Please try again in a moment."
     except Exception as e:
         api_logger.error(f"Error asking assistant: {e}", exc_info=True)
         return f"❌ Error communicating with AI: {str(e)}"
@@ -994,7 +996,7 @@ async def quiz_start(interaction: discord.Interaction, topic: str = "", question
     # Shuffle the options for each question to randomize correct answer position
     shuffled_questions = [shuffle_quiz_options(q) for q in quiz_questions]
     
-    end_time = datetime.utcnow() + timedelta(minutes=duration)
+    end_time = datetime.now(timezone.utc) + timedelta(minutes=duration)
     
     QUIZ_STATE[interaction.channel_id] = {
         "questions": shuffled_questions,
@@ -1069,7 +1071,7 @@ async def quiz_answer(interaction: discord.Interaction, question_number: int, ch
         return
     
     # Check if quiz has ended
-    if datetime.utcnow() >= state["end_time"]:
+    if datetime.now(timezone.utc) >= state["end_time"]:
         discord_logger.warning(f"/quiz_answer after quiz ended in channel {interaction.channel_id} for user {interaction.user.name}({interaction.user.id})")
         await interaction.response.send_message(
             "❌ This quiz has ended! Results are being calculated.",
@@ -1102,7 +1104,7 @@ async def quiz_answer(interaction: discord.Interaction, question_number: int, ch
     answered_count = len(state["user_answers"][user_id])
     total_questions = len(state["questions"])
     
-    time_remaining = state["end_time"] - datetime.utcnow()
+    time_remaining = state["end_time"] - datetime.now(timezone.utc)
     minutes_remaining = int(time_remaining.total_seconds() / 60)
     seconds_remaining = int(time_remaining.total_seconds() % 60)
     
@@ -1167,7 +1169,7 @@ async def quiz_score(interaction: discord.Interaction):
     else:
         answered_count = len(state["user_answers"][user_id])
     
-    time_remaining = state["end_time"] - datetime.utcnow()
+    time_remaining = state["end_time"] - datetime.now(timezone.utc)
     minutes_remaining = max(0, int(time_remaining.total_seconds() / 60))
     seconds_remaining = max(0, int(time_remaining.total_seconds() % 60))
     
