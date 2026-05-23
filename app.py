@@ -98,7 +98,7 @@ class QuizAnswerButton(discord.ui.Button):
         if self.question_idx < 0 or self.question_idx >= len(state["questions"]):
             quiz_logger.error(f"Invalid question index {self.question_idx} for user {interaction.user.name}({interaction.user.id}) in channel {interaction.channel_id}")
             await interaction.response.send_message(
-                f"❌ Invalid question.",
+                "❌ Invalid question.",
                 ephemeral=True
             )
             return
@@ -190,7 +190,7 @@ async def check_bot_permissions(interaction: discord.Interaction) -> Tuple[bool,
         return True, None
     
     # Permissions are missing - identify the cause
-    error_parts = [f"❌ **Missing Permissions in this channel:**"]
+    error_parts = ["❌ **Missing Permissions in this channel:**"]
     error_parts.append(f"Missing: {', '.join(f'**{p}**' for p in missing_perms)}")
     error_parts.append("")
     error_parts.append("**Cause Analysis:**")
@@ -226,8 +226,8 @@ async def check_bot_permissions(interaction: discord.Interaction) -> Tuple[bool,
         error_parts.extend(blockers)
     else:
         # No explicit denies found - must be missing from base roles
-        error_parts.append(f"• The bot's roles don't grant these permissions globally")
-        error_parts.append(f"• No channel overwrites are blocking (but none are allowing either)")
+        error_parts.append("• The bot's roles don't grant these permissions globally")
+        error_parts.append("• No channel overwrites are blocking (but none are allowing either)")
     
     error_parts.append("")
     error_parts.append("**How to fix:**")
@@ -1334,7 +1334,7 @@ async def on_ready():
     await initialize_assistant_config()
     
     await tree.sync()
-    discord_logger.info(f"✈️ DarkstarAIC is online!")
+    discord_logger.info("✈️ DarkstarAIC is online!")
     discord_logger.info(f"📚 Connected to {len(client.guilds)} server(s)")
     discord_logger.info(f"🤖 Using {ASSISTANT_CONFIG['model']} with Responses API")
     discord_logger.info(f"Bot user: {client.user.name}#{client.user.discriminator} (ID: {client.user.id})")
@@ -1343,7 +1343,7 @@ async def on_ready():
     for guild in client.guilds:
         discord_logger.info(f"  - Guild: {guild.name} (ID: {guild.id}, Members: {guild.member_count})")
     
-    print(f"✈️ DarkstarAIC is online!")
+    print("✈️ DarkstarAIC is online!")
     print(f"📚 Connected to {len(client.guilds)} server(s)")
     print(f"🤖 Using {ASSISTANT_CONFIG['model']} with Responses API")
 

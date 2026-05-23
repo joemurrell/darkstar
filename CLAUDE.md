@@ -28,7 +28,19 @@ docker run --rm \
   darkstar
 ```
 
-There are currently **no tests, no linter config, and no CI** beyond Dependabot.
+### Tests + lint
+
+```bash
+pip install -r requirements-dev.txt
+ruff check .
+pytest                       # all tests
+pytest tests/test_dedup.py   # one file
+pytest -k "shuffle"          # one test by keyword
+```
+
+Tests live in `tests/` and cover the pure helpers — `parse_quiz_response`, `validate_quiz_questions`, `shuffle_quiz_options`, the dedup chain, and the small Discord/OpenAI helpers. They import `app` directly; `tests/conftest.py` populates fake env vars so the import succeeds without contacting Discord or OpenAI. The Discord/OpenAI clients in `app.py` are constructed lazily and make no requests until called, so tests don't need to mock them.
+
+CI lives at `.github/workflows/ci.yml` and runs ruff + pytest on push to main and on every PR. Ruff config in `pyproject.toml` is intentionally conservative (`select = ["F", "E9", "W6"]`) so existing code passes without a style sweep; expand to `E/W/B/UP/I` in a follow-up.
 
 ## Architecture
 
