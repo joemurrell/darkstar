@@ -1,7 +1,7 @@
 """
 DarkstarAIC - DCS Air Control Communication Discord Bot
 PDF-grounded Q&A and Quiz system using the Anthropic Claude API
-(Files API for PDF attachment + prompt caching + tool-use structured output).
+(ACC text embedded as a cached system prompt + tool-use structured output).
 """
 import os
 import asyncio
@@ -19,12 +19,14 @@ from anthropic import AsyncAnthropic, APITimeoutError, RateLimitError
 # Environment variables
 DISCORD_TOKEN = os.environ["DISCORD_TOKEN"]
 ANTHROPIC_API_KEY = os.environ["ANTHROPIC_API_KEY"]
-# File ID returned by Anthropic's Files API for the ACC reference PDF.
-# Upload once with scripts/upload_pdf.py and set the resulting value here.
-ACC_FILE_ID = os.environ["ACC_FILE_ID"]
 # Claude model to use. Defaults to Haiku 4.5 for cost; bump to
 # claude-sonnet-4-6 for higher-quality quiz generation.
 CLAUDE_MODEL = os.environ.get("CLAUDE_MODEL", "claude-haiku-4-5")
+# Path to the extracted ACC document text. Generate with
+# scripts/extract_pdf.py and commit the result. Sent as cached plain text
+# (not a Files-API document block) to avoid the per-page image tokens that
+# pushed a single request past the Tier 1 50K-input-token-per-minute limit.
+ACC_DOCUMENT_PATH = os.environ.get("ACC_DOCUMENT_PATH", "acc_document.txt")
 
 # --- Discord client setup ---
 intents = discord.Intents.default()
@@ -33,9 +35,6 @@ tree = app_commands.CommandTree(client)
 
 # --- Anthropic client ---
 anthropic_client = AsyncAnthropic(api_key=ANTHROPIC_API_KEY)
-
-# Beta header required for the Files API (PDF attachment via file_id).
-ANTHROPIC_BETAS = ["files-api-2025-04-14"]
 
 # Configure logging for Railway compatibility
 # Railway prefers structured JSON logs with clear levels
@@ -64,7 +63,7 @@ QUIZ_STATE = {}
 ACC_INSTRUCTIONS = """You are DarkstarAIC, an AI assistant for a DCS (Digital Combat Simulator World) flight squadron. You help squadron members learn and practice the concepts, terminology, and application of the Air Control Communication (ACC) multi-Service tactics, techniques, and procedures (MTTP) publication — more commonly known as air intercept control, C2, or AWACS.
 
 Grounding rules:
-- Answer only from the ACC PDF attached to this conversation. If the answer is not in the PDF, say exactly: "That information is not available in the ACC documentation."
+- Answer only from the ACC documentation provided below. If the answer is not in it, say exactly: "That information is not available in the ACC documentation."
 - Cite page numbers inline (e.g. "see p. 42") whenever you reference a procedure.
 - Use proper military aviation terminology. Be concise but thorough, and don't soften technical detail.
 
@@ -73,6 +72,15 @@ When generating quizzes:
 - Make every question cover a distinct concept — don't repeat the same terminology across questions.
 - Write distractors that are plausible to a novice but unambiguously wrong to someone who knows the material.
 - Always explain the correct answer and include its page reference."""
+
+# The extracted ACC document text, loaded once at startup. Tolerant of a
+# missing file so the module imports cleanly in tests; on_ready validates it
+# is non-empty and logs loudly if not.
+try:
+    with open(ACC_DOCUMENT_PATH, encoding="utf-8") as _fh:
+        ACC_DOCUMENT_TEXT = _fh.read()
+except FileNotFoundError:
+    ACC_DOCUMENT_TEXT = ""
 
 
 # --- Button Classes for Quiz Interaction ---
@@ -277,11 +285,14 @@ async def ask_assistant(
     tool: Optional[dict] = None,
 ) -> Union[str, dict, None]:
     """
-    Ask Claude a question grounded in the ACC PDF (attached via Files API).
+    Ask Claude a question grounded in the ACC documentation (embedded as
+    cached plain text in the system prompt).
 
-    System prompt and PDF are both marked with `cache_control: ephemeral`
-    so the ~50K-token prefix is served from cache on every request after
-    the first one in a 5-minute window.
+    The instructions + document text form the cached prefix (`cache_control:
+    ephemeral` on the document block), so the ~45K-token prefix is served from
+    cache on every request after the first one in a 5-minute window. Cache
+    reads don't count toward the ITPM rate limit on Haiku 4.5, so only the
+    first cold write spends meaningfully against it.
 
     Args:
         user_msg: The user question / quiz prompt.
@@ -306,32 +317,20 @@ async def ask_assistant(
     request_params = {
         "model": CLAUDE_MODEL,
         "max_tokens": 4096,
-        # System prompt is cached so the ~5-min window covers a typical
-        # interactive session at near-zero cost.
+        # Instructions + the full ACC document text form the cached prefix.
+        # The cache_control breakpoint sits on the document block (the last,
+        # largest, static block), so the whole prefix is written once and
+        # served from cache thereafter. The varying user question lands in
+        # `messages`, after the breakpoint, so it never invalidates the cache.
         "system": [
+            {"type": "text", "text": ACC_INSTRUCTIONS},
             {
                 "type": "text",
-                "text": ACC_INSTRUCTIONS,
+                "text": f"ACC documentation:\n\n{ACC_DOCUMENT_TEXT}",
                 "cache_control": {"type": "ephemeral"},
-            }
+            },
         ],
-        "messages": [
-            {
-                "role": "user",
-                "content": [
-                    # PDF goes first in the user message so a cache breakpoint
-                    # on it covers the whole ~50K-token prefix; the varying
-                    # user question lands after the breakpoint.
-                    {
-                        "type": "document",
-                        "source": {"type": "file", "file_id": ACC_FILE_ID},
-                        "cache_control": {"type": "ephemeral"},
-                    },
-                    {"type": "text", "text": user_msg},
-                ],
-            }
-        ],
-        "betas": ANTHROPIC_BETAS,
+        "messages": [{"role": "user", "content": user_msg}],
     }
 
     if temperature is not None and model_supports_temperature(CLAUDE_MODEL):
@@ -345,7 +344,7 @@ async def ask_assistant(
         request_params["max_tokens"] = 8000
 
     try:
-        response = await anthropic_client.beta.messages.create(
+        response = await anthropic_client.messages.create(
             **request_params, timeout=timeout
         )
 
@@ -681,8 +680,8 @@ def deduplicate_questions(questions: List[dict]) -> Tuple[List[dict], List[str]]
 QUIZ_TOOL = {
     "name": "submit_quiz",
     "description": (
-        "Submit a set of multiple-choice quiz questions about the attached "
-        "ACC PDF. Every question must have exactly 4 options, a correct "
+        "Submit a set of multiple-choice quiz questions about the ACC "
+        "documentation. Every question must have exactly 4 options, a correct "
         "answer letter, an explanation with a page reference, the page "
         "number as an integer, and a short hyphenated topic tag."
     ),
@@ -759,7 +758,7 @@ async def generate_quiz(topic_hint: str = "", num_questions: int = 6) -> Optiona
     max_regeneration_attempts = 3
 
     prompt = (
-        f"Generate {num_questions} multiple-choice questions based ONLY on the attached ACC PDF.\n\n"
+        f"Generate {num_questions} multiple-choice questions based ONLY on the ACC documentation.\n\n"
         "Requirements:\n"
         "- Each question must have exactly 4 options\n"
         "- Provide a brief explanation with a page reference like (p.XX) in `explain`\n"
@@ -798,7 +797,7 @@ async def generate_quiz(topic_hint: str = "", num_questions: int = 6) -> Optiona
             )
 
             regen_prompt = (
-                f"Generate {needed + 2} additional multiple-choice questions based ONLY on the attached ACC PDF.\n\n"
+                f"Generate {needed + 2} additional multiple-choice questions based ONLY on the ACC documentation.\n\n"
                 f"Do NOT repeat any of these topics (already covered): {', '.join(used_topics)}\n\n"
                 "Same requirements as before: 4 options, A/B/C/D answer letter, explanation with page reference, integer page, hyphenated topic tag.\n"
                 "Each new question must have a unique topic tag different from the ones listed above.\n\n"
@@ -1360,7 +1359,15 @@ async def on_ready():
     await tree.sync()
     discord_logger.info("✈️ DarkstarAIC is online!")
     discord_logger.info(f"📚 Connected to {len(client.guilds)} server(s)")
-    discord_logger.info(f"🤖 Using {CLAUDE_MODEL} via Anthropic Claude API (file_id={ACC_FILE_ID})")
+    discord_logger.info(f"🤖 Using {CLAUDE_MODEL} via Anthropic Claude API")
+    if ACC_DOCUMENT_TEXT:
+        discord_logger.info(f"📄 ACC document loaded: {len(ACC_DOCUMENT_TEXT):,} chars from {ACC_DOCUMENT_PATH}")
+    else:
+        discord_logger.error(
+            f"📄 ACC document is EMPTY (expected at {ACC_DOCUMENT_PATH}). "
+            f"Run scripts/extract_pdf.py and commit the output — /ask and /quiz "
+            f"will be ungrounded until then."
+        )
     discord_logger.info(f"Bot user: {client.user.name}#{client.user.discriminator} (ID: {client.user.id})")
 
     # Log guild information

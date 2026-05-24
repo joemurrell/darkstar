@@ -4,7 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-DarkstarAIC is a single-file Discord bot (`app.py`) that provides PDF-grounded Q&A and timed multiple-choice quizzes for the DCS Air Control Communication community. It uses the Anthropic Claude API (`AsyncAnthropic`) with the Files API for PDF attachment, prompt caching for cost, and tool-use for structured quiz output. Deployed on Railway via Docker.
+DarkstarAIC is a single-file Discord bot (`app.py`) that provides PDF-grounded Q&A and timed multiple-choice quizzes for the DCS Air Control Communication community. It uses the Anthropic Claude API (`AsyncAnthropic`) with the ACC documentation embedded as cached plain text in the system prompt, prompt caching for cost, and tool-use for structured quiz output. Deployed on Railway via Docker.
+
+The PDF is sent as extracted **plain text**, not an Anthropic `document` block. PDFs sent as documents incur per-page *image* tokens on top of the text, and that combined size pushed a single request past the Tier 1 50,000-input-token-per-minute limit. Plain text is leaner and keeps the cold-cache write under the ceiling.
 
 ## Running
 
@@ -12,8 +14,8 @@ Four environment variables are required and the bot will crash on startup withou
 
 - `DISCORD_TOKEN` — Discord bot token
 - `ANTHROPIC_API_KEY` — Anthropic API key
-- `ACC_FILE_ID` — Anthropic Files-API ID for the ACC reference PDF (see "Uploading the PDF" below)
 - `CLAUDE_MODEL` — optional, defaults to `claude-haiku-4-5`. Bump to `claude-sonnet-4-6` for higher-quality quiz generation (~6× the cost).
+- `ACC_DOCUMENT_PATH` — optional, defaults to `acc_document.txt`. The extracted ACC text the bot loads at startup (see "Extracting the PDF" below). Not an env requirement, but the file must exist or the bot runs ungrounded.
 
 ```bash
 pip install -r requirements.txt
@@ -25,20 +27,21 @@ Docker (matches Railway production):
 ```bash
 docker build -t darkstar .
 docker run --rm \
-  -e DISCORD_TOKEN=... -e ANTHROPIC_API_KEY=... -e ACC_FILE_ID=... \
+  -e DISCORD_TOKEN=... -e ANTHROPIC_API_KEY=... \
   darkstar
 ```
 
-### Uploading the PDF
+### Extracting the PDF
 
-`scripts/upload_pdf.py` is a one-time helper:
+`scripts/extract_pdf.py` is a one-time helper. It extracts the PDF to plain text and (if `ANTHROPIC_API_KEY` is set) prints the exact Claude token count so you can confirm the document fits under your tier's per-minute input-token limit before deploying:
 
 ```bash
-export ANTHROPIC_API_KEY=...
-python scripts/upload_pdf.py path/to/acc_2024.pdf
+pip install -r requirements-dev.txt   # provides pypdf
+export ANTHROPIC_API_KEY=...          # optional, enables the token-count check
+python scripts/extract_pdf.py path/to/acc_2024.pdf
 ```
 
-It prints the `file_id` to set as `ACC_FILE_ID`. Re-run only when the source PDF actually changes — Anthropic stores the file indefinitely until deleted.
+It writes `acc_document.txt` in the repo root — **commit that file**; the bot loads it at startup. Re-run only when the source PDF changes. `pypdf` is a dev-only dependency (the bot just reads the `.txt` at runtime). The Dockerfile copies `acc_document.txt` into the image.
 
 ### Tests + lint
 
