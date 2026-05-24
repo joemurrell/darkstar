@@ -342,7 +342,7 @@ async def ask_assistant(
         request_params["tool_choice"] = {"type": "tool", "name": tool["name"]}
         # Give forced tool-use plenty of room — quiz schemas with N questions
         # generate a few KB of structured output.
-        request_params["max_tokens"] = 16000
+        request_params["max_tokens"] = 8000
 
     try:
         response = await anthropic_client.beta.messages.create(
@@ -365,7 +365,14 @@ async def ask_assistant(
             for block in response.content:
                 if block.type == "tool_use" and block.name == tool["name"]:
                     return block.input
-            api_logger.warning(f"Forced tool {tool['name']} but no tool_use block in response")
+            # No tool_use block found — log enough to diagnose (stop_reason
+            # max_tokens means the tool call was cut off; an unexpected block
+            # set points at a server-side issue).
+            api_logger.warning(
+                f"Forced tool {tool['name']} but no tool_use block: "
+                f"stop_reason={response.stop_reason} "
+                f"blocks={[b.type for b in response.content]}"
+            )
             return None
 
         # Plain-text path: concatenate text blocks.
@@ -383,7 +390,9 @@ async def ask_assistant(
         msg = "❌ The AI took too long to respond. Please try again in a moment."
         return None if tool is not None else msg
     except Exception as e:
-        api_logger.error(f"Error asking assistant: {e}", exc_info=True)
+        # Log the exception type explicitly — BadRequestError vs OverloadedError
+        # vs RateLimitError point at very different root causes.
+        api_logger.error(f"Error asking assistant ({type(e).__name__}): {e}", exc_info=True)
         return None if tool is not None else f"❌ Error communicating with AI: {str(e)}"
 
 
@@ -715,8 +724,11 @@ def validate_quiz_questions(items: List[dict]) -> List[dict]:
 
 async def _request_quiz_questions(prompt: str, temperature: float) -> List[dict]:
     """Single quiz-generation API call. Returns validated questions or []."""
+    # 90s timeout: the first quiz call after a cold cache must process the full
+    # ~50K-token PDF (cache write) before generating, which can outlast the
+    # 30s default on a slow first hit.
     result = await ask_assistant(
-        prompt, timeout=45, temperature=temperature, tool=QUIZ_TOOL,
+        prompt, timeout=90, temperature=temperature, tool=QUIZ_TOOL,
     )
     if not isinstance(result, dict) or "questions" not in result:
         api_logger.warning(f"submit_quiz returned no questions: {type(result).__name__}")
@@ -1020,18 +1032,18 @@ async def ask_command(interaction: discord.Interaction, question: str):
     discord_logger.info(f"/ask completed for user {interaction.user.name}({interaction.user.id})")
 
 
-@tree.command(name="quiz_start", description="Start a quiz from the ACC documentation. Defaults to 5 questions with a 15 minute duration.")
-async def quiz_start(interaction: discord.Interaction, topic: str = "", questions: int = 5, duration: int = 15):
+@tree.command(name="quiz_start", description="Start a quiz from the ACC documentation. Defaults to 3 questions; duration defaults to 2 minutes per question.")
+async def quiz_start(interaction: discord.Interaction, topic: str = "", questions: int = 3, duration: Optional[int] = None):
     """Start a new quiz session in this channel."""
     discord_logger.info(f"/quiz_start command: user={interaction.user.name}({interaction.user.id}) guild={interaction.guild.name if interaction.guild else 'DM'}({interaction.guild_id if interaction.guild else 'N/A'}) channel={interaction.channel_id} topic='{topic}' questions={questions} duration={duration}")
-    
+
     # Check permissions first
     has_perms, perm_error = await check_bot_permissions(interaction)
     if not has_perms:
         discord_logger.warning(f"/quiz_start permission denied for user {interaction.user.name}({interaction.user.id}) in channel {interaction.channel_id}")
         await interaction.response.send_message(perm_error, ephemeral=True)
         return
-    
+
     if questions < 1 or questions > 10:
         discord_logger.warning(f"/quiz_start invalid question count {questions} from user {interaction.user.name}({interaction.user.id})")
         await interaction.response.send_message(
@@ -1039,7 +1051,11 @@ async def quiz_start(interaction: discord.Interaction, topic: str = "", question
             ephemeral=True
         )
         return
-    
+
+    # Duration defaults to 2 minutes per question when the user omits it.
+    if duration is None:
+        duration = 2 * questions
+
     if duration < 1 or duration > 60:
         discord_logger.warning(f"/quiz_start invalid duration {duration} from user {interaction.user.name}({interaction.user.id})")
         await interaction.response.send_message(
