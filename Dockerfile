@@ -8,7 +8,7 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY app.py .
+COPY app.py db.py ./
 # The extracted ACC documentation the bot loads at startup. Generate with
 # scripts/extract_pdf.py and commit it — the build (and a working bot)
 # requires it.

@@ -16,6 +16,8 @@ import discord
 from discord import app_commands
 from anthropic import AsyncAnthropic, APITimeoutError, RateLimitError
 
+import db
+
 # Environment variables
 DISCORD_TOKEN = os.environ["DISCORD_TOKEN"]
 ANTHROPIC_API_KEY = os.environ["ANTHROPIC_API_KEY"]
@@ -27,6 +29,9 @@ CLAUDE_MODEL = os.environ.get("CLAUDE_MODEL", "claude-haiku-4-5")
 # (not a Files-API document block) to avoid the per-page image tokens that
 # pushed a single request past the Tier 1 50K-input-token-per-minute limit.
 ACC_DOCUMENT_PATH = os.environ.get("ACC_DOCUMENT_PATH", "acc_document.txt")
+# SQLite file for quiz persistence. On Railway, point this at a mounted
+# volume (e.g. /data/darkstar.db) so in-flight quizzes survive deploys.
+DARKSTAR_DB_PATH = os.environ.get("DARKSTAR_DB_PATH", "darkstar.db")
 
 # --- Discord client setup ---
 intents = discord.Intents.default()
@@ -54,8 +59,16 @@ discord_logger = logging.getLogger('discord_bot')
 quiz_logger = logging.getLogger('quiz')
 api_logger = logging.getLogger('anthropic_api')
 
-# In-memory quiz state (per-channel)
+# In-memory quiz state (per-channel). The source of truth for the hot path
+# (button clicks, timers); the QuizStore below mirrors it to SQLite so it
+# survives restarts.
 QUIZ_STATE = {}
+
+# Quiz persistence store, opened once in on_ready. Persistence is best-effort:
+# every DB call is wrapped so a storage failure degrades to in-memory-only
+# behavior rather than breaking a live quiz. None until startup completes.
+quiz_store: "db.QuizStore | None" = None
+_startup_done = False
 
 # System prompt — defines DarkstarAIC's persona and grounding rules. Edit
 # directly to tune tone or refusal behavior; the value is cached prefix so
@@ -135,10 +148,11 @@ class QuizAnswerButton(discord.ui.Button):
             state["user_answers"][user_id] = {}
             quiz_logger.debug(f"Initialized answer dict for user {interaction.user.name}({user_id}) in channel {interaction.channel_id}")
         
-        # Store the answer
+        # Store the answer (memory is the hot-path source of truth; mirror to DB)
         state["user_answers"][user_id][self.question_idx] = self.choice
+        await _persist_answer(state, self.question_idx, interaction.user.id, self.choice)
         quiz_logger.info(f"Stored answer: user={interaction.user.name}({user_id}) channel={interaction.channel_id} q={self.question_idx+1} answer={self.choice}")
-        
+
         # Calculate how many questions they've answered
         answered_count = len(state["user_answers"][user_id])
         total_questions = len(state["questions"])
@@ -843,20 +857,56 @@ async def generate_quiz(topic_hint: str = "", num_questions: int = 6) -> Optiona
         return None
 
 
-async def auto_end_quiz(channel_id: int, channel, duration_minutes: int):
-    """Automatically end the quiz after the specified duration."""
-    quiz_logger.info(f"Auto-end task started for channel {channel_id}, will end in {duration_minutes} minutes")
-    
+async def _persist_answer(state: dict, position: int, user_id: int, choice: str) -> None:
+    """Best-effort mirror of an answer to SQLite. Never breaks the live quiz."""
+    quiz_id = state.get("quiz_id")
+    if quiz_store is None or quiz_id is None:
+        return
     try:
-        await asyncio.sleep(duration_minutes * 60)
+        await quiz_store.record_answer(
+            quiz_id=quiz_id,
+            position=position,
+            user_id=user_id,
+            choice=choice,
+            answered_at=datetime.now(timezone.utc),
+        )
+    except Exception as e:
+        quiz_logger.error(f"Failed to persist answer (quiz_id={quiz_id}): {e}", exc_info=True)
 
-        # Check if quiz still exists
-        state = QUIZ_STATE.get(channel_id)
-        if not state:
+
+async def _persist_completion(state: dict) -> None:
+    """Best-effort mark-quiz-completed in SQLite."""
+    quiz_id = state.get("quiz_id")
+    if quiz_store is None or quiz_id is None:
+        return
+    try:
+        await quiz_store.complete_quiz(quiz_id)
+    except Exception as e:
+        quiz_logger.error(f"Failed to mark quiz completed (quiz_id={quiz_id}): {e}", exc_info=True)
+
+
+async def auto_end_quiz(channel_id: int, channel):
+    """
+    End the quiz when its stored end_time arrives. Sleeps the remaining time
+    derived from state["end_time"] (rather than a fixed duration) so a quiz
+    rehydrated after a restart resumes with the correct remaining window.
+    """
+    state = QUIZ_STATE.get(channel_id)
+    if not state:
+        return
+    remaining = (state["end_time"] - datetime.now(timezone.utc)).total_seconds()
+    quiz_logger.info(f"Auto-end task started for channel {channel_id}, ending in {remaining:.0f}s")
+
+    try:
+        if remaining > 0:
+            await asyncio.sleep(remaining)
+
+        # Check if quiz still exists (manual /quiz_end may have ended it)
+        if not QUIZ_STATE.get(channel_id):
             quiz_logger.warning(f"Auto-end: quiz no longer exists in channel {channel_id}")
             return
 
-        quiz_logger.info(f"Auto-ending quiz in channel {channel_id} after {duration_minutes} minutes")
+        quiz_logger.info(f"Auto-ending quiz in channel {channel_id}")
 
         # Calculate and display results
         await display_quiz_results(channel, channel_id)
@@ -1002,8 +1052,9 @@ async def display_quiz_results(channel, channel_id: int):
     
     # Send closing message
     await channel.send("Start a new quiz with `/quiz_start`!")
-    
-    # Clean up state
+
+    # Mark completed in the DB (keeps the row for history) then clean up memory.
+    await _persist_completion(state)
     QUIZ_STATE.pop(channel_id, None)
     quiz_logger.info(f"Cleaned up quiz state for channel {channel_id}")
 
@@ -1097,25 +1148,46 @@ async def quiz_start(interaction: discord.Interaction, topic: str = "", question
     
     # Shuffle the options for each question to randomize correct answer position
     shuffled_questions = [shuffle_quiz_options(q) for q in quiz_questions]
-    
-    end_time = datetime.now(timezone.utc) + timedelta(minutes=duration)
-    
+
+    started_at = datetime.now(timezone.utc)
+    end_time = started_at + timedelta(minutes=duration)
+
+    # Persist the quiz before going live so it survives a restart. Best-effort:
+    # if the store is down, the quiz still runs in memory (quiz_id stays None,
+    # so answer/completion persistence is skipped).
+    quiz_id = None
+    if quiz_store is not None:
+        try:
+            quiz_id = await quiz_store.create_quiz(
+                channel_id=interaction.channel_id,
+                guild_id=interaction.guild_id,
+                initiator_id=interaction.user.id,
+                topic=topic,
+                started_at=started_at,
+                end_time=end_time,
+                duration_minutes=duration,
+                questions=shuffled_questions,
+            )
+        except Exception as e:
+            quiz_logger.error(f"Failed to persist new quiz in channel {interaction.channel_id}: {e}", exc_info=True)
+
     QUIZ_STATE[interaction.channel_id] = {
         "questions": shuffled_questions,
         "user_answers": {},  # {user_id: {question_idx: choice}}
         "end_time": end_time,
         "duration_minutes": duration,
-        "initiator": interaction.user.id
+        "initiator": interaction.user.id,
+        "quiz_id": quiz_id,
     }
-    
-    quiz_logger.info(f"Quiz started in channel {interaction.channel_id} by user {interaction.user.name}({interaction.user.id}): {len(shuffled_questions)} questions, {duration} minutes")
+
+    quiz_logger.info(f"Quiz started in channel {interaction.channel_id} by user {interaction.user.name}({interaction.user.id}): {len(shuffled_questions)} questions, {duration} minutes, quiz_id={quiz_id}")
 
     topic_text = f" (Topic: {topic})" if topic else ""
 
     # Schedule auto-end task and hold a strong reference in QUIZ_STATE so it
     # isn't garbage-collected mid-sleep, and so /quiz_end can cancel it.
     end_task = asyncio.create_task(
-        auto_end_quiz(interaction.channel_id, interaction.channel, duration)
+        auto_end_quiz(interaction.channel_id, interaction.channel)
     )
     QUIZ_STATE[interaction.channel_id]["end_task"] = end_task
     
@@ -1202,8 +1274,9 @@ async def quiz_answer(interaction: discord.Interaction, question_number: int, ch
         state["user_answers"][user_id] = {}
         quiz_logger.debug(f"Initialized answer dict for user {interaction.user.name}({user_id}) in channel {interaction.channel_id}")
     
-    # Store the answer
+    # Store the answer (memory is the hot-path source of truth; mirror to DB)
     state["user_answers"][user_id][question_idx] = choice
+    await _persist_answer(state, question_idx, interaction.user.id, choice)
     quiz_logger.info(f"Stored answer via command: user={interaction.user.name}({user_id}) channel={interaction.channel_id} q={question_number} answer={choice}")
     
     # Calculate how many questions they've answered
@@ -1353,9 +1426,81 @@ async def info_command(interaction: discord.Interaction):
     await interaction.response.send_message(embed=embed)
 
 
+async def _resolve_channel(channel_id: int):
+    """Get a channel object from cache, falling back to a fetch."""
+    channel = client.get_channel(channel_id)
+    if channel is not None:
+        return channel
+    try:
+        return await client.fetch_channel(channel_id)
+    except Exception:
+        return None
+
+
+async def rehydrate_quizzes():
+    """
+    Restore active quizzes from SQLite into QUIZ_STATE after a restart.
+
+    Each restored quiz re-arms its auto-end timer for the *remaining* time
+    (auto_end_quiz derives the sleep from end_time). A quiz whose end_time
+    passed during downtime is finalized immediately. Note: the buttons on
+    messages posted before the restart won't respond (their View objects died
+    with the process) — `/quiz_answer` is the fallback, and recorded answers
+    are preserved either way.
+    """
+    if quiz_store is None:
+        return
+    try:
+        active = await quiz_store.load_active_quizzes()
+    except Exception as e:
+        quiz_logger.error(f"Failed to load active quizzes for rehydration: {e}", exc_info=True)
+        return
+
+    quiz_logger.info(f"Rehydrating {len(active)} active quiz(es) from {DARKSTAR_DB_PATH}")
+    for q in active:
+        channel_id = q["channel_id"]
+        if channel_id in QUIZ_STATE:
+            continue  # already live (defensive; shouldn't happen on a fresh start)
+
+        state = {
+            "questions": q["questions"],
+            # DB returns answers keyed by int user_id; the in-memory format
+            # keys by str(user_id) with int question positions.
+            "user_answers": {str(uid): dict(pos) for uid, pos in q["answers"].items()},
+            "end_time": q["end_time"],
+            "duration_minutes": q["duration_minutes"],
+            "initiator": q["initiator_id"],
+            "quiz_id": q["quiz_id"],
+        }
+        QUIZ_STATE[channel_id] = state
+
+        channel = await _resolve_channel(channel_id)
+        if channel is None:
+            quiz_logger.warning(
+                f"Rehydrate: channel {channel_id} unreachable; completing quiz {q['quiz_id']}"
+            )
+            await _persist_completion(state)
+            QUIZ_STATE.pop(channel_id, None)
+            continue
+
+        remaining = (q["end_time"] - datetime.now(timezone.utc)).total_seconds()
+        if remaining > 0:
+            task = asyncio.create_task(auto_end_quiz(channel_id, channel))
+            state["end_task"] = task
+            quiz_logger.info(
+                f"Rehydrated quiz {q['quiz_id']} in channel {channel_id}, {remaining:.0f}s remaining"
+            )
+        else:
+            quiz_logger.info(
+                f"Rehydrated quiz {q['quiz_id']} in channel {channel_id} expired during downtime; finalizing"
+            )
+            await display_quiz_results(channel, channel_id)
+
+
 @client.event
 async def on_ready():
     """Called when the bot is ready."""
+    global quiz_store, _startup_done
     await tree.sync()
     discord_logger.info("✈️ DarkstarAIC is online!")
     discord_logger.info(f"📚 Connected to {len(client.guilds)} server(s)")
@@ -1373,6 +1518,22 @@ async def on_ready():
     # Log guild information
     for guild in client.guilds:
         discord_logger.info(f"  - Guild: {guild.name} (ID: {guild.id}, Members: {guild.member_count})")
+
+    # Open the quiz store and restore in-flight quizzes — once, even if
+    # on_ready fires again on a gateway reconnect.
+    if not _startup_done:
+        _startup_done = True
+        try:
+            quiz_store = await db.QuizStore.connect(DARKSTAR_DB_PATH)
+            discord_logger.info(f"🗄️  Quiz store opened at {DARKSTAR_DB_PATH}")
+        except Exception as e:
+            discord_logger.error(
+                f"Failed to open quiz store at {DARKSTAR_DB_PATH}: {e} — "
+                f"running in-memory only (quizzes won't survive restarts)",
+                exc_info=True,
+            )
+            quiz_store = None
+        await rehydrate_quizzes()
 
     print("✈️ DarkstarAIC is online!")
     print(f"📚 Connected to {len(client.guilds)} server(s)")

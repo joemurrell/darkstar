@@ -16,6 +16,7 @@ Four environment variables are required and the bot will crash on startup withou
 - `ANTHROPIC_API_KEY` — Anthropic API key
 - `CLAUDE_MODEL` — optional, defaults to `claude-haiku-4-5`. Bump to `claude-sonnet-4-6` for higher-quality quiz generation (~6× the cost).
 - `ACC_DOCUMENT_PATH` — optional, defaults to `acc_document.txt`. The extracted ACC text the bot loads at startup (see "Extracting the PDF" below). Not an env requirement, but the file must exist or the bot runs ungrounded.
+- `DARKSTAR_DB_PATH` — optional, defaults to `darkstar.db`. SQLite file for quiz persistence. **On Railway, point this at a mounted volume** (e.g. `/data/darkstar.db`) or the DB is ephemeral and in-flight quizzes still vanish on redeploy.
 
 ```bash
 pip install -r requirements.txt
@@ -84,13 +85,15 @@ Both the system prompt and the document block are marked `cache_control: {"type"
 
 Verify caching is working by inspecting `usage.cache_read_input_tokens` in the logs — if it's zero across repeated requests, something is invalidating the prefix (likely an interpolated date or user-id into `ACC_INSTRUCTIONS`).
 
-### Quiz state
+### Quiz state + persistence
 
-`QUIZ_STATE: dict[int, dict]` is a module-level dict keyed by Discord `channel_id`. Each entry holds the question list (shuffled), per-user answers, end time, duration, initiator user ID, and the `auto_end_quiz` task handle.
+`QUIZ_STATE: dict[int, dict]` is a module-level dict keyed by Discord `channel_id` and is the **hot-path source of truth** (button clicks, timers). Each entry holds the question list (shuffled), per-user answers (`{str(user_id): {int position: choice}}`), end time, duration, initiator user ID, the `quiz_id` of its DB row, and the `auto_end_quiz` task handle.
 
-**This is in-memory only.** Any process restart (deploy, Railway OOM, crash) wipes all in-flight quizzes with no recovery. Only one quiz per channel at a time. Persisting this is the next planned change.
+`db.py` (`QuizStore`, aiosqlite) **mirrors** this to SQLite so quizzes survive a restart. Persistence is **best-effort**: `quiz_start` persists on creation (`create_quiz`), the answer paths call `_persist_answer`, and `display_quiz_results` calls `_persist_completion` — every one wrapped so a storage failure degrades to in-memory-only rather than breaking a live quiz (`quiz_id` stays `None` and the mirror calls no-op). Schema: `quizzes` (surrogate id, `status` active/completed, partial unique index enforcing one *active* quiz per channel), `quiz_questions`, `quiz_answers` (upsert PK). See `tests/test_db.py`.
 
-`auto_end_quiz` is scheduled via `asyncio.create_task(...)` at quiz start; the task handle is stored in `state["end_task"]` to keep it from being GC'd and so `display_quiz_results` can cancel it on manual `/quiz_end`. The cancel path skips itself when invoked from inside the auto-end task to avoid `CancelledError` on self.
+On startup, `on_ready` opens the store **once** (guarded by `_startup_done`) and calls `rehydrate_quizzes`: each active quiz is restored into `QUIZ_STATE` and its `auto_end_quiz` timer re-armed for the *remaining* time; a quiz that expired during downtime is finalized immediately. **Caveat:** buttons on messages posted before a restart won't respond (their `View` objects died with the process) — `/quiz_answer` is the fallback, and recorded answers are preserved regardless. Re-registering persistent views would need channel-scoped `custom_id`s (a follow-up).
+
+`auto_end_quiz` derives its sleep from `state["end_time"]` (not a fixed duration), so both fresh and rehydrated quizzes end at the right wall-clock time. Its task handle is stored in `state["end_task"]` to keep it from being GC'd and so `display_quiz_results` can cancel it on manual `/quiz_end`; the cancel path skips itself when invoked from inside the auto-end task to avoid `CancelledError` on self.
 
 ### Quiz generation pipeline
 
