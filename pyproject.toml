@@ -11,3 +11,5 @@ select = ["F", "E9", "W6"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-ra"
+# Async DB tests use plain `async def` without per-test markers.
+asyncio_mode = "auto"
