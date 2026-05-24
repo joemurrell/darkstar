@@ -8,7 +8,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-Support-orange.svg)](https://www.buymeacoffee.com/joemurrell)
 
-DarkstarAIC is a Discord bot designed for DCS (Digital Combat Simulator) communities, providing intelligent question-answering and interactive quizzes based on Air Control Communication (ACC) documentation. Powered by Anthropic's Claude API with the Files API for PDF grounding, prompt caching, and tool-use structured output, it delivers accurate page-referenced answers to help pilots and controllers master ACC procedures. FOR SIMULATION USE ONLY.
+DarkstarAIC is a Discord bot designed for DCS (Digital Combat Simulator) communities, providing intelligent question-answering and interactive quizzes based on Air Control Communication (ACC) documentation. Powered by Anthropic's Claude API — the ACC text is embedded in a cached system prompt for grounding, with tool-use structured output for quizzes — it delivers accurate page-referenced answers to help pilots and controllers master ACC procedures. FOR SIMULATION USE ONLY.
 
 ## ✨ Features
 
@@ -16,7 +16,7 @@ DarkstarAIC is a Discord bot designed for DCS (Digital Combat Simulator) communi
 - **🎯 Interactive Quizzes**: Test your knowledge with automatically generated multiple-choice quizzes
 - **⏱️ Timed Quiz Sessions**: Create time-limited quizzes (1-60 minutes) with customizable question counts
 - **🔍 Smart Topic Diversity**: Quiz questions cover diverse topics from the documentation
-- **🤖 Claude Haiku 4.5**: Fast, cost-efficient Claude model with native PDF understanding and prompt caching (~10% input cost for the cached PDF prefix)
+- **🤖 Claude Haiku 4.5**: Fast, cost-efficient Claude model with prompt caching (~10% input cost for the cached documentation prefix)
 
 
 ## 📺 Demo

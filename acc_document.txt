@@ -1,0 +1,2504 @@
+09 OCT 2024 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 1 
+Chapter I 
+OVERVIEW 
+1. Airspace Control
+a. Airspace control is the exercise of delegated authority over designated airspace
+and users through control procedures and coordination measures to maximize
+operational effectiveness (Joint Publication (JP) 3-52, Joint Airspace Control).
+b. The joint force air component commander (JFACC) establishes battle
+management areas (BMAs) to support effective, decentralized execution and
+distributed control of air operations and delegated airspace control authority and
+area air defense commander (AADC) responsibilities.
+c. There are two methods of airspace control: positive and procedural.
+(1) Positive Control. A method of airspace control that relies on positive
+identification, tracking, and direction of aircraft within an airspace, conducted with
+electronic means by an agency having the authority and responsibility therein (JP
+3-52). Positive control requires sensors to locate and identify airspace users in
+real time and provide communications to maintain continuous contact with the
+user.
+(2) Procedural Control. A method of airspace control which relies on a
+combination of previously agreed upon and promulgated orders and procedures
+(JP 3-52). Examples include:
+(a) Air defense identification (ID) procedures and aircraft ID maneuvers.
+(b) Voice and/or digital communications between aircraft and airspace control
+elements.
+(c) Airspace control measures, such as low-level transit routes, minimum-risk
+routes, coordinating altitude, restricted operations zones, and high-density
+airspace control zones.
+(d) Fire support coordination measures, such as restrictive fire and no-fire
+areas.
+d. At the tactical level, airspace control is provided by the interaction between
+airspace users and airspace control elements (JP 3-52). These may include, but are
+not limited to:
+(1) A control and reporting center (CRC).
+(2) A tactical air operations center (TAOC).
+(3) An E-3 Airborne Warning and Control System (AWACS).
+(4) A Navy tactical air control center (Navy TACC).
+(5) An E-2 Hawkeye.
+(6) A direct air support center (DASC).
+(7) An air support operations center (ASOC).
+2 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 09 OCT 2024 
+(8) A battle control center (BCC).
+(9) Air defense airspace management.
+(10) A brigade aviation element.
+(11) Agile control and integration team (ACIT).
+(12) Integrated sensing and effects team (ISET).
+(13) Other military and civil air traffic control entities.
+2. Tactical Command and Control (TAC C2)
+a. TAC C2. TAC C2 are airspace control elements under tactical control of the
+JFACC, joint force maritime component commander, or composite warfare
+commander (CWC) and use positive and/or procedural control methods to control
+airspace and manage air operations. Not all airspace control elements are
+considered TAC C2.
+b. TAC C2 should:
+(1) Enable the flow of forces to and from an objective area.
+(2) Provide threat warning information and maintain situational awareness (SA)
+to the primary objective.
+(3) Maintain SA of supporting asset status, threat information, and target area
+information.
+(4) Maintain air asset deconfliction to and from a working area.
+c. The following are some of the TAC C2 capable entities by Service.
+(1) Army. None.
+(2) Marine Corps. TAOC, DASC, and early warning and control.
+(3) Navy. E-2 Hawkeye, Ticonderoga-class guided missile cruisers; Arleigh
+Burke-class guided missile destroyers; Nimitz/Ford-class aircraft carriers,
+nuclear; amphibious assault ships (general purpose); Wasp-class amphibious
+assault ships (multi-purpose); and the San Antonio-class amphibious transport
+docks.
+(4) Air Force. AWACS, CRC, BCC, ASOC, ACIT, and ISET.
+3. Assumptions
+a. The functional/Service components will adhere to the joint force commander’s
+(JFC’s) guidance provided through the rules of engagement (ROE), airspace control
+plan, airspace control order (ACO), area air defense plan, special instructions
+(SPINS), and operations task link (OPTASKLINK).
+b. The AADC establishes the policy for ID authority, with JFC approval, and
+promulgates it via the area air defense plan, SPINS, and/or an OPTASKLINK
+supplement. Execution of the ID policy is normally delegated to the tactical level, but
+care should be taken that the tactical commander is capable of performing the ID
+function.
+09 OCT 2024 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 3 
+c. Component commanders have outlined commit, ID, and engagement authority to
+battle managers through the area air defense plan, SPINS, ROE, and/or
+OPTASKLINK.
+d. When executing as a standalone entity, the carrier strike group’s CWC concept
+will independently fulfill the roles in paragraphs a.–c. The officer in tactical command
+may delegate authority to the CWC. Guidance outlined by the CWC will be
+implemented by the following principle warfare commanders:
+(1) Air and missile warfare commander.
+(2) Surface warfare commander.
+(3) Antisubmarine warfare commander.
+(4) Strike warfare commander.
+(5) Information operations warfare commander.
+Note: During peacetime operations, the surface warfare commander and antisubmarine 
+warfare commanders are often combined into a single warfare commander, the sea 
+combat commander. 
+e. The ASOC, DASC, or ACIT is the airspace control element for airspace control
+within their assigned BMAs. These two BMAs are normally short of the fire support
+coordination line and below a coordinating altitude. These BMAs are commonly
+referred to as division assigned airspace or Marine air-ground task force assigned
+airspace, respectively.
+4 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 09 OCT 2024 
+This page intentionally left blank. 
+09 OCT 2024 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 5 
+Chapter II 
+TACTICAL ADMINISTRATION (TACADMIN) COMMUNICATION 
+Note: Information transmitted via a network (NET) (e.g., FRIENDLY, GROUP, or 
+THREAT) and examples of NET transmissions are shown in all capital letters. 
+1. TACADMIN
+a. TACADMIN consists of all processes and procedures that occur in the TAC C2
+JOA or BMA. It relates to:
+(1) Interflight and intraflight procedures.
+(2) Airborne mission preparation that directly supports executing the tactical
+mission objective.
+(3) Examples include weapon arming, sensor management, personnel recovery
+package marshalling, and tactical communication checks.
+b. TACADMIN does not refer to processes and procedures that coordinate air
+assets outside the managed JOA or BMA. Examples are:
+(1) Navigating in civil airspace under civilian air traffic control.
+(2) Operating aircraft in the terminal area under military tower or local area air
+traffic control.
+(3) Controlling air traffic to facilitate arrival to or departure from an operating
+base.
+(4) An example of an exception to 1.b. is an aircraft launched under scramble
+orders (e.g., an alert status) but operating in civil airspace.
+2. Communication Priorities
+The prioritized and efficient flow of communication is vital to complex, contested air 
+operations. Table 1 specifies the priority for air communication. 
+Table 1.  Communication Priorities 
+1 Flight safety and aircraft emergencies. 
+2 KILL verification (in a training environment: range training 
+officer (RTO) communications). 
+3 DEFENDING, SPIKE, and THREAT calls. 
+4 Requests for controller and fighter targeting situational 
+awareness (i.e., DECLARE, BOGEY DOPE) or response 
+to electromagnetic attack (EA) (e.g., STROBE). 
+5 PICTURE or fill-ins. 
+6 Tactical administration (e.g., WORDS update). 
+6 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 09 OCT 2024 
+3. Directive, Informative, Interrogative, Relay Transmissions
+A call sign is associated with every radio transmission. Refer to Chapter IV for additional 
+transmission guidance (i.e., pronunciation and formatting). 
+a. Directive Transmissions. Aircrew and TAC C2 will use the call sign of the entity
+being directed.
+Directive Transmission 
+Directed by HORNET 1: “HORNET 2, TARGET NORTH GROUP.” 
+b. Interrogative Transmissions. Calls that are requests for a response will use the
+“[entity speaking to], [speaking entity]” format.
+Interrogative Transmission 
+Interrogative from EAGLE 11: “MIKE, EAGLE 11, DECLARE ADDITIONAL 
+GROUP.” 
+c. Informative Transmissions. Calls that provide information that does not require a
+response. Informative calls will use [speaking entity] format.
+Informative Transmission 
+Informative from EAGLE 11: “EAGLE 11, FUEL YELLOW.” 
+Informative PICTURE Transmission 
+Informative from MAGIC: “MAGIC, PICTURE CLEAN.” 
+d. Relaying a Call.
+(1) The communication format is “[entity speaking to], relay, [call sign of entity
+call being relayed].”
+(2) Do not include the relaying entity’s call sign.
+Relay Transmission 
+From HOG 1 relayed by SNAKE 11 to MIKE: “MIKE, RELAY HOG 1. STRIKE 
+PACKAGE MILLER TIME.” 
+Note: SNAKE 11’s call sign is omitted from the transmission. 
+4. Check-in Procedure
+a. Check-in.
+(1) The purpose of check-in is for aircrew and TAC C2 airspace control elements
+to establish contact, allow the airspace element to establish accountability of the
+airborne asset, and to pass critical information to the aircrew before handoff to a
+final mission controller.
+(a) TAC C2 will verify position and identity of the aircraft.
+(b) TAC C2 will route the aircrew to their mission area.
+09 OCT 2024 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 7 
+(c) The aircrew will gain updated information for the mission area (i.e.,
+WORDS, situation update code (also referred to as SUC)).
+(d) The aircrew can check anti-jam and secure communication systems.
+(2) The aircrew should establish communication with TAC C2 on a dedicated
+check-in NET. Dedicated NETs support TACADMIN without interfering with
+employment.
+(3) Once all tactical information has been relayed to the check-in aircraft, TAC
+C2 will switch the aircrew to the final controller tactical NET.
+Note: When checking in with the final controller, the on-coming aircraft is assumed to be 
+TACADMIN complete. 
+(4) For continuous operations (e.g., lane handoff), TAC C2 should consider
+passing big-picture information before pushing air assets to the tactical NET.
+(5) Check-in should accomplish the items in table 2 before and after mission
+execution.
+8 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 09 OCT 2024 
+Table 2.  Check-in Procedures1 
+1. Ensure positive friendly identification.2 
+a. Correct or valid response to IFF (i.e., modes 1, 2, 3A, 5, and S). 
+b. PPLI is present on Link 16 or similar data link systems. 
+c. Secure voice with radar correlation. 
+d. Authentication procedures (e.g., challenge and reply, time, or ISOPREP). 
+e. Adherence to ACO. 
+f. Adherence to briefed sanctuaries (e.g., transit levels, TR, MRR, or LLTR). 
+2. Accomplish ALPHA CHECK from BULLSEYE.3 
+3. Provide safety-of-flight information (e.g., airspace coordinating measure, 
+airspace changes, or block changes). 
+4. Verify WORDS received via digital means (e.g., primary J28.2) or voice. 
+5. Check weather. 
+a. Combat. Update operating area weather that impacts the briefed plan. 
+b. Training. Relay the weather plan or war call. 
+6. Accomplish a post-mission inflight report. 
+Notes: 
+1. Multiple TAC C2 NETs may be used to accomplish these check-in tasks.
+2. Specific procedures are outlined in the SPINS.
+3. ALPHA CHECK correlation is defined as within 3 nm. Solving for correlation rests
+with the aircraft checking in.
+Legend: 
+ACO—airspace control order 
+IFF—identification, friend, or foe 
+ISOPREP—isolated personnel report 
+LLTR—low-level transit route 
+MRR—minimum-risk route 
+NET—network 
+nm—nautical mile 
+PPLI—precise participant location and 
+identification 
+SPINS—special instructions 
+TAC C2—tactical command and control 
+TR—transit route 
+b. Aircrew Check-in with TAC C2.
+Note: This check-in is specific to terminal control agencies. Table 3 shows the 
+MNPOPCA mnemonic which is useful for remembering the order of check-in.  
+09 OCT 2024 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 9 
+Table 3.  Aircrew Check-in Brief with TAC C2 
+(MNPOPCA Format) 
+Mission Number 
+Number and Type of Aircraft 
+Position and Altitude 
+Ordnance (if applicable) 
+PLAYTIME 
+Capabilities (e.g., laser, infrared pod, data link) 
+Abort Code 
+(1) AS FRAGGED Check-in. AS FRAGGED means the unit or element is
+performing as briefed, in accordance with the air tasking order (ATO) or air plan.
+(a) Use an abbreviated aircraft check when aircraft are on a published ATO
+or air plan.
+(b) Check in with the aircrew’s mission number, AS FRAGGED, and request
+an ALPHA CHECK from the assigned BULLSEYE. The ALPHA CHECK
+provides aircrew a position system check.
+Check-in AS FRAGGED 
+Aircraft: “MISER, HORNET 1, MISSION NUMBER 5-1-1-1, CHECKING IN AS 
+FRAGGED, REQUEST ALPHA CHECK DEPOT.” 
+TAC C2: “HORNET 1, MISER, CONTACT, ALPHA CHECK DEPOT 2-7-0/30.” 
+(2) Aircrew must check in “with exceptions” if there are deviations.
+(a) Communicate pertinent exceptions to the current mission.
+(b) The following deviations should always be communicated by aircrew and
+controllers at check-in:
+• Number of aircraft (e.g., a three-ship flight when four-ships are
+anticipated).
+• Ordnance. WEAPONS YELLOW or RED or changes to the tasked
+loadout.
+• PLAYTIME. FUEL YELLOW or RED.
+• Capabilities (e.g., TIMBER SOUR, JACKAL SOUR, GADGET
+BENT).
+• Other pertinent mission-specific exceptions (identify them during
+mission planning).
+(c) The following is an example of a check-in with exceptions.
+10 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 09 OCT 2024 
+Check In with TAC C2 Exceptions Example #1 
+Aircraft: “MISER, EXXON 1, MISSION NUMBER 6-1-1-1, CHECKING IN WITH 
+EXCEPTIONS, REQUEST ALPHA CHECK BULLSEYE.” 
+TAC C2: “EXXON 1, MISER, ALPHA CHECK BULLSEYE 2-7-0/30, CONTINUE 
+WITH CHECK IN.” 
+Aircraft: “EXXON 1, FRAG MINUS 30.” 
+(d) The following is an example of a check-in with controller exceptions:
+Check In with TAC C2 Exceptions Example #2 
+Aircraft: “MISER, HORNET 1, MISSION NUMBER 5-1-1-1, CHECKING IN AS 
+FRAGGED, REQUEST ALPHA CHECK BULLSEYE.” 
+TAC C2: “HORNET 1, MISER, ALPHA CHECK BULLSEYE 2-7-0/30.” 
+Aircraft: “HORNET 1.” 
+TAC C2: “MISER, TIMBER SOUR.” 
+Aircraft: “HORNET 1.” 
+(3) The full aircraft check-in format will include mission number, aircraft number
+and type, position and altitude, ordnance, PLAYTIME, capabilities, and abort
+code.
+(4) Unmanned aircraft systems (UAS) should check in with TAC C2 via tactical
+chat using the same format.
+Unmanned Aircraft System (UAS) Check-in Example 
+<#UAS_OPS Chat Room> 
+MUSTANG 01: KINGPIN, CHECKING IN AS FRAGGED. 
+5. Unable to Make Contact on the Primary Check-in NET
+a. The aircrew and TAC C2 should refer to the CHATTERMARK procedures.
+b. If still unable to complete the check-in, contact the final controller and, at a
+minimum, receive an ALPHA CHECK and WORDS update.
+6. Link 16 Fidelity Checks
+a. Fidelity checks will begin as soon as aircraft have operational systems, and the
+checks will be completed routinely and prior to entering the JOA or BMA.
+b. Three attempts will be made to conduct Link 16 fidelity checks. If unsuccessful
+after the third attempt, the affected asset will report TIMBER SOUR.
+7. Link 16 ID Procedures
+a. If an ID difference exists on a link track, coordination will be accomplished on the
+track supervision net to verify the correct ID as in the following example.
+Track ID Coordination 
+MOJO: “BARNYARD, MOJO, TRACK 0-1-2-3-3 HOSTILE, TAG FLANKER” 
+BARNYARD: “BARNYARD, TRACK 0-1-2-3-3 HOSTILE, FLANKER.” 
+09 OCT 2024 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 11 
+b. Table 4 outlines the standard J3.5 track ID plan for specific events. Table 5
+outlines the J12.0 mission assignments by aircraft.
+Note: The first platform to correlate a kill holds the responsibility for dropping the track 
+once the striking aircraft calls SPLASH with a BULLSEYE location and type. 
+Table 5.  J12.0 Mission Assignments by Aircraft 
+Mission Type 
+Cockpit Displayed Messages 
+Investigate Target Smack 
+A-10C INV Engage Attack 
+B-1B INV Intervene Attack 
+B-52 INV TARGET Attack 
+F-15 Visual ID Interdict Attack 
+F-16 Orbit Interdict Attack 
+FA-18 INVSTGAT COMMIT ATTACK 
+F-22 INV Engage Attack 
+F-35 INV Armed Recon Attack 
+Note: Investigate can also be “INTERROGATE”. Target can also be “PRIORITY KILL.” 
+Table 4.  J3.5 Track Identification Plan 
+Event Track or Specific Type 
+Convoy Convoy moving. 
+Theater Ballistic Missile (TBM) Ballistic missile defense site. 
+TBM Launch Position Ballistic missile preparing for launch. 
+TBM Fire Hostile ballistic missile firing. 
+High-Value Individual Hostile train. 
+Surface-to-air Missile (SAM) Hostile SAM site. 
+Troops in Contact Hostile troop concentration. 
+Command and Control (C2) Hostile C2 site. 
+Air Defense Artillery (ADA) Hostile ADA. 
+Uncorrelated Mover (single) Unknown vehicle. 
+Uncorrelated Rotator Neutral radar site. 
+Downed Aircraft J3.1 downed aircraft (bailout or pilot in water). 
+Downed Aircraft Refined 
+Coordinates 
+Friendly troop concentration search and rescue. 
+12 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 09 OCT 2024 
+8. JACKAL SOUR
+Fighters should communicate JACKAL SOUR to controllers during check-in or during 
+the mission when they are not receiving accurate surveillance information. 
+a. If fighters are JACKAL SOUR, the controller should ensure correlation is met
+prior to targeting.
+b. If correlation is in question, fighters may request the controller DECLARE a group
+or request BOGEY DOPE, bearing, range, altitude, and aspect (BRAA) to a GROUP
+prior to weapons employment.
+9. WORDS Procedures
+a. WORDS is a directive call or interrogative request regarding further information or
+directives pertinent to a mission or operating area. WORDS are designated by ATO
+day, numbered sequentially, and established and deleted individually. For example,
+WORDS AA01 (pronounced ALPHA ALPHA ZERO-ONE) would represent the first
+WORDS generated on ATO day “AA.”
+(1) WORDS are generated by the TAC C2 agency outlined in the SPINS.
+(2) The first WORDS for a new ATO day should incorporate pertinent information
+from the previous day.
+(3) WORDS are limited in scope to each operating area.
+b. Examples of WORDS information include, but are not limited to:
+(1) Changes to the package.
+(2) NET changes (e.g., a new tactical mission NET).
+(3) Timing changes.
+(4) Threat updates (e.g., a new active threat axis or sector).
+(5) Change to threat warning condition or weapons control status.
+(6) Weather affecting execution.
+(7) Combat search and rescue events.
+c. TAC C2 will relay WORDS to all assets in the operating area, the joint air
+operations center (JAOC), Navy TACC, and/or appropriate CWC.
+(1) New WORDS will be relayed by TAC C2.
+(2) TAC C2 will use digital means (e.g., J28.2), to the maximum extent possible,
+when passing WORDS to air assets.
+d. Aircraft that check in with TAC C2, should consider adding the current WORDS
+they have at the check-in call (i.e., “CHECKING IN WITH WORDS BRAVO ALPHA
+0-1”).
+09 OCT 2024 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 13 
+WORDS Change 
+TAC C2: “HORNET 1, GAMBLER, WORDS BRAVO ALPHA 0-2 NOW 
+CURRENT.” 
+Aircraft: “GAMBLER, HORNET 1 WITH WORDS BRAVO ALPHA 0-1.” 
+TAC C2: “HORNET 1, GAMBLER WORDS BRAVO ALPHA 0-2 TO FOLLOW. 
+NEW THREAT AXIS 3-1-0, THREAT WARNING CONDITION RED, WEAPONS 
+CONTROL STATUS TIGHT.” 
+e. In the previous example, HORNET 1 had WORDS BA01.
+(1) TAC C2 only had to relay WORDS BA02.
+(2) If the aircrew had checked in without WORDS, TAC C2 would have relayed
+all information in WORDS BA01 and BA02.
+f. When there are multiple command and control (C2) agencies in an operating
+area, WORDS are generated by the assigned TAC C2 agency based on the tactical
+situation and inputs from other agencies or units.
+10. HAVE QUICK II/Secure Anti-Jam Tactical Ultrahigh Frequency Radio Network
+(SATURN) Procedures
+a. Successful HAVE QUICK II/SATURN requires a synchronized time-of-day (TOD)
+signal, MICKEY, between all communicators. The following is a prioritized list of
+TOD sources.
+(1) Secure Global Positioning System.
+(2) Auto-TOD from an operating location.
+(3) Aircrew manual MICKEY (e.g., FA-18 section lead pass to DASH 2).
+(4) TAC C2 auto TOD.
+(5) TAC C2 manual MICKEY.
+Manual MICKEY 
+Aircraft: “STRIKE, DOOM 1, REQUEST MICKEY.” 
+TAC C2: “DOOM 1, MICKEY IN FIVE.” 
+b. Once the aircrew has received a tone, have them attempt a prebriefed HAVE
+QUICK II/SATURN NET with instructions on a return frequency if it fails.
+HAVE QUICK II Check 
+Aircraft: “DOOM 1, GOOD MICKEY.” 
+TAC C2: “DOOM 1, STRIKE, PUSH ACTIVE TAD 57 POGO.” 
+Note: E-3 AWACS manual MICKEY is single tone only. Expect a multiple tone MICKEY 
+from other TAC C2 agencies. 
+14 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 09 OCT 2024 
+11. Inflight Report (INFLTREP)
+This report expedites information flow to tactical and operational C2. It can assist in 
+force management, WORDS generation, and intelligence gathering. It can aid in bomb 
+hit assessments that inform retasking assets (e.g., reattack). 
+a. Theater SPINS or local guidance will outline INFLTREP procedures.
+b. INFLTREPs should be passed to TAC C2 upon checking out from a JOA, BMA,
+or before returning to base.
+c. Reports should be passed on the check-in/get-well frequency, a dedicated
+frequency, or via a J28.2.
+d. Fighters should strive to pass as much information as possible.
+e. READ BACKS for fighter INFLTREP. Theater or exercise guidance should
+specify the required read back. In the absence of direction, controllers should use
+the following formats for digital or voice fighter INFLTREPs, as depicted in table 6:
+(1) For J28.2 only, controllers will respond with a J28.2, “GOOD ZAP
+(CALLSIGN MISSION NUMBER), LINE 3 DETAILS…”
+(2) For voice, controllers will respond, “COPY (CALLSIGN MISSION NUMBER),
+LINE 3 DETAILS.”
+09 OCT 2024 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 15 
+Table 6.  Inflight Report Example 1 
+Item Example Radio Communication 
+Request from Aircraft “TOPROCK, COBRA 01, INFLIGHT REPORT.” 
+Acknowledgment from Tactical 
+Command and Control 
+“COBRA 01, GO WITH INFLIGHT REPORT.” 
+Line 1—Call sign “COBRA 01, FLIGHT.” 
+Line 2—Mission number “5101.” 
+Line 3—Known blue attrition “COBRA FLIGHT 3-SHIP, COBRA 04 FALLEN 
+ANGEL BULLSEYE 0-4-0/27, GOOD CHUTES. 
+ARCTIC 41 FALLEN ANGEL BULLSEYE 0-1-
+7/100.” 
+Line 4—Mission results “COBRA 01, NO OBSERVED STRIKES 
+PASSED, MISSION FAIL. 12 AMRAAMS 
+EXPENDED.” 
+Line 5—Red tactics observed 
+(FIGHTERS, STRIKERS, 
+suppression of enemy air 
+defenses (SEAD), special mission 
+aircraft (SMA), FIGHT AXIS, 
+mission planning assumptions or 
+courses of action (COAs) met/not 
+met) 
+“FOUR FLANKERS COMMITTED FROM THE 
+MARSHALL, ESCORTING STRIKERS 
+INGRESSING AT TWENTY-SEVEN 
+THOUSAND. NO SEAD OBSERVED. TWO SMA 
+DETECTED COUNTER-ROTATING CAPS 
+BULLSEYE 1-9-0/58, TWENTY-SEVEN 
+THOUSAND. MOST DANGEROUS COA IN 
+EFFECT.” 
+Line 6—STATE check and aircraft 
+intentions 
+“COBRA FLIGHT RED / RED. REQUEST 
+POINT-OUT TO EXXON 71 FOR REFUEL, RTB 
+TO HOME PLATE.” 
+Legend: 
+AMRAAM—advanced medium-range air-to-air missile 
+CAP—combat air patrol 
+RTB—return to base 
+f. JP 3-09.3, Close Air Support, provides an example of a non-fighter INFLTREP for
+reference, as depicted in table 7.
+16 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 09 OCT 2024 
+Table 7.  Inflight Report Example 2 
+Item Example Radio Communication 
+Request from Aircraft “COWBOY, HOSS 01, INFLIGHT REPORT.” 
+Acknowledgment from Tactical 
+Command and Control 
+“HOSS 01, GO WITH INFLIGHT REPORT.” 
+Line 1—Call sign “HOSS 01 FLIGHT.” 
+Line 2—Mission number “0552.” 
+Line 3—Location “N3645 W11523” (latitude and longitude), 
+“10S 0559 4282” (grid), 
+or “GAMECOCK” (place name/operating area). 
+Line 4—Time on target “1518Z.” 
+Line 5—Result “5 ENEMY TANKS DESTROYED, 5 LIGHT 
+TRUCKS DISABLED, 30 TROOPS IN THE 
+OPEN.” 
+Remarks “DIRT SIX NORTH. REMAINING TANKS 
+DISENGAGING WEST. LIGHT SURFACE-TO-
+AIR FIRE TO 10,000 FEET, 5 MILES SOUTH OF 
+TARGET AREA.” 
+12. Return to Base/Returning Forces Phase
+TAC C2 check-in controller should attempt to ensure the following for returning forces. 
+a. Verify aircraft are SQUAWKING appropriate modes and codes prior to friendly
+missile engagement zone (MEZ) entry.
+b. Obtain mission results and flight statuses via Link 16 or voice and pass the
+inflight report to the JAOC or CWC.
+c. Execute Wounded Bird, battle damage, or hung ordnance notification procedures
+in accordance with theater directives.
+(1) FORCE TELL the track until directed by higher headquarters.
+(2) Obtain call sign, status, and track number of the aircraft.
+(3) Monitor and track the aircraft until it is out of radar coverage or until it is under
+recovery base approach control to ensure a safe return.
+(4) Prepare to coordinate combat search and rescue operations.
+d. Pass information on HOME PLATE weather and operational status (e.g., runway
+closures or recovery procedures).
+13. Establishing Procedural Control
+Procedural Control. TAC C2 may have positive contact on aircraft flying in the JOA or 
+BMA, but use procedural control methods to deconflict air and ground battlespace 
+09 OCT 2024 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 17 
+requirements. Some TAC C2 agencies should specify at check-in when procedural 
+control is used based on system capabilities, crew tasking, and the battlespace 
+situation. TAC C2 can establish hold points, control points, and initial points that are 
+new or previously unknown. Methods include using common grid reference system, 
+Global Area Reference System, common reference point, latitude/longitude, military grid 
+reference system (MGRS), or as defined in theater SPINS. Weather, threats, and terrain 
+are considerations for finding the bottom altitude of a stack. When TAC C2 moves from 
+positive to procedural control, the aircrew should be advised, to the maximum extent 
+practical: 
+a. Transmit, “NEGATIVE CONTACT”, when an aircraft checks in.
+b. TAC C2 may use, “PROCEDURAL CONTROL IN EFFECT”, when the current
+operating area standard is positive control.
+c. If the operating area standard is procedural control, then TAC C2 does not need
+to state, “PROCEDURAL CONTROL IN EFFECT.“
+Procedural Control 
+“GRIM 11, VULTURE, NEGATIVE CONTACT, PROCEDURAL CONTROL IN 
+EFFECT.” 
+18 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 09 OCT 2024 
+This page intentionally left blank. 
+09 OCT 2024 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 19 
+Chapter III 
+FORCE PACKAGING AND DIRECT AIR SUPPORT COORDINATION 
+Missions that involve a mission commander (MC) require extensive coordination to 
+execute. The MC and TAC C2 should establish a plan to receive the LOWDOWN, 
+obtain force package accountability before and after mission execution, establish 
+backup communication plans, and establish air communication contracts. This section, 
+and the following chapters, establish baseline tactics, techniques, and procedures for 
+these items. 
+1. Force Package Accountability and Roll Call
+The MC should ensure the required minimum forces are ready. Two techniques are a 
+TAC C2-provided update or a roll call. 
+a. TAC C2 Update. TAC C2 should maintain a tally of players that have checked in.
+At a predetermined time, TAC C2 provides the MC with the current players.
+C2 Update 
+“DARKSTAR, PACKAGE BRAVO WHISKEY, MINUS LION 01, MIN FORCES 
+MET”. 
+b. Roll Call. Roll call is initiated by the TAC C2 or MC, at a predetermined time.
+Once initiated, each aircraft, flight lead (FL), or team lead (TL) (as determined by the
+MC) will respond with call sign in a predetermined sequence. As a technique, this
+sequence can follow the call sign order on a coordination card.
+FL Roll Call Example 
+Package BRAVO WHISKEY FLs: EAGLE, VIPER, BONES, GROWL, MOJO. 
+MC: “PACKAGE BRAVO WHISKEY, ROLL CALL.” 
+FLs Respond in Sequence: “EAGLE”, “VIPER WITH EXCEPTIONS”, “BONES”, 
+“GROWL”, “MOJO”. 
+MC: “VIPER GO WITH EXCEPTIONS.” 
+VIPER: “VIPER MINUS 2.” 
+If a flight does not respond to the roll call, the MC can query TAC C2. 
+TL Roll Call Example 
+Package BRAVO WHISKEY TLs: Escort, Strike, Airlift, TAC C2. 
+MC: “PACKAGE BRAVO WHISKEY, ROLL CALL.” 
+TLs Respond in Sequence: “ESCORT WITH EXCEPTIONS”, “STRIKE”, 
+“AIRLIFT”, “TAC C2.” 
+MC: “ESCORT GO WITH EXCEPTIONS.” 
+Escort TL: “ESCORT MINUS RAPTOR. MINIMUM FORCES MET.” 
+20 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 09 OCT 2024 
+c. Times to consider initiating a roll call.
+(1) Post LOWDOWN.
+(2) When there are updated WORDS.
+(3) When forces completed their mission and are returning.
+(4) When there is a suspected or known loss of an air asset.
+(5) When there is a timing change to the mission.
+(6) When the weather plan changes.
+(7) When there is key mission enabler fallout.
+(8) Post CHATTERMARK on a new NET.
+(9) Escort commander/lane commander change when new commander was not
+previously established or provided with information airborne.
+2. LOWDOWN
+LOWDOWN is a request for the tactical electromagnetic support picture or 
+ground/surface picture in an area of interest. TAC C2 should correlate all factor 
+ground/surface systems using the BULLSEYE format. 
+Note: When communicating with United States (US) Army or US Marine Corps rotary-
+wing and UAS, pass surface threat information in MGRS, if known. Attempt to provide at 
+least a six-digit grid. 
+a. LOWDOWN is passed at a briefed time (e.g., 5 minutes prior to mission
+execution) and is immediately followed by a roll call.
+b. Format for LOWDOWN is:
+(1) Core information.
+(2) PICTURE format, if assessed ground picture (or leading edge) meets
+PICTURE criteria and “MEZ PICTURE” or “LOWDOWN PICTURE” is requested.
+If long-range air defense (LRAD) surface-to-air missile (SAM) systems are a
+factor and not included in the PICTURE, communicate as core information.
+c. An aircrew may request LOWDOWN but should do so in accordance with
+communication priorities (allow 30 to 60 seconds for TAC C2 to compile
+LOWDOWN).
+d. For aircraft not in the tactical NET during the initial LOWDOWN, it is passed upon
+initial check-in as part of the WORDS.
+e. LOWDOWN may not be required for each mission set, such as when fighters are
+conducting a defensive counterair mission in a permissive environment.
+f. LOWDOWN is passed digitally, via Link 16 and tactical chat, or verbally. The
+LOWDOWN will include changes to the briefed order of battle, such as newly
+detected systems, systems that have moved a tactically significant distance, or
+09 OCT 2024 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 21 
+systems that are assessed to be DOWN. The following may be included in a 
+LOWDOWN: 
+(1) LRAD or “strategic” SAM systems ACTIVE or AWAKE.
+(2) Medium-range air defense (MRAD) systems ACTIVE or AWAKE.
+(3) Short-range air defense (SHORAD) or “tactical” SAMs ACTIVE or AWAKE
+within the last hour (e.g., antiaircraft artillery or naval tactical SAM).
+(4) MOVERS/ROTATORS meeting briefed reporting criteria.
+(5) Additional entities, events, or areas of interest applicable to the mission.
+Note: Specific systems or ranges used to prioritize LOWDOWN communications should 
+be determined during mission planning. 
+LOWDOWN Example 
+“GOLIATH, LOWDOWN. SA TWENTY AWAKE BULLSEYE 0-9-0/10, HQ-9 
+ACTIVE BULLSEYE 0-8-5/13, FIFTEEN ACTIVE BULLSEYE 0-7-5/14, 
+ROTATOR BULLSEYE 2-6-0/11. HOSTILE CONVOY BULLSEYE 2-7-0/10 
+TRACK EAST.” 
+g. For tactical SAMs and MOVERS, the order of dissemination is:
+(1) Closest MEZ to friendly forces.
+(2) Closest MEZ to friendly axis of attack or ingress routes.
+(3) Most lethal.
+3. Timing Changes
+a. ROLEX. Timeline adjustment in minutes; always referenced from original
+preplanned mission execution time.
+(1) ROLEX is used to adjust the mission timing.
+(2) PLUS is assumed.
+(3) If a time on target (TOT) window extension is required to adhere to the
+ROLEX, TAC C2 agencies should request approval and pass it to the affected
+flights.
+(4) ROLEX is made in 5-minute increments and is not additive.
+ROLEX Example 
+Original package WHISKEY ALPHA mission start time: 1500Z. 
+“COWBOY, PACKAGE WHISKEY ALPHA, ROLEX 10.” 
+New mission start time: 1510Z. 
+“COWBOY, PACKAGE WHISKEY ALPHA, ROLEX 15.” 
+New mission start time: 1515Z. 
+b. SLIP. SLIP is time delay to individual flight or element event. SLIP is not additive.
+22 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 09 OCT 2024
+SLIP Example 
+Original TOT: 1500Z. 
+“HARDROCK, HOSS 1, SLIP TOT 6 MINUTES.” 
+New TOT: 1506Z. 
+“HARDROCK, HOSS 1, SLIP TOT 9 MINUTES.” 
+New TOT: 1509Z. 
+c. For changes to training vulnerability times, MCs and TAC C2 should use plain
+language to avoid confusion.
+New Vul Time Example 
+“HARDROCK, NEW VUL TIME 1600Z.” 
+Note: A change to vul time will include all participants, including white and red forces. 
+4. CHATTERMARK Procedures
+a. CHATTERMARK procedures are established to transition from primary to
+alternate tactical NETs.
+b. The CHATTERMARK plan should:
+(1) Provide alternate NETs, which reside in different frequency bands.
+(2) Prioritize secure, frequency-hopping forms of radio communication. Tailor
+them based on threat communication jamming capabilities.
+(3) Establish a “get well” NET, such as the TAC C2 check-in NET. If the aircrew
+are unsure of the current tactical NET, they can switch to the “get well” NET to
+receive direction from TAC C2.
+(4) Outline the criteria and authority for executing a CHATTERMARK. This
+resides with MC or a designated TL. Degradation on the primary tactical NET due
+to communications jamming or system limitations for the aircrew or controller
+(e.g., UNABLE HAVE QUICK) are the most common reasons to
+CHATTERMARK.
+c. Request a CHATTERMARK via a “Request POGO [NET name in color and
+number]” (e.g., INDIGO 03).
+d. If a CHATTERMARK is directed, all assets will switch to the planned alternate
+NET, in accordance with the CHATTERMARK plan, and await a roll call.
+(1) TAC C2 or MC will repeat CHATTERMARK three times on the primary
+tactical NET prior to switching to the alternate tactical NET and publish a digital
+message.
+(2) If able, TAC C2 will simulcast on the old, affected NET and the new NET.
+(3) TAC C2 simulcast will continue until force accountability is confirmed on the
+new NET.
+(4) Force accountability on new NET.
+09 OCT 2024 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 23 
+(a) Per the mission plan, FLs or TLs should communicate their call sign on
+the new NET. TAC C2 should only acknowledge if communication time allows
+in accordance with communication priorities.
+(b) TAC C2 should note accountability as players check in. TAC C2 will
+accomplish a ROLL CALL if needed.
+(c) TAC C2 should communicate “NET SWEET” on the new NET once all
+players have checked in.
+CHATTERMARK Example 
+Primary NET degradation is noted by TAC C2. 
+Transmitting on the Old NET: 
+MISER (TAC C2): “CHATTERMARK, CHATTERMARK, CHATTERMARK.” 
+Transmitting on New NET: 
+FLs: “EAGLE.” “RAPTOR.” “HORNET.” “GROWLER.” 
+MISER: “NET SWEET.” 
+5. Lane Handover Procedures
+Note: Refer to other mission-specific publications for positive handoff of mission 
+command roles (e.g., strike coordination and reconnaissance or close air support). 
+a. A positive handoff is required by the off-going and on-coming lane commander
+and should occur in the following sequence.
+(1) MOVE FORWARD. On-coming aircraft may enter the operating area (e.g.,
+defensive counterair lane). This does not transition lane commander authority.
+MOVE FORWARD 
+Off-going Lane Commander: “HORNET 1, MOVE FORWARD.” 
+On-coming Lane Commander: “HORNET 1.” 
+(2) COMMIT. When directed by the lane commander, this call transitions
+communication priority to the committing aircraft.
+(3) Lane Commander Transition. The off-going lane commander will get positive
+communication lane handoff to the on-coming lane commander.
+Lane Handoff 
+Off-going Lane Commander: “HORNET 1, YOU HAVE THE LANE.” 
+On-coming Lane Commander: “HORNET 1, HAS THE LANE.” 
+b. The off-going aircraft will pass critical mission information to TAC C2 in
+accordance with theater INFLTREP procedures.
+(1) TAC C2 will use this information to update WORDS or LOWDOWN.
+(2) TAC C2 should pass big-picture information to the on-coming lane
+commander before pushing assets to the tactical frequency.
+24 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 09 OCT 2024 
+Example 
+“TULSA, TWELVE GROUPS, LEADING EDGE FOUR GROUP WALL 
+TARGETED BY RAPTOR. RAPTOR FUEL YELLOW, EAGLE WEAPONS RED.” 
+c. TAC C2 will relay critical information affecting off-going aircraft return-to-base
+procedures. Pass information on weather and airfield issues (e.g., runway closures).
+6. Fuel/Weapons Statuses
+a. Unless otherwise briefed, YELLOW and RED are defined as:
+(1) YELLOW: Aircraft is at a weapon and/or fuel status that is approaching a
+level insufficient to continue execution of the mission.
+(2) RED: Aircraft is at weapon and/or fuel state that is insufficient to continue
+execution of the mission.
+b. Aircraft must relay when they are YELLOW to TAC C2.
+c. Aircraft are assumed GREEN unless otherwise reported.
+Note: A specific loadout or fuel state should be determined during mission planning 
+(e.g., 1 radar missile/10 minutes fuel remaining). 
+d. TAC C2 is responsible to coordinate on-station relief prior to the aircraft
+communicating RED on the primary NET.
+FUEL/WEAPONS State Example 
+Fighter that is FUEL red and WEAPONS green will report: 
+“RAMBO 01, FUEL RED, WEAPONS GREEN.” 
+09 OCT 2024 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 25 
+Chapter IV 
+AIR-TO-AIR COMMUNICATION FUNDAMENTALS 
+Note: For this publication, controller is a general term used to define the individual 
+providing tactical control of an intercept or mission. The term “fighter” is used throughout 
+this chapter. Fighter information applies to any aircraft capable of employing air-to-air 
+(A/A) ordnance. Controller and fighter are used independent of platform or Service. 
+1. COMMUNICATION FUNDAMENTALS
+a. A GROUP is the way TAC C2 and aircraft describe other air assets, and is used
+to describe unknown or enemy aircraft.
+b. The PICTURE establishes a common tactical air image and describes the spatial
+relationship of GROUPs.
+2. GROUP
+a. A GROUP is any number of air CONTACTs within 3 nm in azimuth and range of
+each other.
+(1) CONTACT is an individual radar return within a GROUP.
+(2) SINGLE CONTACT is the assumed STRENGTH for all GROUPs. More
+CONTACTs are specified (e.g., SINGLE GROUP TWO CONTACTs).
+Note: The controlling platform’s capabilities and limitations will determine if controllers 
+communicate the number of CONTACTs in a GROUP. If unable to determine the 
+number of CONTACTs, but assessed to be three or more, controllers will only use the 
+fill-in, HEAVY. 
+b. GROUPs are distinguished by either a unique name or unique position.
+(1) There are four unique naming conventions used:
+(a) Cardinal Relationship (e.g., NORTH GROUP, SOUTH GROUP).
+(b) Range Relationship. Relationship relative to a specific aircraft perspective
+(e.g., LEAD GROUP, TRAIL GROUP).
+(c) Combined Cardinal and Range Relationship (e.g., NORTH LEAD
+GROUP).
+(d) Descriptive Name (e.g., SINGLE GROUP, ADDITIONAL GROUP, POP-
+UP GROUP).
+(2) Unique Position Reference. GROUPs can be distinguished using unique
+position names such as BULLSEYE, BRAA, or geographic reference (GEOREF).
+c. UNTARGETED.
+(1) If a GROUP has not been targeted inside the briefed targeting range, then
+the controller should use the term UNTARGETED. UNTARGETED will follow
+GROUP name/label to describe the priority GROUPS that are a risk to the
+mission or force (e.g., an enemy approaching the mission fail line).
+26 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 09 OCT 2024 
+UNTARGETED Example 
+“DRAGNET, NORTH GROUP UNTARGETED, BULLSEYE 2-7-0/15, TWENTY 
+THOUSAND, TRACK WEST, HOSTILE.” 
+Note: US Navy assets will issue directive targeting to fighters who are inside the 
+targeting range if the controller assesses targeting has not been issued or is not sound. 
+(2) Tactics selection per the fighter’s targeting plan will determine the
+applicability of UNTARGETED.
+(3) If a fighter calls TARGETED or acknowledges directive targeting, contracts
+for UNTARGETED and THREAT calls are cancelled.
+(4) Controllers could use UNTARGETED or issue directive targeting to the
+appropriate GROUP if inside targeting range and targeting is assessed to be
+unsound.
+3. Core Information Format
+Controllers and air assets will use the core information format to communicate 
+GROUPs: 
+a. Total number of GROUPs.
+b. GROUP location (i.e., BULLSEYE, BRAA, or GEOREF).
+c. Altitude (rounded to the nearest thousands of feet).
+d. Track direction or specific aspect (e.g., cardinal/sub-cardinal or
+HOT/FLANK/BEAM/DRAG).
+e. Declaration.
+f. Fill-ins (as appropriate).
+4. GROUP Location
+a. BULLSEYE (primary method to communicate the GROUP location).
+(1) BULLSEYE is an established reference point from which the position of an
+object can be referred to by bearing (magnetic) and range (nm).
+(2) BULLSEYE information is rounded to the nearest degree and nm.
+(a) For example, BULLSEYE 225/30 means 30 nm on a magnetic bearing of
+225 degrees from the BULLSEYE location.
+(b) It is communicated “two-two-five thirty.”
+(c) If an aircraft is within 5 nm of BULLSEYE, the GROUP may be described
+as AT BULLSEYE.
+09 OCT 2024 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 27 
+GROUP AT BULLSEYE Example 
+“EAGLE 11, LEAD GROUP, AT BULLSEYE, THIRTY-NINE THOUSAND, 
+TRACK NORTH, HOSTILE.” 
+(3) Use the code name for BULLSEYE when directed by SPINS.
+BULLSEYE Code Name Example 
+BULLSEYE Code Name: ROCK. 
+“MIKE, SOUTH GROUP, ROCK 2-5-5/29, THIRTY-NINE THOUSAND, CAP 
+(combat air patrol), HOSTILE.” 
+(4) BULLSEYE will not be truncated to “bull” to avoid it being misinterpreted as
+“BRAA.”
+b. BRAA.
+(1) BRAA information for bearing and range are rounded to the nearest degree
+and nm.
+(2) BRAA calls provide target bearing, range, altitude, and aspect relative to the
+specified FRIENDLY aircraft. For example, BRAA 225/10 means 10 nm on a
+magnetic bearing of 225 degrees from the FRIENDLY aircraft. It is communicated
+“two-two-five ten.”
+(3) Controllers should use the BRAA format if the information being
+communicated pertains only to one specific aircraft or if responding directly to the
+following fighter requests: BRAA, BOGEY DOPE, and SNAPLOCK.
+(4) Controllers will also use the BRAA format when providing a THREAT call to
+an aircraft.
+THREAT Call Example 
+“EAGLE 11, LEAD GROUP, THREAT BRAA 2-7-0/55, THIRTY-NINE 
+THOUSAND, FLANK NORTHEAST, HOSTILE.” 
+c. GEOREF Point.
+(1) A GEOREF can be used to provide the approximate location of a GROUP. A
+GROUP within 5 nm of a designated GEOREF may be referred to as “At” that
+point, as with “AT BULLSEYE.”
+(2) Examples of GEOREFs may be a prominent natural feature, such as a
+mountain peak, or a prominent manmade structure, such as an airfield.
+GEOREF Example 
+Prominent Enemy Airfield Code Name: DEPOT. 
+“EAGLE 11, LEAD GROUP, AT DEPOT, THIRTY-NINE THOUSAND, CAP, 
+HOSTILE.” 
+(3) Controllers may voice HITS when correlated sensor returns are not sufficient
+to fulfill the ID matrix or create a link track but corroborate with known enemy
+tactics or procedures. Controllers will voice GEOREFs or BULLSEYE and altitude
+if known.
+28 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 09 OCT 2024 
+HITS Example 
+Prominent Enemy Airfield Code Name: SEATTLE. 
+“FOCUS, HITS SEATTLE ELEVEN THOUSAND.” 
+5. GROUP Altitude
+a. Fighters and controllers will round altitudes to the nearest thousand feet indicated
+on their system.
+b. Controllers will not use LOW or HIGH in place of the altitude and will use
+“ALTITUDE UNKNOWN” if the controlling platform is capable of determining altitude,
+but a solution is not available. Controllers may voice “LAST” after the altitude if the
+controlling platforms sensors have lost altitude data on a track, but the controller has
+reported or offboard data for a last known altitude, up to 30 seconds after report.
+LAST Altitude Example 
+Fighter: “FOCUS, DECLARE NORTH GROUP.” 
+Controller: “FOCUS, NORTH GROUP BULLSEYE 2-7-5/44, TWENTY 
+THOUSAND LAST, TRACK EAST, HOSTILE.” 
+c. Controllers will omit altitude from the communication format if the controlling
+platform is not capable of generating an altitude.
+d. Altitude STACKS.
+(1) Altitude separation in a GROUP greater than or equal to 10,000 feet are
+voiced as a STACK stating the higher altitude first, then the lower altitude.
+Altitude Stack Example 
+“EAGLE 11, NORTH GROUP BRAA 3-0-0/32, STACK THIRTY-TWO 
+THOUSAND, EIGHT THOUSAND, HOT, HOSTILE, TWO CONTACTS, 
+FLANKER.” 
+(2) If the STACK has two or more altitude separations of 10,000 feet within the
+group, then controllers may voice the number of CONTACTs
+HIGH/MEDIUM/LOW or at specific altitudes as fill-in information. One contact at
+each altitude is assumed. If multiple, the controller will voice all contacts.
+HIGH/MEDIUM/LOW Altitude Stack Example 
+“HARDROCK, NORTH GROUP UTAH 3-0-0/12, STACK THIRTY-FIVE 
+THOUSAND, TWENTY-FOUR THOUSAND, TRACK WEST, HOSTILE, HEAVY, 
+THREE CONTACTS, TWO HIGH, ONE LOW.” 
+Specific Altitude Example 
+“BARNYARD, ADDITIONAL GROUP PEAK 2-0-0/12, STACK THIRTY-FIVE 
+THOUSAND, TWENTY-FOUR THOUSAND, TEN THOUSAND, TRACK WEST, 
+HOSTILE, HEAVY, THREE CONTACTS.” 
+09 OCT 2024 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 29 
+6. Track Direction and Specific Aspect
+a. Track direction will always be used to communicate a GROUP via BULLSEYE
+and communicated with the cardinal or sub-cardinal direction (e.g., TRACK SOUTH,
+TRACK NORTHEAST).
+b. PICTURE Exception.
+(1) If all GROUPs in a traditional PICTURE, LEADING EDGE, or PACKAGE are
+tracking the same direction, controllers should use the term TRACK with the
+cardinal direction following the PICTURE label.
+GROUPs TRACK the Same Direction Example 
+“MIKE, TWO GROUPS RANGE THIRTY, TRACK EAST. LEAD GROUP ROCK 
+1-4-5/60, THIRTY-FIVE THOUSAND, HOSTILE. TRAIL GROUP TWENTY
+THOUSAND, HOSTILE.”
+(2) If amplifying the PICTURE with TRACK direction, controllers should not
+provide a track direction for every GROUP in the picture.
+c. Specific aspects, as depicted in figure 1, are used when correlating a group to a
+specific fighter and will be used when communicating with the BRAA format.
+(1) Specific aspects (i.e., HOT, FLANK, BEAM, and DRAG) are determined by
+the GROUP target aspect (TA) or aspect angle (also referred to as AA) to the
+fighter.
+(2) FLANK, BEAM, and DRAG are accompanied with a cardinal/sub-cardinal
+direction (e.g., DRAG EAST).
+Figure 1. Target Aspect and Aspect Angle 
+
+30 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 09 OCT 2024 
+Note: If the controller assesses GROUPs in a combat air patrol (CAP), “CAP” may be 
+communicated in place of TRACK direction or a specific aspect. 
+d. MANEUVER Description (TRACK Direction or Specific Aspects).
+e. Controllers may use “maneuver hot” to communicate groups/contacts that have
+maneuvered toward the fight axis.
+f. When controllers assess GROUP maneuvers during the PICTURE call and are
+unable to determine the TRACK direction or aspect, controllers may use
+MANEUVER instead of the TRACK direction.
+GROUP Maneuvers Example 
+“TANGO, TWO GROUPS RANGE TWENTY-FIVE OPENING. LEAD GROUP 
+BULLSEYE 2-6-5/18, THIRTY-FIVE THOUSAND, MANEUVER, HOSTILE. 
+TRAIL GROUP, THIRTY-FIVE THOUSAND, TRACK NORTH, HOSTILE.” 
+7. Declaration
+a. A declaration is required to communicate a GROUP via BULLSEYE or BRAA.
+b. Voice declaration is BOGEY, FRIENDLY, NEUTRAL, BANDIT, or HOSTILE.
+c. Link ID may be acceptable as a means of declaration if defined by SPINS and
+ROE.
+8. Fill-in Information
+a. Fill-ins increase descriptive details about a GROUP.
+b. Fill-ins are prioritized as follows:
+(1) HEAVY and Number of CONTACTs.
+(a) A GROUP is HEAVY if it is known to contain three or more CONTACTs.
+(b) Provide the number of CONTACTs in a GROUP, if it is determined.
+(c) Fighters will use STRENGTH and controllers will use the term
+CONTACTs to distinguish who is providing the STRENGTH assessment.
+CONTACTs Example 
+Controller: “CLUBHOUSE, WEST GROUP HEAVY FOUR CONTACTS.” 
+STRENGTH Example 
+Fighter: “EAGLE 12, EAST GROUP HEAVY STRENGTH THREE.” 
+(2) Platform/Type. Controllers will provide an aircraft platform (e.g., fighter or
+bomber), North Atlantic Treaty Organization (NATO) type designator (e.g.,
+FULCRUM or FLANKER), or as mission planned with PICTUREs and requests
+for SA to that GROUP.
+(3) HIGH. Contact is greater than 40,000 feet mean sea level. HIGH can be used
+as a fill-in.
+09 OCT 2024 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 31 
+(4) FAST or VERY FAST. These definitions are provided as references.
+(a) FAST. Target speed of 660–900 knots ground speed or 1.1–1.5 mach.
+(b) VERY FAST. Target speed greater than 900 knots or 1.5 mach.
+Fill-ins Example 
+“DRAGNET, NORTH GROUP, BULLSEYE 2-7-0/15, FORTY-TWO THOUSAND, 
+TRACK WEST, HOSTILE, HIGH, VERY FAST.” 
+(5) TARGETED BY, LEANING ON, THREAT TO.
+(a) TARGETED BY provides SA that a GROUP is already TARGETED.
+TARGETED BY Example 
+Fighter: “MIKE, EAGLE 11, DECLARE NORTH GROUP.” 
+Controller: “EAGLE 11, NORTH GROUP, BULLSEYE 2-8-5/35, TWENTY 
+THOUSAND, TRACK EAST, HOSTILE, TARGETED BY HORNET 2.” 
+(b) Targeting responsibility is cancelled when the fighters communicate any
+of the following: DROP(ING) (GROUP name), BLOW(ING) THROUGH,
+SPITTER, or executes an OUT. The group should be treated as
+UNTARGETED if no fighter subsequently targets.
+(c) LEANING ON aids in assessing which aircraft a THREAT is possibly
+targeting.
+• Making an accurate LEANING ON assessment is increasingly difficult
+with improved THREAT capabilities. For example, a FLANK or BEAM
+THREAT could be employing ordnance while LEANING ON another
+fighter.
+• LEANING ON assessments are generally reserved for when fighters
+are in COLD operations but may be used in other situations, such as
+non-cooperative targeting.
+LEANING ON Example 
+“DARKLORD, SINGLE GROUP ROCK 2-5-6/49, THIRTY-NINE THOUSAND, 
+TRACK EAST, HOSTILE, FLANKER, LEANING ON EAGLE 1.” 
+(d) THREAT TO may be used when fighters are in COLD operations and a
+fighter does not meet the minimum recommit range or as an additional fill-in
+to a traditional THREAT call.
+THREAT TO Example 
+“MIKE, TWO GROUPS AZIMUTH TWENTY-FIVE. NORTH GROUP, ROCK 
+2-8-5/35, THIRTY-FIVE THOUSAND, TRACK EAST, HOSTILE, THREAT TO
+HORNET 1. SOUTH GROUP THIRTY THOUSAND, TRACK EAST, HOSTILE.”
+(6) IMPACT (PLUS time of flight).
+32 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 09 OCT 2024 
+(a) Controllers will add the IMPACT time to any FRIENDLY surface-to-air
+(S/A) fires when operating in a joint engagement zone or fighter engagement
+zone.
+IMPACT Example 1 
+“GAMBLER, BIG STICK AWAY TRAIL GROUP, IMPACT ONE PLUS FIFTEEN.” 
+(b) The IMPACT time is used to aid follow-on fighter targeting, decision
+making, and ensure fires deconfliction.
+(c) IMPACT time can be used as a PICTURE fill-in as well.
+IMPACT Example 2 
+“GAMBLER, TRAIL GROUP ROCK 1-8-0/85, THIRTY THOUSAND, TRACK 
+NORTH, HOSTILE, IMPACT ONE PLUS FIFTEEN.” 
+c. Inner GROUP Formations.
+(1) When describing an inner GROUP formation, controllers and fighters will use
+the terms described in figure 2, Inner GROUP Formations.
+(2) Controllers and fighters should only name the inner GROUP formation when
+this call will enhance fighter targeting or SA approaching the merge.
+(3) Inner GROUP formations should be used inside expected radar resolution
+ranges.
+(4) In cruise missile defense (CMD), inner COVEY formations should be voiced
+to the maximum extent possible.
+09 OCT 2024 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 33 
+9. PICTURE
+a. PICTURE is a request to provide information pertinent to the mission in a
+BULLSEYE format, unless briefed otherwise.
+b. The PICTURE establishes a common tactical air image and describes the spatial
+relationship of GROUPs.
+Note: FRIENDLY, NEUTRAL, STRANGERs, and nonparticipating GROUPs will not be 
+included in the PICTURE or total number of GROUPs identified as part of the tactical 
+picture. If FRIENDLY, NEUTRAL, STRANGERs, or nonparticipating GROUPs are a 
+factor, they are addressed in a separate transmission. 
+Figure 2. Inner-GROUP Formations 
+c. Standardized intercept contracts are executed based on the PICTURE.
+d. PICTURE Format.
+(1) There are five ways to communicate the PICTURE. They are:
+(a) Core information.
+(b) Traditional labels.
+(c) LEADING EDGE communication.
+(d) WAVEs.
+(e) PACKAGEs.
+(2) Within a PICTURE, each GROUP will have an established name that is
+retained until:
+
+34 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 09 OCT 2024 
+(a) A NEW PICTURE is called.
+(b) The GROUP is reduced by attrition.
+(c) The GROUP is no longer a factor to the operating area.
+10. Core Information Concerning a PICTURE
+a. Core information concerning a picture is primarily used to:
+(1) Pre-COMMIT.
+(2) If the PICTURE does not meet a traditional or LEADING EDGE label.
+b. The PICTURE call will include the total number of GROUPs and is anchored in
+accordance with anchoring priorities as explained in paragraph 12.
+c. FOUR GROUPs or More.
+(1) The call will include the total number of GROUPs.
+(2) Communicate only the three highest priority GROUPs.
+FOUR GROUPs or More Example 
+“DARKSTAR, TEN GROUPS. GROUP BULLSEYE 0-2-0/25, TWENTY-SEVEN 
+THOUSAND, TRACK EAST, HOSTILE, HEAVY, THREE CONTACTS. GROUP 
+BULLSEYE 2-7-0/25, FIFTEEN THOUSAND, TRACK WEST, HOSTILE. GROUP 
+BULLSEYE 2-9-0/35, TEN THOUSAND, TRACK WEST, HOSTILE.” 
+11. Special Mission Aircraft (SMA) PICTURE
+SMA are enemy aircraft that generally operate in a supporting role such as 
+electromagnetic warfare or C2. Similar to a LOWDOWN, a SMA PICTURE will include 
+any SMA relevant to the current mission. Once a SMA PICTURE is given, those aircraft 
+can be excluded from any subsequent tactical pictures. 
+a. The SMA picture should be given after fighter check-in, prior to the initial picture,
+as depicted in figure 3.
+b. When naming SMA for a SMA PICTURE there are two methods:
+(1) If SMA positioning matches a traditional label, the associated names for that
+label will be used (e.g., NORTH SMA, MIDDLE SMA, SOUTH SMA).
+(2) If SMA positioning does not match a traditional label, the SMA can be
+numbered (e.g., 1st SMA, 2nd SMA, 3rd SMA).
+c. When anchoring each individual SMA, the following format will be used:
+(1) Name.
+(2) Location from BULLSEYE.
+(3) Altitude.
+(4) Declaration.
+(5) Platform.
+(6) Track number.
+09 OCT 2024 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 35 
+d. CAP will be assumed, and track direction will not be given unless deemed to be
+tactically significant.
+e. If the SMA PICTURE is passed via secure communications, NATO designators
+can be used. If the SMA PICTURE is passed via non-secure communications,
+applicable code words should be used.
+Figure 3. SMA PICTURE Example 
+f. Changes to the SMA PICTURE can be provided by a descriptive update, as
+depicted in figure 4.
+
+36 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 09 OCT 2024 
+Figure 4. SMA PICTURE Update 
+12. Anchoring a PICTURE
+An anchor is a BULLSEYE used to establish the PICTURE and aid in fighter targeting. 
+a. Geographic boundaries and the targeting game plan will dictate the maximum
+GROUPs that are anchored (e.g., dual-lane defensive counterair with a fighter
+engagement zone that has a defined azimuth boundary). Anchoring is prioritized
+based on risk to force and risk to mission.
+b. Anchoring priorities can shift from risk to force (e.g., fighters) to risk to mission.
+For example, an enemy striker approaches a mission fail line and puts the mission at
+risk. In this case, the enemy striker may be the anchoring priority.
+c. When risk to force is a higher priority than risk to mission, controllers will anchor
+GROUPs referring to the following priorities:
+(1) The threat that is closest to fighters.
+(2) The most capable threat (based on combat identification, declaration, aircraft
+type, flight profile).
+(3) Highest GROUPs.
+(4) The largest GROUP STRENGTH.
+d. GROUPs will be anchored with BULLSEYE if the GROUPs are outside 10 nm in
+azimuth. With multiple GROUPs in azimuth, unless utilizing directive targeting, only
+anchor the outermost GROUPs.
+
+09 OCT 2024 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 37 
+13. Traditional Labels for a PICTURE
+a. Controllers should use traditional labels and GROUP names with the following
+criteria:
+(1) COMMIT criteria has been met.
+(2) Threat formation is discernible, matches a traditional label, and labeling a
+PICTURE will build SA and aid fighter targeting.
+Figure 5. Pre-COMMIT Core Information 
+(3) If a traditional label does not apply based on the threat presentation,
+controllers should use LEADING EDGE communication.
+b. The standard labels used are: SINGLE GROUP, RANGE, AZIMUTH, VIC,
+CHAMPAGNE, WALL, LADDER, and BOX.
+Note: FRIENDLY, NEUTRAL, STRANGERs, and nonparticipating GROUPs will not be 
+included in the PICTURE or total number of GROUPs identified as part of the tactical 
+picture. If FRIENDLY, NEUTRAL, STRANGERs, or nonparticipating GROUPs are a 
+factor, they are addressed in a separate transmission. 
+14. Amplifying a Traditional Label for a PICTURE
+a. Amplifying remarks follow the dimensions of the traditional PICTURE.
+OPENING/CLOSING, TRACK, WEIGHTED, and ECHELON are the most common
+amplifying remarks.
+
+38 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 09 OCT 2024 
+b. PICTURE amplification order will be:
+(1) OPENING/CLOSING.
+(2) WEIGHTED.
+(3) ECHELON.
+(4) TRACK direction.
+c. OPENING or CLOSING.
+(1) OPENING or CLOSING can be applied when the distance between GROUPs
+is increasing or decreasing and may impact the fighter intercept.
+(2) OPENING or CLOSING is placed following the PICTURE label and
+dimensions but in front of other amplifying remarks, such as ECHELON and
+TRACK, as depicted in figures 6 and 7.
+Figure 6. OPENING 
+
+09 OCT 2024 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 39 
+Figure 7. CLOSING 
+Picture Amplification Example 
+“VENOM, THREE GROUP VIC, FIFTEEN DEEP OPENING, TEN WIDE, 
+WEIGHTED NORTH. LEAD GROUP BULLSEYE 2-7-0/80, FORTY-ONE 
+THOUSAND, HOSTILE, HIGH, FAST; NORTH TRAIL GROUP SEVENTEEN 
+THOUSAND, HOSTILE, TWO CONTACTS, SOUTH TRAIL GROUP TWELVE 
+THOUSAND, BOGEY SPADES.” 
+d. WEIGHTED. This is an amplifying remark that describes traditional labels with
+THREE GROUPs or more.
+(1) The PICTURE is WEIGHTED if one or more GROUPs are offset (i.e., the
+distance between GROUPs are not equidistant).
+(a) Divide the azimuth into thirds.
+(b) If the out-of-position GROUP is outside the middle third, it is WEIGHTED.
+(c) In a WEIGHTED WALL PICTURE, communicate a separation distance
+from the highest priority, anchored GROUP to the next closest GROUP.
+(d) If the picture is a weighted VIC and the lead group is outside of the trail
+groups, use weighted if the lead group is less than or equal to 5 nm laterally
+when measured perpendicular to the threat axis and not opening. Otherwise,
+consider using a wall label with an echelon component.
+(e) If the picture is a weighted CHAMPAGNE and the trail group is outside of
+the lead groups, use weighted if the trail group is less than or equal to 5 nm
+
+40 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 09 OCT 2024 
+laterally when measured perpendicular to the threat axis and not opening. 
+Otherwise, consider using a wall label with an echelon component, as 
+depicted in figure 8. 
+Figure 8. WEIGHTED VIC and CHAMPAGNE 
+(2) WEIGHTED is accompanied by a cardinal direction relative to the defined
+threat axis, as depicted in figure 9.
+
+09 OCT 2024 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 41 
+Figure 9. Three GROUP Wall WEIGHTED 
+e. ECHELON.
+(1) ECHELON is used to amplify a traditional label when GROUPs in the
+traditional label are not directly in AZIMUTH or RANGE with one another.
+(2) ECHELON should not be used if the depth component between GROUPs is
+less than or equal to 5 nm.
+(3) ECHELON is accompanied by a cardinal or sub-cardinal direction and is
+stated following the PICTURE label and dimensions. The threat axis will
+determine the direction of the ECHELON.
+(a) If the distance between GROUPs is wider than it is deep, the PICTURE is
+called AZIMUTH. If the separation is deeper than it is wide, the PICTURE is
+called RANGE.
+(b) Controllers can create a line 45 degrees from the GROUP closest to the
+fighters, in the direction of the offset GROUP.
+(c) If the offset GROUP is forward of the 45-degree line, the PICTURE is an
+AZIMUTH. If the GROUP is aft of the 45-degree line, the PICTURE is a
+RANGE, as depicted in figures 10, 11, 12, and 13. The distance between
+GROUPs will be passed as SEPARATION.
+
+42 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 09 OCT 2024 
+Figure 10. RANGE with ECHELON 
+Figure 11. AZIMUTH with ECHELON 
+
+09 OCT 2024 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 43 
+Figure 12. Three GROUP Ladder Example 1 
+Figure 13. Three GROUP Ladder Example 2 
+
+44 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 09 OCT 2024 
+f. TRACK.
+(1) If all GROUPs in a PICTURE are HOT along the fight axis, track direction is
+assumed, as depicted in figure 14.
+Figure 14. Track Direction Assumed. 
+(2) If all GROUPs share a common track direction other than hot, controller will
+voice the track direction amplification for the entire picture, as depicted in figure
+15.
+
+09 OCT 2024 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 45 
+Figure 15. Track Direction Not Assumed 
+(3) If GROUPs do not share a common track direction, controller will provide
+track direction fill-ins on each individual GROUP, as depicted in figure 16.
+
+46 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 09 OCT 2024 
+Figure 16. Different Track Directions 
+15. SINGLE GROUP/TWO GROUPs Traditional Label for a PICTURE
+a. The label SINGLE GROUP will only be used when one known
+BOGEY/BANDIT/HOSTILE GROUP is detected in an operating area. The label is
+SINGLE GROUP and all information is passed as core information.
+SINGLE GROUP Example 
+“CHALICE, SINGLE GROUP BULLSEYE 3-6-0/20, TWENTY THOUSAND, 
+TRACK WEST, BOGEY SPADES.” 
+b. TWO GROUPs are labeled AZIMUTH or RANGE.
+(1) AZIMUTH. When the distance from the GROUPs relative to the fighters are
+approximately the same. GROUPs in AZIMUTH are named using cardinal
+directions, as depicted in figure 17.
+
+09 OCT 2024 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 47 
+Figure 17. Two GROUPs AZIMUTH 
+(2) RANGE. If one GROUP is closer to the fighters than the other, RANGE is
+used as the PICTURE label. GROUPs in RANGE are named LEAD GROUP and
+TRAIL GROUP, as depicted in figure 18.
+Figure 18. Two GROUPs RANGE 
+16. THREE GROUPs or More Traditional PICTURE Labels
+a. General. The five traditional PICTURE labels for three or more GROUPs are:
+WALL, CHAMPAGNE, VIC, BOX, and LADDER. Controllers will use 5 nm of depth
+to determine the tactical relationship between GROUPs. WALL is the label used if
+depth is equal to or less than 5 nm or CLOSING inside of 5 nm. CHAMPAGNE or
+VIC is the label used if the depth is greater than 5 nm or OPENING outside 5 nm.
+
+48 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 09 OCT 2024 
+b. WALL. THREE GROUPs or more separated in AZIMUTH.
+(1) WIDE. The term WIDE, prefaced with distance in nm, is used to describe the
+dimension of a WALL.
+(2) THREE GROUPS.
+(a) The outer GROUP names are the cardinal direction relative to the defined
+THREAT axis. For example, EAST GROUP and WEST GROUP.
+(b) The inner GROUP is named MIDDLE GROUP, as depicted in figure 19.
+(c) In a WEIGHTED WALL PICTURE, a separation distance will be
+communicated from the priority, anchored GROUP to the next closest
+GROUP.
+Figure 19. Three GROUP WALL 
+(3) Five GROUPs or Less.
+(a) The outer GROUP names are the cardinal direction relative to the defined
+THREAT axis. For example, EAST GROUP and WEST GROUP.
+(b) The inner GROUPs are named MIDDLE GROUPs.
+(c) A cardinal direction is added to multiple MIDDLE GROUPs so each has a
+unique GROUP name. For example, NORTH MIDDLE GROUP, MIDDLE
+GROUP, and SOUTH MIDDLE GROUP, as depicted in figure 20.
+
+09 OCT 2024 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 49 
+Figure 20. Four GROUP Wall with Separation 
+(4) More than FIVE GROUPs.
+(a) The fighters and controller should name the outrigger GROUPs based on
+cardinal relationship (i.e., NORTH, SOUTH, EAST, WEST) and inner
+GROUPS in numerical sequence (e.g., NORTH GROUP, SECOND
+GROUP… SEVENTH GROUP, SOUTH GROUP.)
+(b) The SECOND GROUP will always be closest to the first anchored
+outrigger GROUP.
+(c) In a WALL formation with no GROUPs in the middle third, voice
+separation from the outrigger to middle GROUPs.
+
+50 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 09 OCT 2024 
+Figure 21. Five GROUP WALL 
+c. CHAMPAGNE. This is THREE GROUPs with the two closest GROUPs to the
+fighters in AZIMUTH and the third GROUP in RANGE.
+(1) The term WIDE is used first to describe the AZIMUTH dimension of the
+CHAMPAGNE.
+(2) The term DEEP is used second to describe the RANGE dimension of the
+CHAMPAGNE.
+(3) The two GROUPs closest to the fighters are named LEAD GROUPs with a
+cardinal direction descriptor. The GROUP in trail is named the TRAIL GROUP, as
+depicted in figure 22.
+
+09 OCT 2024 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 51 
+Figure 22. CHAMPAGNE 
+d. VIC. This is three GROUPs with the first GROUP closest to the fighters and two
+GROUPs in RANGE of the first GROUP, separated in AZIMUTH.
+(1) The term DEEP is used first to describe the RANGE dimension of the VIC.
+(2) The term WIDE is used second to describe the AZIMUTH dimension of the
+VIC.
+(3) The GROUP closest to the fighters is named LEAD GROUP. The two
+GROUPs in RANGE are named the TRAIL GROUPS with a cardinal direction
+descriptor, as depicted in figure 23.
+
+52 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 09 OCT 2024 
+Figure 23. VIC 
+e. BOX. A BOX is four GROUPs with two GROUPs closest to fighters separated in
+AZIMUTH and two GROUPs farthest from fighters also separated in AZIMUTH.
+(1) The term WIDE is used first to describe the AZIMUTH dimension of the BOX.
+(2) The term DEEP is used second to describe the RANGE dimension of the
+BOX.
+(3) The GROUPs closest to the fighters are named LEAD GROUP with a
+cardinal direction descriptor (i.e., EAST LEAD GROUP and WEST LEAD
+GROUP).
+(4) GROUPs will be voiced clockwise or counterclockwise, based on anchoring
+priorities of the lead groups.
+(5) The GROUPs farthest from the fighters are named TRAIL GROUP with a
+cardinal direction descriptor, as depicted in figure 24.
+
+09 OCT 2024 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 53 
+Figure 24. BOX 
+f. LADDER. This is three GROUPs or more separated in RANGE from one another.
+(1) The term DEEP is used to describe the total RANGE dimension of the
+LADDER.
+(2) The first GROUP in a LADDER will always be named LEAD GROUP. The
+last GROUP will always be the TRAIL GROUP.
+(3) A separation distance will be communicated from the LEAD GROUP to the
+next GROUP.
+(4) In a THREE-GROUP LADDER, The GROUP names are LEAD GROUP,
+MIDDLE GROUP, and TRAIL GROUP, as depicted in figure 25.
+(5) When there are more than three GROUPs, the GROUP names are LEAD
+GROUP, SECOND GROUP, THIRD GROUP, TRAIL GROUP.
+Figure 25. THREE-GROUP LADDER 
+
+54 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 09 OCT 2024 
+17. A LEADING EDGE PICTURE
+a. The LEADING EDGE is defined based on which GROUPs the fighters expect to
+employ on an intercept.
+Note: this depth is mission design series (MDS) and type, model, and/or series (T/M/S) 
+specific and must be discussed in mission planning. 
+b. LEADING-EDGE communication is applied:
+(1) When all GROUPs in an operating area do not fit a traditional label.
+(2) To minimize the radio transmission when communicating complicated
+PICTURES.
+(3) To facilitate rapid targeting of priority GROUPs.
+c. If LEADING EDGE communication is not appropriate, fighters and controllers can
+relay the PICTURE using core information.
+d. The following is the LEADING EDGE communication format.
+(1) The controller should communicate the total number of GROUPs prior to
+communicating LEADING EDGE.
+(2) A traditional PICTURE label will follow LEADING EDGE.
+(3) The controller should label the PICTURE based on which GROUPs are
+expected to be targeted in the upcoming fighter attack (e.g., fighter recommit).
+e. Follow-on GROUPs will be communicated using WAVE communication. WAVES
+are coordinated tactics between threat formations operating with defense-in-depth.
+Waves are differentiated from packages by their depth component.
+(1) The closest GROUP(s) behind the LEADING EDGE will be labeled as the
+SECOND WAVE.
+(2) WAVES will be numbered numerically (i.e., SECOND WAVE, THIRD WAVE,
+etc.).
+(3) The SECOND WAVE and any subsequent WAVES will also be given
+traditional labels, as depicted in figure 26.
+09 OCT 2024 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 55 
+Figure 26. LEADING EDGE example 1 
+(4) A separation to the SECOND WAVE will be given after the LEADING EDGE
+is labeled, as depicted in figure 27.
+Figure 27. LEADING EDGE example 2 
+
+56 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 09 OCT 2024 
+(5) The separation to the SECOND WAVE will be the shortest distance between
+the LEADING EDGE and the SECOND WAVE, along the threat axis.
+(6) When using WAVE communication, the controller should only provide
+information that is tactically relevant to facilitate targeting and flow decisions for
+the fighters on the current attack based on communication time available.
+(7) Controllers should strive to communicate WAVES maneuvering with
+“REFORMING,” “RECOMMITTING,” and “PASSING” communication if
+applicable.
+WAVES PASSING Example 
+“FOCUS SECOND WAVE PASSING FIRST WAVE.” 
+18. PACKAGE PICTURE Labeling
+a. Define bounding limits in mission planning. Some considerations should include:
+(1) Bounding limits can be determined based on geographic separation. For
+example, if executing multi-lane, defensive counterair and the controller is
+operating in one lane, the controller does not discuss GROUPs in the other lane.
+(2) Elements operating outside the predetermined bounding range are not
+considered operating in a common formation.
+PACKAGE Example 
+“GOLIATH, TWO PACKAGES AZIMUTH SIXTY, NORTH PACKAGE BULLSEYE 
+0-3-0/45, SOUTH PACKAGE BULLSEYE 1-1-0/55.”
+b. Within each PACKAGE, there may be a PICTURE that can be labeled.
+PACKAGE with a PICTURE Example 
+“CHALICE, NORTH PACKAGE, TWO GROUPS RANGE TEN, TRACK WEST. 
+LEAD GROUP BULLSEYE 0-4-5/35, TWENTY-FIVE THOUSAND, HOSTILE, 
+TWO CONTACTS. TRAIL GROUP FIFTEEN THOUSAND, HOSTILE, TWO 
+CONTACTS.” 
+c. The GROUP name and PACKAGE name are used when referring to GROUPs, if
+multiple PACKAGES are being TARGETED.
+PACKAGE TARGET Example 
+“VIPER 2, TARGET LEAD GROUP NORTH PACKAGE.” 
+d. If bounding limits are defined by a known geographic boundary, controllers may
+use GEOREF to describe the relationship between PACKAGES.
+LANE with Truncated PICTURE Example 
+“GOLIATH, NORTH LANE THREE GROUP CHAMPAGNE.” 
+19. NEW PICTURE
+a. Controllers should maintain original labels unless a new label and names will fix
+or better facilitate targeting. If time compressed when combining a range call and a
+09 OCT 2024 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 57 
+picture, controllers will truncate fill-ins and respond comparatively after targeting 
+calls. 
+b. Controllers may make an abbreviated NEW PICTURE call inside the targeting
+range if it facilitates fighter targeting. Situations where this may apply include, but
+are not limited to:
+(1) Electromagnetic attack (EA).
+(2) Adversary maneuvers.
+(3) Newly detected GROUPs.
+Abbreviated PICTURE Example 
+“BARNYARD, NEW PICTURE, TEN GROUPS, LEADING EDGE THREE 
+GROUP CHAMPAGNE.” 
+c. If fighters request a PICTURE inside the targeting range (e.g., fighters clear a
+merge) controllers should use PICTURE labeling criteria unless the nearest GROUP
+meets THREAT criteria.
+d. Fighters executing COLD operations will request a PICTURE.
+e. The term NEW PICTURE will be used when fighters are HOT.
+20. ADDITIONAL, POP-UP, and THREAT GROUPs
+a. ADDITIONAL GROUP.
+(1) ADDITIONAL GROUP is applied to a GROUP that is newly detected outside
+the targeting range or does not fit a traditional label.
+(2) An ADDITIONAL GROUP is anchored using BULLSEYE in accordance with
+the defined anchoring priorities.
+ADDITIONAL GROUP Example 
+Controller: “MISER, TWO GROUPS AZIMUTH TWENTY. NORTH GROUP 
+BULLSEYE 3-6-0/20, THIRTY-TWO THOUSAND, TRACK WEST, HOSTILE. 
+SOUTH GROUP AT BULLSEYE, EIGHT THOUSAND, TRACK EAST, 
+HOSTILE.” 
+Fighter: “EAGLE 1, ADDITIONAL GROUP BULLSEYE 0-9-0/7, FIVE 
+THOUSAND, TRACK WEST, HOSTILE FLANKER.” 
+(3) If an ADDITIONAL GROUP is part of the LEADING EDGE and the fighters
+are outside the targeting range, the controller should re-label it as a NEW
+PICTURE and include the ADDITIONAL GROUP as part of the NEW PICTURE.
+(4) If there are multiple ADDITIONAL GROUPs, each ADDITIONAL GROUP is
+prefaced with a cardinal direction and/or number (e.g., NORTH ADDITIONAL
+GROUP, FIRST ADDITIONAL GROUP).
+b. POP-UP GROUP.
+(1) If a previously undetected or unreported GROUP appears inside the targeting
+range and outside the THREAT range, it is named a POP-UP GROUP.
+58 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 09 OCT 2024 
+(2) A POP-UP GROUP is anchored using BULLSEYE in accordance with the
+defined anchoring priorities.
+(3) If there are multiple POP-UP GROUPs, each POP-UP GROUP is prefaced
+with a cardinal direction and/or number (e.g., WEST POP-UP GROUP, FIRST
+POP-UP GROUP).
+POP-UP GROUP Example 
+Controller: “DARKSTAR, FIRST POP-UP GROUP BULLSEYE 2-7-0/15, FIVE 
+THOUSAND, TRACK WEST, BOGEY SPADES. SECOND POP-UP GROUP 
+BULLSEYE 3-0-0/20, TEN THOUSAND, TRACK NORTHWEST, BOGEY 
+SPADES.” 
+c. THREAT GROUP.
+(1) If an undetected or unreported GROUP meets briefed THREAT criteria, it is
+named a THREAT GROUP. Controllers should use the BRAA format when
+issuing a THREAT call to the closest aircraft.
+THREAT GROUP Example 
+Controller: “RAMBO 2, THREAT GROUP BRAA 2-7-0/13, ONE THOUSAND, 
+HOT, HOSTILE.” 
+(2) If there are multiple THREAT GROUPS, each THREAT GROUP is prefaced
+with a cardinal direction and/or number (e.g., EAST THREAT GROUP, FIRST
+THREAT GROUP).
+09 OCT 2024 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 59 
+Chapter V 
+AIR-TO-AIR INTERCEPT COMMUNICATION 
+1. Overview
+This chapter establishes a communication format for A/A employment and air intercept 
+control. It governs communication fundamentals, format, and integration between 
+fighters and controllers, independent of MDS or T/M/S. This chapter is the baseline for 
+all A/A communication in training and combat. Service-specific differences are 
+annotated. Refer to the following weapons schools for Service-specific tactics and 
+employment considerations: 
+a. United States Army Aviation Center of Excellence (USAACE), Fort Rucker, 
+Alabama.
+b. Marine Aviation Weapons and Tactics Squadron One (MAWTS-1), Marine Corps 
+Air Station, Yuma, Arizona.
+c. Naval Aviation Warfighting Development Center (NAWDC), N7 (TOPGUN), 
+Fallon Naval Air Station, Nevada.
+d. United States Air Force Weapons School (USAFWS), Nellis Air Force Base, 
+Nevada.
+Note: For this publication, controller is a general term used to define the individual 
+providing tactical control of an intercept or mission. The term fighter is the example used 
+throughout this chapter, but this information applies to any aircraft capable of employing 
+A/A ordnance. Controller and fighter are used independent of platform or Service. 
+2. Communication Cadence by Intercept Phase
+a. The A/A communication cadence establishes the flow of information during
+different phases of a mission. It ensures fighters receive priority information
+transmitted by the controller.
+(1) Communication priorities shift between controllers and fighters during
+different phases of an intercept.
+(2) Priorities shift based on what asset has the most SA to communicate time-
+sensitive information.
+b. Table 8 outlines the A/A intercept phases and the communication priorities.
+60 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 09 OCT 2024 
+Table 8.  Air-to-air Intercept Phases and Priority Communicators 
+Phase Priority Communicators 
+1. Pre-COMMIT or MARSHAL 1. Controller.
+2. Fighters.
+2. Post-COMMIT or PUSH 1. Controller.
+2. Fighter.
+3. Targeting/Weapons Employment 1. Fighters.
+2. Controller.
+4. MERGE 1. Engaged Fighter.
+2. Supporting Fighters.
+3. Controller.
+5. Post-MERGE 1. Fighter Clearing a Merge.
+2. Supporting Fighters.
+3. Controller.
+3. COMMIT/TARGET Beyond Visual Range
+a. COMMIT Criteria.
+(1) During mission planning, COMMIT criteria is determined based on the overall
+mission objective.
+(2) COMMIT criteria considerations are:
+(a) Range based (e.g., predetermined range from fighters or a defended
+asset).
+(b) Location based (e.g., enemy assets affecting a strike route).
+(c) Threat based (e.g., only COMMIT against certain aircraft types).
+(d) Weapon employment based (e.g., allow fighters to employ at their first
+available employment range).
+b. COMMIT Authority.
+(1) COMMIT authority is derived from the combatant commander and can be
+delegated to the MC, TL, FL, or controller based on the theater
+SPINS/OPTASKLINK.
+(2) If only the MC, TL, or FL retain the COMMIT authority:
+(a) The entity with delegated COMMIT authority will COMMIT once COMMIT
+criteria has been achieved.
+(b) Any entity (e.g., controller) that does not have delegated COMMIT
+authority can recommend the COMMIT.
+Fighter Authority COMMIT Example 
+Controller: “TANGO, TEN GROUPS, GROUP ROCK 2-5-0/45, THIRTY-FIVE 
+THOUSAND, TRACK EAST, HOSTILE, RECOMMEND RAPTOR COMMIT.” 
+Fighter: “RAPTOR COMMIT.” 
+09 OCT 2024 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 61 
+(3) If only the controller retains COMMIT authority:
+(a) The controller should direct the COMMIT once COMMIT criteria has been
+met.
+(b) The MC or TL may only recommend COMMIT.
+Controller Authority COMMIT Example 
+Fighter: “RAPTOR 1, RECOMMEND COMMIT.” 
+Controller: “TANGO, TEN GROUPS, GROUP ROCK 2-5-0/45, THIRTY-FIVE 
+THOUSAND, TRACK EAST, HOSTILE, RAPTOR COMMIT.” 
+Fighter: “RAPTOR 1.” 
+(4) Two-way communication between the fighters and controller is required when
+a COMMIT is recommended or directed.
+(5) If a COMMIT is directed by the fighter, the controller will transition from pre-
+COMMIT communication standards to tactical control and traditional label or
+LEADING EDGE PICTURE communication.
+Fighter COMMIT Example 
+Fighter: “RAPTOR COMMIT.” 
+Controller: “TANGO, TEN GROUPS, LEADING EDGE TWO GROUPS AZIMUTH 
+FORTY, TRACK EAST. NORTH GROUP ROCK 3-0-0/15, THIRTY-FIVE 
+THOUSAND, HOSTILE. SOUTH GROUP ROCK 2-3-0/20, THIRTY-FIVE 
+THOUSAND, HOSTILE. FOLLOW-ON GROUP TWENTY-FIVE.” 
+4. Tactical (TAC) Range Call
+a. Fighters should prebrief the “TAC RANGE” call with controllers.
+b. A 60-nm separation from the closest fighter to the closest GROUP is a default.
+c. The first to recognize the appropriate separation will make the “TAC RANGE” call
+using the closest fighter call sign and the closest GROUP name.
+TAC Range Example 
+“EAGLE 11, NORTH GROUP TAC RANGE.” 
+5. TARGETED
+a. Fighters will communicate targeting using the minimum words required while
+enabling C2 to verify targeting. A fighter that has called “TARGETED” indicates that
+fighter is maintaining awareness of and responsibility for the specified group.
+b. With data link between fighters and C2, the only communications required may
+be TARGETED and the group label. Without a data link, the targeted call must
+include location information, preferably BULLSEYE. Without C2, fighters should use
+minimum communications while enabling the FL to verify targeting.
+62 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 09 OCT 2024 
+TARGETED COMMUNICATIONS Examples 
+Data link enabled to C2: “RAMBO 2, TARGETED WEST GROUP.” 
+Data link not enabled to C2: “SATAN 2 TARGETED WEST GROUP BULLSEYE 
+2-7-0/15.”
+c. Fighters may include more information if they desire to update or re-emphasize
+information provided by C2 (e.g., more contacts detected, altitude changes,
+expected changes to flow or targeting that the FL has not yet communicated). If
+including more information, fighters will use the format described in core information
+format.
+Core Information Format Example 
+“RAMBO 2, TARGETED WEST GROUP BULLSEYE 2-7-0/15, TWENTY 
+THOUSAND, HOT, HOSTILE, STRENGTH TWO.” 
+d. Fighters may combine targeting with shot communication by voicing “FOX” (with
+a sort, as appropriate) after “TARGETED.”
+TARGETING Examples 
+“RAMBO 2, TARGETED, FOX 3 TWO-SHIP WEST GROUP BULLSEYE 
+2-7-0/15, TWENTY THOUSAND.”
+“RAMBO 2, TARGETED, FOX 3 SORTED EASTERN, WEST GROUP 
+BULLSEYE 2-7-0/15, TWENTY THOUSAND, STRENGTH THREE.” 
+e. Quality Control (QC) TARGETING. Controllers will respond to targeting calls with
+QC comparative communication if fighter targeted communication does not correlate
+to known group, match briefed shot doctrine, or to correct fighter misperception. QC
+targeting communication updates or corrects core information and fill-ins. If all
+information provided by the fighter correlates to information available to the
+controller, no response is provided.
+QC TARGETING Example 1 
+Fighter: “RAMBO 2, TARGETING NORTH GROUP BULLSEYE 2-6-0/20, 
+TWENTY THOUSAND.” 
+Controller: “VENOM, NORTH GROUP HEAVY, THREE CONTACTS.” 
+QC TARGETING Example 2 
+Fighter: “RAMBO 4, TARGETED SOUTH GROUP BULLSEYE 2-2-0/15, THIRTY 
+THOUSAND.” 
+Controller: “RAMBO 4 TARGETED SOUTH MIDDLE GROUP. SOUTH GROUP 
+BULLSEYE 2-3-0/18, TWENTY-EIGHT THOUSAND, HOSTILE, TWO 
+CONTACTS.” 
+Note: Not all controller platforms can correlate a J12.6 and shot line. Query the 
+controlling platform during mission planning to evaluate this contract. 
+09 OCT 2024 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 63 
+f. C2 contracts for the UNTARGETED fill-in and THREAT calls are canceled if a
+fighter calls “TARGETED” on their targeting responsibility with:
+(1) A correlated bullseye; or,
+(2) A GROUP name and a J12.6 with lock/shot-line that is correlated to or
+displayed within 3 nm of the surveillance track. Shots against GROUPS other
+than the primary targeting responsibility with no “TARGETED” call do not cancel
+C2 contracts.
+6. SHOOT
+This is directive communication by fighters for missile employment against a specific
+GROUP or CONTACT when fighters are targeting another GROUP. This does not
+imply BANZAI flow to the GROUP or CONTACT and does not invoke fighter
+targeting responsibility.
+SHOOT Example 
+Fighter: “BOLT 4, SHOOT SOUTHERN SOUTH LEAD GROUP.” 
+7. DECLARE
+a. A DECLARE call is an interrogative call (i.e., request for information) made by
+either the fighters or controller.
+b. Use the following communication format when declaring off of BULLSEYE.
+(1) Call sign of asset maintaining custody to the GROUP.
+(2) The requesting asset’s call sign.
+(3) “DECLARE BULLSEYE.”
+(4) Position of the group in the BULLSEYE format.
+(5) Altitude.
+(6) Track direction (only required to discriminate).
+DECLARE Request Example 1 
+“DARKSTAR, VIPER 1, DECLARE BULLSEYE 2-3-0/12, TWELVE 
+THOUSAND.” 
+c. When a declaration request is made after the tactical picture has been labeled,
+the GROUP name can be used instead of the BULLSEYE location.
+DECLARE Request Example 2 
+“CHALICE, HORNET 1, DECLARE EAST GROUP.” 
+d. DECLARE Response.
+(1) Controllers will always respond to a DECLARE request with BULLSEYE,
+altitude, track direction, declaration, and fill-ins.
+(2) DECLARE responses may include: BOGEY, FRIENDLY, NEUTRAL,
+BANDIT, HOSTILE, FURBALL, UNABLE, CLEAN, or VANISHED.
+64 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 09 OCT 2024 
+DECLARE Response Example 
+“CHALICE, EAST GROUP BULLSEYE 2-7-3/27, TWENTY-TWO THOUSAND, 
+TRACK EAST, BOGEY SPADES.” 
+8. HOSTILE Declaration During Shot Communication
+a. If a fighter determines a GROUP HOSTILE, and ROE has been met, the fighter
+may employ weapons against that GROUP.
+b. Fighters should communicate GROUP BULLSEYE, altitude, and HOSTILE in the
+shot transmission so other fighters and the controller can correlate to each other.
+Fighter Declaration/Shot Communication Example 
+“RAPTOR 1, FOX 3 LEAD GROUP BULLSEYE 1-2-5/27, TWENTY-NINE 
+THOUSAND, HOSTILE.” 
+c. Track direction is included only if it enhances SA.
+9. CLEAN
+Fighters will call CLEAN if they have no sensor information on a GROUP of interest.
+If a fighter calls CLEAN on their targeting responsibility, controllers will provide a full
+positional update or respond with CLEAN, FADED, or VANISHED.
+CLEAN Example 
+“MIKE, EAGLE 11 CLEAN NORTH GROUP.” 
+“MIKE, NORTH GROUP BULLSEYE 2-9-0/35, THIRTY-EIGHT THOUSAND, 
+TRACK EAST, HOSTILE.” 
+10. GROUP Maneuvers
+a. Controllers and fighters are responsible to communicate GROUP maneuvers.
+The three components to each maneuver are:
+(1) Recognizing the maneuver.
+(2) Communicating the relationship of the maneuver.
+(3) Updating GROUP names to aid in fighter targeting, as well as GROUP
+altitude to include fighter targeting, stacks, change in +/- 5 thousand feet, or a
+change in fighter sanitization areas.
+b. GROUPs maneuver into ARMs. ARMs maneuver into CONTACTs.
+(1) Once a maneuver is recognized, it is communicated using the term
+MANEUVER.
+(2) If a maneuver direction can be determined, the controller or fighter will update
+the maneuver using: own CALL SIGN, GROUP name, and type of maneuver
+(e.g., BEAM NORTH or DRAG EAST).
+GROUP Maneuver Example 1 
+“DARKSTAR, LEAD GROUP BEAM NORTH.” 
+09 OCT 2024 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 65 
+(3) If a specific aspect is not applicable to all fighters, controllers and fighters
+should use the TRACK DIRECTION to describe the maneuver.
+GROUP Maneuver Example 2 
+“DARKSTAR, LEAD GROUP TRACK NORTH.” 
+Note: Maneuvers can drive a NEW PICTURE if it is outside targeting range or during 
+COLD operations. 
+c. AZIMUTH, RANGE, and SPREAD Maneuvers.
+(1) Communicate “MANEUVER SPREAD” if a GROUP maneuvers and all
+CONTACTs remain FLANK/HOT. The intent is to communicate that all
+CONTACTs are remaining HOT, as depicted in figure 28.
+(2) Communicate “MANEUVER RANGE” if a GROUP maneuvers and one
+CONTACT remains FLANK/HOT, and at least one CONTACT maneuvers
+BEAM/DRAG. The intent is to communicate that at least one CONTACT in the
+GROUP is remaining HOT, as depicted in figure 29.
+(3) Communicate, “MANEUVER AZIMUTH,” if all CONTACTs BEAM/DRAG with
+no CONTACTs remaining FLANK/HOT. The intent is to communicate that no
+CONTACTs are remaining HOT, as depicted in figure 30.
+(4) Communicate “MANEUVER RANGE AND AZIMUTH” if three or more
+CONTACTs maneuver in RANGE and AZIMUTH simultaneously while at least
+one CONTACT(S) remains FLANK/HOT, as depicted in figure 31.
+(5) Communicate, “MANEUVER AZIMUTH AND RANGE”, if three or more
+CONTACTs maneuver in AZIMUTH and RANGE, simultaneously, while the
+CONTACT(S) BEAM/DRAG with no CONTACTs remaining FLANK/HOT, as
+depicted in figure 32.
+66 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 09 OCT 2024 
+Figure 28. MANEUVER SPREAD 
+Figure 29. MANEUVER RANGE 
+
+09 OCT 2024 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 67 
+Figure 30. MANEUVER AZIMUTH 
+Figure 31. MANEUVER RANGE AND AZIMUTH 
+
+68 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 09 OCT 2024 
+Figure 32. MANEUVER AZIMUTH AND RANGE 
+(6) As a technique, if a GROUP with three or more CONTACTs maneuvers to a
+traditional label (e.g., VIC, WALL, or CHAMPAGNE), controllers may
+communicate a NEW PICTURE to simplify targeting.
+d. Changing GROUP names relative to targeting range. Fighter timelines will vary
+based on MDS and T/M/S and threat capabilities. Prior to any mission, controllers
+and fighters should ensure they are referring to the same timeline. If controllers and
+fighters are not able to brief each other, the following concepts and timeline
+considerations are used as defaults.
+(1) Targeting Range. Targeting range refers to the first-time targeting is issued
+for any fighter in the element or the term TARGETED is communicated on the
+control NET.
+(2) Outside Targeting Range. If maneuvers occur outside the targeting range,
+controllers may issue a NEW PICTURE.
+(3) Inside Targeting Range. If maneuvers occur inside the targeting range,
+controllers can choose to:
+(a) Update each CONTACT with a new name.
+(b) Use UNTARGETED for the highest factor GROUP, ARM, or CONTACT
+not being TARGETED.
+(c) Issue targeting per the fighters’ targeting game plan.
+(d) If it will enhance fighter SA and targeting, controllers (as a technique) may
+provide an abbreviated NEW PICTURE.
+
+09 OCT 2024 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 69 
+(4) If multiple GROUPs maneuver outside GROUP criteria, fighters and
+controllers should use the new name (e.g., ARM or CONTACT) and the previous
+GROUP name (e.g., LEAD GROUP or NORTH GROUP).
+ARM Examples 
+Multiple NORTH ARMS: “DARKSTAR, NORTH ARM LEAD GROUP TRACK 
+NORTH.” 
+Single NORTH ARM: “DARKSTAR, NORTH ARM TRACK NORTH.” 
+e. When GROUPs maneuver and their positional relationships affect targeting or
+flow, use PASSING, CROSSING, or JOINED.
+(1) PASSING. PASSING is two or more named GROUPs with a RANGE
+relationship maneuver to opposite sides in a RANGE relationship. It is an
+informative call using the GROUP names from the original PICTURE, as depicted
+in figure 33.
+Figure 33. PASSING 
+(2) CROSSING. CROSSING is two GROUPs with an AZIMUTH relationship
+maneuver to opposite sides in an AZIMUTH relationship. CROSSING is an
+informative call using the GROUP names from the original PICTURE, as depicted
+in figure 34.
+
+70 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 09 OCT 2024 
+Figure 34. CROSSING 
+(3) JOINED. JOINED occurs when two or more named GROUPs maneuver to
+meet and maintain GROUP criteria. The new GROUP label should make sense
+based on the tactical situation (e.g., based on the new targeting plan), as
+depicted in figure 35.
+Figure 35. JOINED 
+11. BOGEY DOPE/BRAA Request
+a. BOGEY DOPE is a request for information relative to ownship position on an
+indicated GROUP or closest GROUP (if not indicated) to build/enhance fighter SA.
+
+09 OCT 2024 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 71 
+b. If fighters are CLEAN to a GROUP and desire a GROUP location relative to
+ownship, they should request a BRAA/BOGEY DOPE to the GROUP.
+BRAA Request Example 
+“MIKE, EAGLE 11 BRAA NORTH GROUP.” 
+“EAGLE 11, NORTH GROUP BRAA 2-1-0/28, THIRTY-EIGHT THOUSAND, 
+HOT, HOSTILE.” 
+BOGEY DOPE Request Example 
+“MIKE, EAGLE 11 BOGEY DOPE NORTH GROUP.” 
+“EAGLE 11, NORTH GROUP BRAA 2-1-0/28, THIRTY-EIGHT THOUSAND, 
+HOT, HOSTILE.” 
+c. Controllers will respond using the BRAA format and add appropriate fill-ins.
+BOGEY DOPE Example 
+“WARRIOR, EAGLE 1 BOGEY DOPE.” 
+“EAGLE 1, FIRST ADDITIONAL GROUP BRAA 1-2-0/38, THIRTY-FIVE 
+THOUSAND, HOT, HOSTILE.” 
+d. BOGEY DOPE does not imply fighter targeting.
+12. Electromagnetic Attack (EA)
+a. STROBE. Controllers will respond to STROBE calls with range, altitude, aspect
+(HOT assumed), declaration, and GROUP name (if applicable) to the closest
+GROUP along that line of bearing.
+STROBE Example 
+Fighter: “RAMBO 1, STROBE 3-6-0” or “RAMBO 1, STROBE LEAD GROUP.” 
+Controller: “RAMBO 1, STROBE RANGE THIRTY-SEVEN, TWENTY-FIVE 
+THOUSAND, HOSTILE, LEAD GROUP.” 
+b. MUSIC.
+(1) MUSIC is an informative call that fighters are experiencing radar
+electromagnetic deceptive jamming from a GROUP.
+(2) Controllers will respond to MUSIC calls by anchoring the GROUP off
+BULLSEYE and providing the altitude, track direction, declaration, and fill-ins.
+MUSIC Example 
+Fighter: “HEAT 1, MUSIC EAST GROUP.” 
+Controller: “BARNYARD, EAST GROUP, BULLSEYE 2-1-0/15, TWENTY-FIVE 
+THOUSAND, TRACK EAST, HOSTILE, TWO CONTACTS LINE ABREAST 
+THREE.” 
+Note: If controllers cannot correlate STROBE +/- 30 degrees to a GROUP, they should 
+respond with CLEAN. This indicates the contact may be below the controller sensor 
+coverage or may be a ground-based jammer. 
+72 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 09 OCT 2024 
+c. METALLICA.
+(1) This is an informative call to communicate EA is preventing fighter
+employment on a specific GROUP.
+(2) Controllers are not required to respond to METALLICA.
+(3) METALLICA does not alleviate fighter targeting responsibility for a GROUP.
+METALLICA Example 
+Fighter: “PYTHON 2, METALLICA LEAD GROUP.” 
+13. SPIKE
+a. Fighters call SPIKED with a bearing or cardinal/sub-cardinal direction.
+(1) The controller should correlate the SPIKE ±30 degrees of the bearing to a
+detected GROUP.
+(2) If multiple GROUPs correlate, controller should voice the highest priority
+GROUP.
+(3) Respond with the range, altitude, aspect (HOT assumed), declaration,
+GROUP name (if applicable), and fill-ins.
+SPIKED Example 1 
+Fighter: “EAGLE 1, SPIKED 2-7-0.” 
+Controller: “EAGLE 1, SPIKE RANGE 17, THIRTY THOUSAND, HOSTILE EAST 
+GROUP, TWO CONTACTS.” 
+b. If a controller cannot correlate any GROUP along the aircraft’s SPIKE bearing or
+cardinal direction, controllers will respond with CLEAN and the bearing of the SPIKE.
+SPIKED Example 2 
+Fighter: “EAGLE 1, SPIKED 2-7-0.” 
+Controller: “EAGLE 1, WARRIOR CLEAN 2-7-0.” 
+14. ENGAGE/MERGE
+a. Controllers should refer to fighters as MERGED when the resolution capabilities
+of the controller systems become limiting factors or when fighters are within 3–5 nm
+of a GROUP, or if a fighter calls ANCHORED (GROUP name) or STANDBY
+(GROUP name).
+b. Controllers should talk to a MERGED fighter for:
+(1) Fighter requests.
+(2) THREAT calls.
+(3) TRESPASS calls.
+(4) STRENGTH disparity (e.g., comparative communication).
+(5) Update fighter flow direction to follow on GROUPs (if required).
+09 OCT 2024 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 73 
+c. ANCHORED or STANDBY calls should include the BULLSEYE location, if the
+GROUP does not have a name.
+ANCHORED Example 
+Fighter: “RAPTOR 1, STANDBY SOUTH GROUP” or “RAPTOR 1, ANCHORED 
+BULLSEYE 1-7-0/50.” 
+d. SEPARATION.
+(1) SEPARATION is a fighter request or C2 enhancing call to provide the
+distance (nm) between two GROUPs or WAVEs.
+(a) It is used when a fighter is ANCHORED.
+(b) SEPARATION request implies it is from the current ANCHORED GROUP
+to the requested GROUP, if not specified.
+(2) In the SEPARATION response, controllers should use their call sign followed
+by the follow-on GROUP or WAVE’s SEPARATION, altitude, and fill-ins.
+(3) Controllers may use RANGE SEPARATION or AZIMUTH SEPARATION, if
+the tactical relationship between GROUPs changed and the controller did not
+have the ability to make a NEW PICTURE call.
+15. COLD Operations
+a. Fighters should communicate COLD operations with either “FLOW COLD” or
+FLOW with a COLD heading.
+FLOW Example 
+“EAGLE, FLOW COLD.” or “EAGLE, FLOW 0-9-0.” 
+b. Communication priorities are as follows:
+(1) SPIKES (from unexpected bearing).
+(2) RANGE BACK calls.
+(a) RANGE BACK is an informative or interrogative call to communicate the
+distance (nm) from the closest friendly aircraft to the closest GROUP, ARM,
+or CONTACT measured parallel to the fight axis.
+(b) Controllers will voice “RANGE BACK” during COLD operations or “launch
+and leave” operations once fighters are established COLD.
+(c) Controllers will maintain PICTURE labels to the maximum extent to
+facilitate fighter targeting.
+(3) FADED or POP-UP GROUPs inside of launch and decide targeting depth.
+(4) DELOUSE or directive targeting.
+(5) PICTURE.
+(6) Fighter targeting game plan.
+74 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 09 OCT 2024 
+COLD Operations Example 
+Fighter: “DICE FLOW 1-9-0.” 
+Controller: “DICE 4, FOCUS, RANGE BACK THIRTY-FIVE ADDITIONAL 
+GROUP.” 
+Fighter requested RANGE BACK Example 
+Fighter: “FOCUS, DEMON 1 SAY RANGE BACK.” 
+Controller: “DEMON 2 RANGE BACK SEVENTEEN GROUP BULLSEYE 0-5-
+0/20, THIRTY-EIGHT THOUSAND, TRACK SOUTHWEST, HOSTILE.” 
+16. Fighters in Depth
+a. Applies when elements are executing an “OUT” and subsequent “IN” or “HOT;”
+all communications will comply with the briefed priorities and occur on the primary
+frequency.
+b. Continue to update the PICTURE with fighters operating in depth, while meeting
+the priorities listed below:
+(1) Controllers should maintain the original labels unless a new label and names
+will fix or better facilitate targeting.
+(2) If time is compressed when combining a range call and a PICTURE,
+controllers will truncate fill-ins and respond comparatively after targeting calls.
+(3) Communication priorities are as follows:
+(a) Any SPIKE responses.
+(b) PICTURE or BOGEY DOPE to the “IN” or “HOT” element.
+(c) Assist in gaining mutual support (as required).
+17. THREAT Call
+a. If a fighter will pierce the THREAT range to an UNTARGETED GROUP, a
+THREAT call is made using the GROUP name, bearing or cardinal/sub-cardinal
+direction, range, altitude, and aspect, followed by declaration and fill-ins.
+b. The THREAT call is completed no later than threat range.
+c. THREAT criteria is defined during mission planning and relayed during the brief
+or check-in with the controller.
+(1) Controllers should use 35 nm, independent of aspect, as a default THREAT
+criteria.
+THREAT Example 
+Controller: “HEAT 31, ADDITIONAL GROUP THREAT, BRAA 1-2-5/35, THIRTY-
+FIVE THOUSAND, HOT, HOSTILE.” 
+(2) If the exact fighter location is not known, or the THREAT pertains to multiple
+fighters, THREAT information may be provided using BULLSEYE.
+09 OCT 2024 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 75 
+(a) BULLSEYE will immediately follow the word THREAT.
+(b) If a fighter receives a THREAT BULLSEYE call, the fighter should
+respond with own call sign.
+Note: When communicating with US Army or US Marine Corps rotary-wing aircraft and 
+UAS, pass surface threat information in MGRS. Attempt to provide at least a six-digit 
+grid. 
+THREAT with BULLSEYE Example 
+Controller: “COBRA 1, CHALICE, NORTH GROUP THREAT, BULLSEYE 
+2-9-5/26, TWENTY THOUSAND, TRACK WEST, HOSTILE.”
+(3) When a THREAT is within 5 nm of FRIENDLY fighters, controllers may
+provide THREAT information using the cardinal direction, range, altitude, track
+direction, and declaration.
+THREAT within 5 nm Example 
+Controller: “BOLT 1, THREAT NORTH THREE, TEN THOUSAND, TRACK 
+SOUTH, HOSTILE.” 
+(4) If a fighter calls TARGETED or acknowledges directive targeting, contracts
+for UNTARGETED and THREAT calls are cancelled.
+d. Cross-court THREAT.
+(1) A cross-court THREAT is a GROUP that is TARGETED by one fighter but
+meets THREAT criteria to another.
+(2) For example, when operating outside a visual formation, the controller may
+give a THREAT call to a GROUP that is TARGETED by another fighter within the
+element.
+(a) Fighters may use the term HEADS UP to other flights or elements when
+TARGETED GROUPs maneuver and appear to meet THREAT criteria to the
+other flight or element.
+(b) Controllers may add TARGETED BY as fill-in information in the THREAT
+call, if applicable, as depicted in figure 36.
+76 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 09 OCT 2024 
+Figure 36. Cross-court THREAT Call 
+e. Stern weapon engagement zone (WEZ) threat. Threat stern WEZ ranges vary
+greatly between enemy missiles and should be specified for each threat platform in
+scenario based on current intelligence community assessments. During COLD
+operations, fighters in depth, or situations of detached mutual support when a
+friendly element indicates a COLD flow (via EXIT, OUT, ABORT, COLD, or FLOW)
+in relation to the enemy, the controller will use threat ranges determined during
+mission planning.
+18. FADED or VANISHED
+a. FADED.
+(1) If a previously tracked GROUP is not updated by on- or off-board sensors for
+30 seconds, a controller will report the GROUP as FADED, as depicted in figure
+37.
+(2) If a status of the FADED GROUP/CONTACT(S) is requested or if a
+“PICTURE/NEW PICTURE” call is made within 1 minute of the fade, controllers
+will reference the last sensor return with BULLSEYE position and number of
+contacts.  If the contact was continuously tracked by a fighter after the controller
+lost contact on the group, the last fighter location will be used in the
+“FADED…LAST KNOWN” call. Otherwise, controllers will respond with “CLEAN”
+and “[number of] CONTACTs FADED.”
+
+09 OCT 2024 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 77 
+PICTURE within 1 Minute of Fade Example 
+“VENOM, TWO GROUPS AZIMUTH EIGHT, NORTH GROUP BULLSEYE 2-7-
+0/30, TWENTY-THREE THOUSAND, HOSTILE, SOUTH GROUP TEN 
+THOUSAND, HOSTILE…SINGLE CONTACT FADED BULLSEYE 2-8-0/45, 
+TRACK EAST, BEAR.” 
+PICTURE Last Known Location Example 
+“VENOM, TWO GROUPS AZIMUTH EIGHT, NORTH GROUP BULLSEYE 2-7-
+0/30, TWENTY-THREE THOUSAND, HOSTILE, SOUTH GROUP TEN 
+THOUSAND, HOSTILE…SINGLE CONTACT FADED LAST KNOWN 
+BULLSEYE 2-8-0/45, TRACK EAST, BEAR.” 
+PICTURE Single Contact Fade from Multiple Contact Group 
+“VENOM, NORTH GROUP NOW SINGLE CONTACT ONLY. ONE CONTACT 
+FADED BULLSEYE 2-7-0/30, TRACK EAST.” 
+(3) In response to a PICTURE request, controllers will report “1,” “2,” or “multiple”
+contacts FADED, as appropriate.
+Figure 37. FADED 
+FADED Example 
+Fighter: “BARNYARD, PYTHON 1, PICTURE” (requested more than 1 min after 
+fade). 
+Controller: “BARNYARD, SINGLE GROUP AT BULLSEYE, THIRTY 
+THOUSAND, HOSTILE, BARNYARD TWO CONTACTS FADED.” 
+Note: Controllers should not anchor a group previously FADED if the elapsed time from 
+when the group FADED exceeds 1 minute due to system limitations and degradations in 
+sensor SA. 
+
+78 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 09 OCT 2024 
+(4) Fighters will maintain MONITOR responsibility for the GROUP that has been
+voiced “FADED” by controllers, if the fighters can maintain correlation.
+Note: FADED will not be used to describe FRIENDLY aircraft. Controllers will use 
+NEGATIVE CONTACT to report a lack of sensor data on FRIENDLY aircraft. 
+b. NEGATIVE CONTACT. If a friendly aircraft is within a known TAC C2 sensor
+blind zone or “NEGATIVE CONTACT” was previously voiced by TAC C2 to a call
+sign, any pilot requesting range information (e.g., SPIKE, STROBE, BOGEY DOPE,
+etc.) will preface their request with ownship’s BULLSEYE.
+NEGATIVE CONTACT EXAMPLE 
+Fighter: “BARNYARD, HOSS 01, BOGEY DOPE SOUTH GROUP.” 
+Controller: “HOSS 01, BARNYARD, NEGATIVE CONTACT.” 
+c. VANISHED. VANISHED is a special case of FADED. If a previously tracked
+GROUP is not updated by on- or off-board sensors, a controller will report the
+GROUP as VANISHED, if it meets the following criteria:
+(1) It is not in a known blind zone (terrain masking or Doppler blind zone).
+(2) It is correlated to a shot, by FRIENDLY forces, that meet parameters for
+successful termination, as depicted in figure 38.
+Figure 38. VANISHED 
+Note: In training, when GROUPs are called DEAD by a range training officer (RTO) or a 
+GROUP acknowledges a KILL call/KILL removes, controllers will use VANISHED in 
+response to DECLARE/STATUS requests and updated PICTURES to prevent 
+erroneous targeting. 
+
+09 OCT 2024 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 79 
+The RTO should respond to requests on dead aircraft with DEADMAN. If a GROUP has 
+alive and dead CONTACTs, update the number of CONTACTs in the GROUP counting 
+only those that are alive. 
+19. SNAPLOCK
+If fighters gain sensor SA to a group inside the THREAT range with BEAM or hotter 
+aspect, fighters should make a SNAPLOCK call. 
+a. During the SNAPLOCK call, BRAA and aspect are implied due to the reduced
+timeline to identify and attrite the threat.
+b. The controller should respond to a SNAPLOCK call with the GROUP name,
+BRAA, declaration, and fill-ins.
+c. If the GROUP was not previously detected, it is named THREAT GROUP.
+SNAPLOCK Example 
+“FREEDOM 31, SNAPLOCK 1-2-5/10, EIGHT THOUSAND.” 
+“FREEDOM 31, THREAT GROUP BRAA 1-2-5/10, EIGHT THOUSAND, HOT, 
+HOSTILE, TWO CONTACTS.” 
+20. LEAKER
+a. A LEAKER is an airborne threat that has passed through a defensive layer.
+b. LEAKER can be communicated by fighters or controllers.
+c. The entity making the LEAKER call should use own call sign.
+LEAKER Example 
+VIPER 1: “VIPER 1, LEAKER BULLSEYE 3-0-5/65, FIVE THOUSAND, TRACK 
+SOUTH, HOSTILE TWO CONTACTS.” 
+21. LANE CROSSERS and LANE RIDERS
+a. A LANE CROSSER is a GROUP that maneuvers into different areas of targeting
+responsibility.
+b. A LANE RIDER is a GROUP that maintains a track direction on or near the line
+that divides different areas of targeting responsibility.
+c. During mission planning, fighters and controllers should identify whether a LANE
+CROSSER/LANE RIDER is TARGETED via integrated fires or, organically, by the
+fighters in the lane.
+(1) There is increased communication required between the controllers of both
+targeting lanes to facilitate fighter targeting or integrated fires.
+(2) The controller should use the fill-ins LANE CROSSER/LANE RIDER and
+TARGETED BY to describe who is targeting the GROUP.
+(3) TARGETED BY fill-ins can be added during the PICTURE call or as a
+descriptive update.
+80 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 09 OCT 2024 
+LANE RIDER Example 
+Example 1, Controller (as a descriptive update): “BLACKOUT, NORTH GROUP 
+LANE RIDER TARGETED BY HORNET.” 
+Example 2, Controller: “BLACKOUT, NORTH GROUP LANE RIDER TARGETED 
+BY NORTH LANE.” 
+(4) Fighters in the lanes can direct targeting a LANE CROSSER/LANE RIDER or
+the controller or fighters can delegate this targeting authority to the controller.
+(5) When operating in a multiple lane construct, the controller should incorporate
+LANE CROSSERS and LANE RIDERS in the PICTURE call, as depicted in figure
+39.
+(6) Controllers in the adjacent lanes may include the same GROUP into their
+PICTURE call. Controllers are responsible to coordinate targeting to avoid double
+targeting.
+Figure 39. LANE RIDER 
+22. CMD PICTURE
+a. When referring to positively identified cruise missiles, the terms “GROUP” and
+“CONTACT” will be replaced with “COVEY” and “QUAIL,” respectively. Use of
+“ARM” will remain the same. PICTURE priorities will be briefed in mission planning
+and may change based on mission parameters.
+b. Inter-covey formation will always be included as core information.
+c. If a traditional label does not apply based on the threat presentation, then
+controllers should use LEADING EDGE communication with the following changes:
+
+09 OCT 2024 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 81 
+(1) The controller should communicate the total number of COVEYs prior to
+communicating the LEADING EDGE. The LEADING EDGE comprises all
+COVEYs within the mission planned targeting depth.
+(2) LEADING EDGE data will include the number of COVEYs, the azimuth and
+depth, the geographical relationship mirroring inter-GROUP labels if able, weight,
+and the total number of QUAIL, followed by core data to the priority COVEY.
+CMD Example 
+“BARNYARD, TWO COVEYS RANGE FIFTEEN. LEAD COVEY BULLSEYE 0-3-
+2/32, FIVE THOUSAND, HOSTILE, HEAVY, FOUR QUAIL, LINE ABREAST 
+FIVE. TRAIL COVEY FOUR THOUSAND, HOSTILE, TWO QUAIL, SWEPT 
+NORTHWEST.” 
+“BARNYARD, EIGHT COVEYS. TWO WAVES, LEADING EDGE SIX COVEYS, 
+TWELVE DEEP, FIFTEEN WIDE, WEDGE, WEIGHTED NORTH. LEAD COVEY 
+BULLSEYE 3-3-2/32, FOUR THOUSAND, HOSTILE, SECOND WAVE 
+TWENTY.” 
+d. A 35-nm separation from the closest fighter to the closest COVEY is the default
+tactical range call.
+e. CLOSE CONTROL. If a fighter requests CLOSE CONTROL, C2 will direct
+vectors to put the fighter on a HOT aspect to the COVEY specified in the request or
+the closest COVEY if no COVEY was requested. C2 will provide the COVEY’s
+location using the BOGEY DOPE format following the initial vectors. C2 will provide
+only bearing and range after subsequent vectors. C2 will transition to tactical control
+at the TARGETED call or at the GO TACTICAL call.
+CLOSE CONTROL Example 
+Fighter: “RAMBO 4, REQUEST CLOSE CONTROL NORTH COVEY.” 
+Controller: “RAMBO 4, REFERENCE 0-4-4. NORTH COVEY BRAA 3-1-7/17, 
+FOUR THOUSAND FLANK EAST, HOSTILE.” 
+Controller: “RAMBO 4, HARD LEFT, REFERENCE 2-8-0. NORTH COVEY 
+BRAA 2-8-0/15.” 
+Fighter: “RAMBO 4, TARGETED NORTH COVEY, FOUR THOUSAND.” 
+82 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 09 OCT 2024 
+This page intentionally left blank. 
+09 OCT 2024 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 83 
+Chapter VI 
+AIR-TO-SURFACE COMMUNICATION 
+1. Overview
+This chapter establishes a communication format for air-to-surface (A/S) employment. It 
+governs communication fundamentals, format, and integration between aircraft and 
+controllers, independent of MDS or T/M/S. For interflight communication, refer to the 
+appropriate MDS- or T/M/S-specific manual. Refer to the following weapons schools for 
+Service-specific tactics and employment considerations: 
+a. USAACE, Fort Rucker, Alabama.
+b. MAWTS-1, Marine Corps Air Station, Yuma, Arizona.
+c. NAWDC, N7 (TOPGUN), Fallon Naval Air Station, 
+Nevada.
+d. USAFWS, Nellis Air Force Base, Nevada.Note: For this publication, controller is a general term used to define the individual 
+providing tactical control of an intercept or mission. The term aircraft is a general term 
+for air assets executing an A/S mission. Controller and aircraft are used independent of 
+platform or Service. 
+2. A/S Tasking Serialization
+A/S taskings are passed from controllers to aircraft. During a high operation tempo, 
+multiple A/S taskings may be passed. Therefore, it is advantageous to use serialization. 
+Serialization is a system for assigning unique codes to simplify communication. It can 
+use letters, numbers, or symbols to identify a large set of information. Serialization is 
+applied to each task in the order of creation and does not imply priority or confidence. 
+a. Plan for the mission to include the A/S tasking serialization technique.
+b. The labeling convention should use the ATO day and two-digit numeric
+sequencing. For example:
+(1) AA01 is the first task of ATO day AA.
+(2) This designator should precede the tasking message.
+(3) Digital messages should end with “EOM” meaning “end of message.” This
+indicates receipt of all digital message data (e.g., “[aircraft call sign] AA01
+[tasking message text] EOM”).
+3. A/S Tasking Format
+A/S taskings can be passed as full or partial digital or voice. 
+a. Taskings should pass the minimum information required to accomplish the
+mission safely and efficiently.
+b. Taskings should include the following information, when applicable.
+(1) Call sign of the tasked asset.
+84 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 09 OCT 2024 
+(2) Task type (e.g., TARGET, INVESTIGATE, or SMACK). See table 5 for data
+link mission assignments (page 11).
+(3) Link 16 track number and target description.
+(4) Desired point of impact (DPI) in the requested format or formatted in
+accordance with the SPINS (e.g., MGRS or latitude (DDMM.MMM), longitude
+(DDDMM.MMM), elevation (mean sea level or height above ellipsoid)).
+(5) Target location error (TLE) or categories (CATs) 1–6. This segment may be
+repeated for targets with more than one DPI.
+(6) Quantity (Q), number (N), and application [per (P) or total (T)] for each DPI.
+Per (P) is used with multiple DPI target sets and total (T) is used if only one DPI
+is shown.
+(7) Remarks. These can include mission priority, additional target description for
+INVESTIGATE or TARGET tasks, and coordinating data for other missions
+assigned to the package (i.e., BULLSEYE for escort).
+c. Taskings may be passed in the description, location, elevation,
+remarks/restrictions (DLER) format, as depicted in table 9.
+Table 9.  Description, Location, Elevation, 
+Remarks/Restrictions (DLER) Attack Briefing Format 
+Information Description 
+Description May include target type, size, description, and 
+other amplifying data. 
+Location Format must be compatible with the receiving 
+asset system. Options include Global Area 
+Reference System, latitude and longitude, talk-
+ons, and BULLSEYE. 
+Elevation Given in feet mean sea level. 
+Remarks/Restrictions Include deconfliction measures, ordnance, 
+final attack heading, and time on target (TOT) 
+windows, as required. List restrictions. 
+4. Full Digital Taskings (J28.2 and J12.0 Tasking Against J3.X Track)
+a. If a response is desired, controllers should start the tasking process by
+communicating CHECK DATA.
+b. J28.2 is the assumed data source unless the controller specifies another.
+Full Digital Tasking Example 
+Controller: “BONE 1, STRIKESTAR, CHECK DATA, ALPHA ALPHA 0-1.” 
+J28.2 message: BE01//AA01//TGT//160/10//JS010//TANKS//CAT4//EOM 
+Aircraft: “STRIKESTAR, BONE 1, GOOD DATA, ALPHA ALPHA 0-1.” 
+Controller: “BONE 1, COMEBACK WITH ETA, TOT, AND BDA.” 
+09 OCT 2024 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 85 
+c. Controllers should use all available J-series messages, even if the tasked asset is
+TIMBER SOUR or not Link 16 capable. This serves to increase force package SA on
+the operating area taskings.
+5. Full Voice Taskings
+Full Voice Tasking Example 
+Controller: “HORNET 1, SABRE, TARGET TASKING TO FOLLOW. TARGET 
+SET IS THREE VEHICLE CONVOY EASTBOUND, QUADRANT ONE IN THE 
+VICINITY OF MAIN SUPPLY ROUTE EVERGREEN/ASR ATLANTIC 
+INTERSECTION, 11S QR 123 456, ELEVATION 150 FEET MSL, REMAIN IN 
+QUADRANT ONE.” 
+Aircraft: “HORNET 1, COPIES 11S QR 123 456, 150 FEET, THREE VEHICLE 
+CONVOY EASTBOUND, REMAIN IN QUADRANT ONE.” 
+Controller: “HORNET 1, READBACK CORRECT. CONFIRMED ENEMY TANKS 
+IN THE OPEN. COME BACK WITH ETA, TOT, AND BDA.” 
+6. Partial Digital Taskings (Voice and J12.0 Tasking Against J3.X Track)
+a. For taskings with a J3.3 or J3.5 message only, use a modified voice format.
+Partial Digital Tasking Example 
+Controller: “HOSS 1, SABRE, TASK ALPHA ALPHA 0-1. TARGET BULLSEYE 
+1-6-0/10, TRACK NUMBER JS010, CAT IV. CALL READY REMARKS.”
+Aircraft: “HOSS 1, CAPTURED JS010. READY REMARKS ALPHA ALPHA 0-1.”
+Controller: “HOSS 1, CONFIRMED ENEMY TANKS IN THE OPEN, COME 
+BACK WITH ETA, TOT, AND BDA.” 
+b. If a tasked asset is HOLLOW for the J3.3 or J3.5 message, pass full voice
+tasking.
+7. Read Backs
+Theater or exercise guidance should specify the required read back. In the absence of 
+direction, the following read-back formats for full and partial digital and voice are listed 
+from least restrictive and least radio time to the most restrictive and most radio time. 
+a. WILCO digital response to J12.0.
+b. Voice response with task type and location (e.g., BULLSEYE, J3.5 track number,
+or coordinates).
+c. Voice response with task type, coordinates, elevation, and remarks.
+8. Ground/Surface Threat Picture Communication
+a. Common Tactical Ground Picture. The signals intelligence (SIGINT) ID authority
+is responsible for maintaining accuracy of the common tactical ground picture based
+on emitter or ROTATOR information as well as resolving any emitter ID ambiguities.
+(1) Radar type at locations should be primary (e.g., SCRUM HALF,
+TOMBSTONE) for strike aircraft.
+86 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 09 OCT 2024 
+(2) Refer to SAM systems by their number only (e.g., SIX or ROLAND) to
+preserve brevity on the tactical NET.
+(3) Voice full SAM system name only if required to eliminate ambiguity (e.g., “S-
+A-(number)” or “H-Q-(number)”).
+(4) System status terminology may include but is not limited to the following:
+(a) AWAKE. This describes land or surface activity detected via
+communications intelligence.
+(b) ACTIVE. This means the emitter is radiating (derived from electronic
+intelligence).
+(c) OCCUPIED. This means ground equipment at tasked target location.
+(d) VACANT. This means ground equipment is not present at specific or
+tasked target location.
+Note: Assume all threat emitters only remain ACTIVE/AWAKE for short periods and, 
+therefore, only report DOWN (previously active, but no longer emitting) or ASLEEP in 
+response to a status request or to eliminate ambiguity. 
+(e) REPORTED. Use this if a threat emitter is derived from an off-board
+source.
+(5) COLOR and TAG.
+(a) COLOR calls will have the requesting agency’s call sign, COLOR
+system/subsystem type, frequency, and location (if known), and fill-ins.
+(b) Transmit a J14.0 with every COLOR call.
+(c) Respond to a COLOR call with TAG. Use comparative communication for
+TAG responses, providing the mission information or tactical report
+(TACREP) for the emitter, if appropriate.
+COLOR and TAG Example 
+Known Frequency (freq): “CHALICE, COLOR MIPPLE FREQ 10 thousand 300 
+MEGAHERTZ, BULLSEYE 1-2-3/30” (CHALICE FORCE TELL associated 
+J14.0). 
+Unknown Freq: “CHALICE, COLOR BULLSEYE 1-2-3/30.” 
+Response: “AGENT, TAG TOMBSTONE BULLSEYE 1-2-3/30.” 
+(6) TACREP.
+(a) Transmit TACREPs on voice product networks (VPNs) indicating the
+collection of tactical intelligence.
+(b) Assign TACREPs an alphanumeric designator indicating the type of
+activity and serialization.
+(c) Use the phrase “UPDATE TACREP” to provide updated or amplifying
+information on an existing TACREP.
+(d) Ensure alphanumeric designators are in accordance with table 10.
+09 OCT 2024 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 87 
+Table 10.  Tactical Report (TACREP) Alphanumeric 
+Designators 
+Alphanumeric Intelligence 
+A-## Communication (air activity) 
+E-## Electromagnetic 
+G-## Communication (ground activity) 
+F-## Fusion (all/multi-source) 
+H-## Human 
+I-## Imagery or nonimaging infrared 
+J-## Radar moving-target indication 
+M-## Measurement and signature 
+intelligence 
+N-## Communication (naval activity) 
+O-## Overhead persistent infrared 
+R-## Air operations center 
+S-## Survivor/isolated personnel 
+TACREP Example 
+“AGENT, TACREP ECHO 0-4, BIG BIRD ACTIVE, BULLSEYE 2-3-5/18, TRACK 
+NUMBER 1-3-2-0-7, FREQ X-X-X-X-X.” 
+b. Situation Report (SITREP). Pass SIGINT, imagery intelligence, and moving target
+indication information on surface emitters on VPN.
+(1) The SITREP is passed 5 minutes prior to the package LOWDOWN unless
+mission planning directs otherwise.
+(2) Emitters are passed using system type (e.g., BIG BIRD, LOW BLOW),
+BULLSEYE location, and operating frequency in the following priority:
+(a) Air activity and location, in absence of an air PICTURE (e.g., controller
+system is degraded).
+(b) ACTIVE/AWAKE LRAD SAMs that were not a part of the briefed enemy
+order of battle.
+(c) ACTIVE/AWAKE MRAD SAMs that were not a part of the briefed enemy
+order of battle.
+(d) Any ACTIVE/AWAKE (or within the last hour) SHORAD/tactical SAMs.
+(e) Early warning or ground control intercept radars.
+Note: The order of dissemination for ACTIVE/AWAKE SAMs is as follows: closest MEZ 
+to friendly forces, closest MEZ to friendly axis of attack or ingress routes, and most 
+lethal. 
+88 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 09 OCT 2024 
+SITREP Example 
+“AGENT, SU-27 AIRBORNE TONOPAH. [SYSTEM NAME] ACTIVE BULLSEYE 
+1-2-1/20, FREQ [X-X-X-X-X], TRACK NUMBER 0-6-0-2-3. [SYSTEM NAME]
+AWAKE BULLSEYE 1-3-5/40, TRACK NUMBER 0-6-0-0-4. AWAKE BULLSEYE
+1-2-5/35, TRACK NUMBER 0-6-0-3-7. TALL KING ACTIVE BULLSEYE 0-9-0/6
+FREQ [X-X-X-X-X].”
+c. Combat Advisory Broadcast (CAB). Active S/A threat emitters are passed on the
+tactical NET using prebriefed labels or the BULLSEYE format.
+(1) CAB is an addition to the threat picture.
+(2) C2 agencies will relay CAB information received from VPN to the appropriate
+NETs.
+CAB Example 
+CAB from BANDSAW on primary NET: “BANDSAW, TWO ACTIVE BULLSEYE 
+0-3-5/8” or “BANDSAW, NORTH TWO ACTIVE.”
+d. Imminent Threat Warning (ITW). ITW is a S/A threat warning to a friendly asset.
+(1) An ITW is passed when a friendly aircraft is within 5 nm of the maximum
+recommended intercept range of any ACTIVE, AWAKE, launching, or firing
+threat.
+(2) An ITW is prefaced with the aircraft call sign or the BULLSEYE position of the
+friendly aircraft and uses prebriefed labels or the BULLSEYE format for the threat
+description.
+Note: When communicating with US Army or US Marine Corps rotary-wing aircraft and 
+UASs, pass surface threat information in MGRS, if known. Attempt to provide at least a 
+six-digit grid. 
+(3) No ITW is required if an aircraft has reported MUD, DEFENDING, or SINGER
+to the specified threat, or the pre-planned mission directs asset into active WEZ.
+(4) ITW procedures are coordinated for low-observable assets during mission
+planning.
+ITW Example 
+“EAGLE 1, AGENT, LOW BLOW ACTIVE BULLSEYE 0-1-5/9.” 
+e. TRESPASS. Aircraft, controllers, and agencies will voice TRESPASS when an
+aircraft is within a not-previously-known SAM MEZ (e.g., a POP-UP SAM) or any
+non-suppression of enemy air defenses (SEAD) team aircraft crosses inside the
+maximum recommended intercept range of any known SAM. The voicing entity will
+direct a SNAP heading 180 degrees away from the SAM and voice the SAM’s
+bullseye, being directive then descriptive.
+TRESPASS Example 
+“RAMBO 2, SNAP 1-7-0, TRESPASS FIFTEEN BULLSEYE 3-2-0/32.” 
+09 OCT 2024 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 89 
+9. Threat Reaction Communication
+a. Targeted aircraft should communicate S/A threat reactions on mission tactical
+NETs:
+(1) If it enables, or aircraft requires, reactive SEAD.
+(2) To enhance the common tactical picture for other mission or package assets.
+b. These transmissions should be in either a low- or high-fidelity format. Minimum
+accuracy to consider a threat “high fidelity” is a 5 nm, semi-major ellipse, or as
+mission planned.
+Low-Fidelity Format 
+Call sign, radar warning receiver indication, bearing, DEFENDING with cardinal 
+direction, ownship BULLSEYE. 
+Low-Fidelity Example 
+“HORNET 1, SINGER ELEVEN, BEARING 3-6-0, DEFENDING WEST, 
+BULLSEYE 
+3-4-5/30.”
+High Fidelity Format 
+Call sign, radar warning receiver indication, S/A threat BULLSEYE/LOCATION, 
+DEFENDING with cardinal direction. 
+High Fidelity Example 
+“BOLT 1, SINGER ELEVEN, BULLSEYE 3-6-0/32, DEFENDING WEST.” 
+10. SEAD Contracts
+a. SEAD aircraft should provide one of four responses to a DEFENDING call:
+(1) HARM INBOUND. High-speed antiradiation missile (HARM) already
+employed.
+(2) MAGNUM. Launch of FRIENDLY antiradiation missile (ARM).
+(3) EMPTY. No emitters of interest detected.
+(4) ARIZONA. No ARM ordnance remaining.
+(5) CANYON. Use electromagnetic jamming on radar frequency indicated or in
+accordance with previous orders or information call for execution EA list or EA
+against designated group.
+b. SNIPER and SLAPSHOT Communication.
+(1) SNIPER.
+(a) This is a directive call from the SEAD package/FL.
+(b) It indicates a specific aircraft/element should employ an ARM against a
+range-known S/A threat.
+90 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 09 OCT 2024 
+SNIPER Example 
+Directive Call: “STORM, SNIPER ELEVEN BULLSEYE 3-6-0/32.” 
+Response: “STORM 2, MAGNUM ELEVEN BULLSEYE 3-6-0/32.” 
+(2) SLAPSHOT.
+(a) This is a directive call indicating an aircraft or element should immediately
+employ the best available ARM on the specified threat bearing.
+(b) SLAPSHOT assumes the S/A threat range is unknown.
+SLAPSHOT Example 
+Directive Call: “STORM, SLAPSHOT FIFTEEN BEARING 3-1-7.” 
+Response: “STORM 2, HARM INBOUND.” 
+(3) SEAD players respond with HARM INBOUND, MAGNUM, EMPTY, or
+ARIZONA.
+c. EA Communication. Aircraft should direct or communicate EA using the following
+terminology:
+EA Examples 
+Directing EA: “BOLT 1, JAM ELEVEN, BULLSEYE 3-6-0/32.” 
+Informative EA: “BOLT 1, CANYON ELEVEN, BULLSEYE 3-6-0/32.” 
+Ceasing EA: “BOLT 1, CLAM ELEVEN, BULLSEYE 3-6-0/32.” 
+11. Find, Fix, Track, Target, Engage, and Assess (F2T2EA) Contracts
+a. Find. The MC is responsible to hold or delegate authority for aircraft or element
+search contracts.
+Find Example 
+MC: “BOLT, WORK SIX BULLSEYE 3-6-0/34.” 
+Aircraft: “BOLT 1, WORKING SIX BULLSEYE 3-6-0/34.” 
+MC: “HOSS, MAP FIFTEEN BULLSEYE 3-1-7/17.” 
+Aircraft: “HOSS 3, MAPPING FIFTEEN BULLSEYE 3-1-7/17.” 
+MC: “CONAN, INVESTIGATE TRACK NUMBER 1-2-3-4-5.” 
+Aircraft: “CONAN.” 
+b. Fix.
+(1) Locate the threat and pass TLE or ellipse (semi-major) quality with the FIXED
+call.
+(2) Use the following terms to delineate fix quality:
+(a) Low Accuracy. Inside 1 nm.
+Low Accuracy Example 
+“BOLT 1, SIX FIXED BULLSEYE 3-6-0/32, LOW ACCURACY.” 
+(b) High Accuracy. Inside 1,000 feet.
+09 OCT 2024 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 91 
+High Accuracy Example 
+“AGENT 6, FIXED BULLSEYE 3-6-0/32, HIGH ACCURACY, TRACK NUMBER 
+0-3-0-0-7.”
+(c) TARGETABLE. CAT II low is assumed.
+• Any other TLE is added as a fill-in.
+• Controllers should populate a J3.5 over individual J12.6s once they
+are called TARGETABLE.
+• Controllers should report “HOLLOW [BULLSEYE]” if they do not hold
+the J12.6.
+Targetable Examples 
+“HOSS 3, FIXED SCRUM HALF BULLSEYE 3-1-7/17, TARGETABLE.” 
+“AGENT, SCRUM HALF BULLSEYE 3-1-7/17, TARGETABLE, TRACK 
+NUMBER 1-6-1-7-3.” 
+c. TRACK.
+(1) TRACKING is necessary for custody of a threat, SAM, high-value target, or
+other surface entity.
+(2) The MC or TL can direct an asset to TRACK, SCAN, or MONITOR an area or
+object.
+(a) TRACK. This is a directive call assigning responsibility to maintain
+sensors or a visual on a defined object or area to an asset.
+(b) MONITOR.
+• Maintain sensor awareness on a specified GROUP or object. It
+implies tactically significant changes are communicated.
+• For maritime operations, it means maintain contact or targeting
+information on a maritime surface contact.
+(c) SCAN. Search the indicated sector and report any CONTACTs.
+(3) Assets can respond with OCCUPIED, TALLY, TRACKING, CAPTURED, or
+MONITORING, if able to TRACK.
+TALLY Example 
+MC: “HOSS, TRACK THREE VEHICLE CONVOY BULLSEYE 3-0-0/45, 
+MOVING WEST, TRACK NUMBER 3-4-3-4-5.” 
+Aircraft: “HOSS 1, TALLY.” 
+CAPTURED Example 
+MC: “SABRE, TRACK T-72 COLUMN BULLSEYE 0-5-0/55, MOVING NORTH.” 
+Aircraft: “SABRE, CAPTURED, TRACK NUMBER 2-2-2-2-2.” 
+92 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 09 OCT 2024 
+MONITORING Example 
+MC: “WEASEL 51, MONITOR ELEVEN, TRACK NUMBER 1-1-1-1-1.” 
+Aircraft: “WEASEL 51, MONITORING ELEVEN, BULLSEYE 3-1-6/60.” 
+(4) Assets can respond with NO JOY if they have not found the object.
+d. TARGET and Attack Plan.
+(1) The purpose of the ATTACK plan is to:
+(a) Establish a SORT, especially across multiple formations.
+(b) To establish weapon pairings.
+(c) Reference locations (e.g., predetermined points, anchor references with
+distance, or BULLSEYE).
+(d) Time and deconfliction prior to PUSHING as a force package.
+(2) This plan should also delineate responsibilities.
+Note: The plan can be communicated via Link 16, and each player needs only to 
+acknowledge GOOD DATA. 
+Attack Game Plan Example 
+In the following example, RAMBO is the MC and escort TL, HORNET is the strike 
+TL, BOLT is a strike FL, and PYTHON is the SEAD TL. 
+RAMBO (MC): “HORNET, BOLT, PYTHON, STANDBY GAME PLAN.” 
+FLs: “HORNET.” “BOLT.” “PYTHON.” 
+RAMBO: “HORNET, TARGET AND SCAN ALPHA ALPHA 0-1, TWO VEHICLE 
+CONVOY BULLSEYE 2-7-5/69, MOVING SOUTH, BEST. PUSH AT 
+21:17 FROM RED OSCAR.” 
+“BOLT, COVER ALPHA ALPHA 0-1.” 
+“RAMBO ESCORT AND PYTHON SEAD PER BRIEF.” 
+FLs: “HORNET.” “BOLT.” “PYTHON.” 
+e. Engage.
+(1) The aircraft executing the attack will call PUSHING at the push, with a TOT,
+once all players have acknowledged the plan.
+(2) Aircraft should call releases with time of flight and IMPACT, when able. If an
+aircraft has additional support requirements for the A/S weapon, provide this as a
+fill-in (e.g., LASING or SCANNING).
+PUSHING Example 
+“HORNET, CAPTURED ALPHA ALPHA 0-1. PUSHING TOT 21:21:15.” 
+“HORNET 1, ONE WEAPON AWAY ALPHA ALPHA 0-1, 45 SECONDS, 
+LASING.” 
+“HORNET 1, SPLASH ALPHA ALPHA 0-1.” 
+09 OCT 2024 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 93 
+f. Assess.
+(1) SCAN can be used to direct the weapon effects assessment.
+(a) SCAN means to search the indicated sector and report any CONTACTs.
+(b) Once the target or object has been acquired and is being tracked with an
+onboard sensor or visually, respond with CAPTURED or TALLY.
+(c) If unable to find the target or object, relay VACANT, EMPTY, or NO JOY.
+(2) To describe the weapon results, use successful or unsuccessful.
+(a) SUCCESSFUL. Desired weapon effects were generated.  SUCCESSFUL
+can be used to complete the F2T2EA chain.
+• DROPPING is an informative call from a tasked aircraft that the
+aircrew is no longer TARGETING/TARGETED to a tasking.
+Weapons Effects Generated (DROPPING) Example 
+HORNET: “HORNET, SPLASH ALPHA ALPHA 0-1 SUCCESSFUL. DROPPING 
+ALPHA ALPHA 0-1.” 
+• DROP is a directive call to remove a ground target from the tactical
+ground picture.
+Weapons Effects Generated (DROP) Example 
+HORNET: “HORNET, SPLASH ALPHA ALPHA 0-1 SUCCESSFUL.” 
+HORNET: “DARKSTAR, DROP ALPHA ALPHA 0-1, T-N 5-2-3-4-2.” 
+(b) FUMBLE. Desired weapon effects were not generated.
+• Informative fill-ins can assist when relaying UNSUCCESSFUL.
+• “FUMBLE CLEAN” (i.e., no visible battle damage) indicates the target
+sustained no damage or no weapon impact was noted.
+• “FUMBLE HIT” indicates weapon impact was noted within a lethal
+distance, but the effects were not generated.
+Weapons Effects Not Generated Example 
+HORNET: “HORNET, SPLASH ALPHA ALPHA 0-1, FUMBLE HIT.” 
+(3) Reattack.
+(a) Plan reattack options during mission planning, if an asset is capable of a
+real-time hit assessment.
+(b) To facilitate rapid reattack, consider using SCAN with COVER.
+• COVER. This is a directive call to be ready for reattack or reengage,
+if weapons effects are not generated.
+• HOUNDDOG. This call is in response to COVER, indicating the
+directed aircraft is in a position to employ weapons.
+94 ATP 3-52.4/MCRP 3-20F.10/NTTP 6-02.9/AFTTP 3-2.8 09 OCT 2024 
+Reattack Option Example 
+MC: “HORNET TARGET AND SCAN ALPHA ALPHA 0-1. 
+BOLT COVER ALPHA ALPHA 0-1.” 
+HORNET: “HORNET 1, ONE WEAPON AWAY ALPHA ALPHA 0-1, 
+45 SECONDS, LASING AND SCANNING.” 
+HORNET: “HORNET, SPLASH ALPHA ALPHA 0-1, UNSUCCESSFUL HIT.” 
+BOLT: “BOLT, HOUNDDOG ALPHA ALPHA 0-1.” 
+MC: “BOLT, REATTACK, ALPHA ALPHA 0-1.” 
