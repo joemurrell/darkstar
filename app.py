@@ -1045,8 +1045,8 @@ async def ask_command(interaction: discord.Interaction, question: str):
     discord_logger.info(f"/ask completed for user {interaction.user.name}({interaction.user.id})")
 
 
-@tree.command(name="quiz_start", description="Start a quiz from the ACC documentation. Defaults to 3 questions; duration defaults to 2 minutes per question.")
-async def quiz_start(interaction: discord.Interaction, topic: str = "", questions: int = 3, duration: Optional[int] = None):
+@tree.command(name="quiz_start", description="Start a quiz from the ACC documentation. Defaults to 5 questions with a 15 minute duration.")
+async def quiz_start(interaction: discord.Interaction, topic: str = "", questions: int = 5, duration: int = 15):
     """Start a new quiz session in this channel."""
     discord_logger.info(f"/quiz_start command: user={interaction.user.name}({interaction.user.id}) guild={interaction.guild.name if interaction.guild else 'DM'}({interaction.guild_id if interaction.guild else 'N/A'}) channel={interaction.channel_id} topic='{topic}' questions={questions} duration={duration}")
 
@@ -1064,10 +1064,6 @@ async def quiz_start(interaction: discord.Interaction, topic: str = "", question
             ephemeral=True
         )
         return
-
-    # Duration defaults to 2 minutes per question when the user omits it.
-    if duration is None:
-        duration = 2 * questions
 
     if duration < 1 or duration > 60:
         discord_logger.warning(f"/quiz_start invalid duration {duration} from user {interaction.user.name}({interaction.user.id})")
