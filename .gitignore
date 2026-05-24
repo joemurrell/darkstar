@@ -12,3 +12,8 @@ ENV/
 *.log
 logs/
 .DS_Store
+
+# SQLite quiz-persistence DB (created at runtime; never committed)
+*.db
+*.db-wal
+*.db-shm
