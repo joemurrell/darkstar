@@ -14,7 +14,7 @@ from difflib import SequenceMatcher
 import re
 import discord
 from discord import app_commands
-from anthropic import AsyncAnthropic, APITimeoutError
+from anthropic import AsyncAnthropic, APITimeoutError, RateLimitError
 
 # Environment variables
 DISCORD_TOKEN = os.environ["DISCORD_TOKEN"]
@@ -385,13 +385,26 @@ async def ask_assistant(
         api_logger.info(f"Assistant response received: length={len(result)}")
         return result
 
+    except RateLimitError as e:
+        # 429. On Tier 1 the ACC PDF's first (cold-cache) request can exceed
+        # the per-minute input-token limit on its own. Surface a clear, honest
+        # message with the retry window instead of the generic error.
+        retry_after = "60"
+        if getattr(e, "response", None) is not None:
+            retry_after = e.response.headers.get("retry-after", "60")
+        api_logger.error(f"Rate limited (429): retry-after={retry_after}s — {e}")
+        msg = (
+            f"❌ Hit the API rate limit — the ACC document is large for the "
+            f"current usage tier. Wait ~{retry_after}s and try again."
+        )
+        return None if tool is not None else msg
     except APITimeoutError:
         api_logger.error(f"Anthropic request timed out after {timeout}s")
         msg = "❌ The AI took too long to respond. Please try again in a moment."
         return None if tool is not None else msg
     except Exception as e:
         # Log the exception type explicitly — BadRequestError vs OverloadedError
-        # vs RateLimitError point at very different root causes.
+        # point at very different root causes.
         api_logger.error(f"Error asking assistant ({type(e).__name__}): {e}", exc_info=True)
         return None if tool is not None else f"❌ Error communicating with AI: {str(e)}"
 
