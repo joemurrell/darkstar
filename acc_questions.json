@@ -1,1 +1,2602 @@
-[]
+[
+  {
+    "q": "According to JP 3-52, what is the definition of airspace control?",
+    "options": [
+      "The authority to direct ground fires in support of air operations",
+      "The assignment of radio frequencies to aircraft operating in a joint operations area",
+      "The destruction of enemy aircraft within a defined area of operations",
+      "The exercise of delegated authority over designated airspace and users through control procedures and coordination measures to maximize operational effectiveness"
+    ],
+    "answer": "D",
+    "explain": "Airspace control is defined as the exercise of delegated authority over designated airspace and users through control procedures and coordination measures to maximize operational effectiveness (p.1).",
+    "page": 1,
+    "topic": "airspace-control-definition"
+  },
+  {
+    "q": "Which entities are listed as Marine Corps TAC C2 capable entities?",
+    "options": [
+      "E-2 Hawkeye and guided missile cruisers",
+      "TAOC, DASC, and early warning and control",
+      "Brigade aviation element and air defense airspace management",
+      "AWACS, CRC, BCC, ASOC, ACIT, and ISET"
+    ],
+    "answer": "B",
+    "explain": "The Marine Corps TAC C2 capable entities are the TAOC, DASC, and early warning and control (p.2).",
+    "page": 2,
+    "topic": "marine-corps-tac-c2"
+  },
+  {
+    "q": "The BMAs assigned to the ASOC and DASC are normally located where relative to the fire support coordination line and coordinating altitude?",
+    "options": [
+      "Within civil airspace under air traffic control",
+      "Beyond the fire support coordination line and above a coordinating altitude",
+      "Along the forward line of own troops only",
+      "Short of the fire support coordination line and below a coordinating altitude"
+    ],
+    "answer": "D",
+    "explain": "These BMAs are normally short of the fire support coordination line and below a coordinating altitude (p.3).",
+    "page": 3,
+    "topic": "bma-location-fscl-coordinating-altitude"
+  },
+  {
+    "q": "What does TACADMIN consist of?",
+    "options": [
+      "Controlling air traffic for arrival and departure from an operating base",
+      "Navigation in civil airspace under civilian air traffic control",
+      "Only the coordination of air assets outside the managed JOA",
+      "All processes and procedures that occur in the TAC C2 JOA or BMA"
+    ],
+    "answer": "D",
+    "explain": "TACADMIN consists of all processes and procedures that occur in the TAC C2 JOA or BMA (p.5).",
+    "page": 5,
+    "topic": "tacadmin-definition"
+  },
+  {
+    "q": "Which type of transmission uses the call sign of the entity being directed?",
+    "options": [
+      "A relay transmission",
+      "A directive transmission",
+      "An interrogative transmission",
+      "An informative transmission"
+    ],
+    "answer": "B",
+    "explain": "Directive transmissions use the call sign of the entity being directed, e.g., HORNET 1 directing 'HORNET 2, TARGET NORTH GROUP' (p.6).",
+    "page": 6,
+    "topic": "directive-transmission-format"
+  },
+  {
+    "q": "On what kind of NET should aircrew establish communication with TAC C2 for check-in?",
+    "options": [
+      "A dedicated check-in NET",
+      "The track supervision net",
+      "The threat warning NET",
+      "The final controller tactical NET"
+    ],
+    "answer": "A",
+    "explain": "Aircrew should establish communication with TAC C2 on a dedicated check-in NET, which supports TACADMIN without interfering with employment (p.7).",
+    "page": 7,
+    "topic": "dedicated-check-in-net"
+  },
+  {
+    "q": "How is ALPHA CHECK correlation defined, and who is responsible for solving for correlation?",
+    "options": [
+      "Within 3 nm, and the aircraft checking in is responsible for solving for correlation",
+      "Within 1 nm, and the mission commander is responsible",
+      "Within 10 nm, and the final controller is responsible",
+      "Within 5 nm, and TAC C2 is responsible for solving for correlation"
+    ],
+    "answer": "A",
+    "explain": "ALPHA CHECK correlation is defined as within 3 nm, and solving for correlation rests with the aircraft checking in (p.8).",
+    "page": 8,
+    "topic": "alpha-check-correlation-3nm"
+  },
+  {
+    "q": "What does \"AS FRAGGED\" mean during check-in?",
+    "options": [
+      "The flight is reporting a fuel or weapons emergency",
+      "The aircraft has deviations from its tasked loadout",
+      "The unit or element is performing as briefed, in accordance with the ATO or air plan",
+      "The aircraft is unable to establish positive ID"
+    ],
+    "answer": "C",
+    "explain": "AS FRAGGED means the unit or element is performing as briefed, in accordance with the air tasking order (ATO) or air plan (p.9).",
+    "page": 9,
+    "topic": "as-fragged-meaning"
+  },
+  {
+    "q": "If an ID difference exists on a link track, on which net will coordination be accomplished to verify the correct ID?",
+    "options": [
+      "The final controller tactical NET",
+      "The threat warning NET",
+      "The track supervision net",
+      "The dedicated check-in NET"
+    ],
+    "answer": "C",
+    "explain": "If an ID difference exists on a link track, coordination will be accomplished on the track supervision net to verify the correct ID (p.10).",
+    "page": 10,
+    "topic": "link16-id-track-supervision-net"
+  },
+  {
+    "q": "According to the note accompanying the track ID tables, who holds responsibility for dropping a track once the striking aircraft calls SPLASH?",
+    "options": [
+      "The track supervision officer",
+      "The first platform to correlate the kill",
+      "The final controller",
+      "The mission commander"
+    ],
+    "answer": "B",
+    "explain": "The first platform to correlate a kill holds the responsibility for dropping the track once the striking aircraft calls SPLASH with a BULLSEYE location and type (p.11).",
+    "page": 11,
+    "topic": "first-platform-drops-track-splash"
+  },
+  {
+    "q": "When should fighters communicate JACKAL SOUR to controllers?",
+    "options": [
+      "Only when returning to base",
+      "Only after a successful kill",
+      "During check-in or during the mission when they are not receiving accurate surveillance information",
+      "When their data link fidelity check passes"
+    ],
+    "answer": "C",
+    "explain": "Fighters should communicate JACKAL SOUR to controllers during check-in or during the mission when they are not receiving accurate surveillance information (p.12).",
+    "page": 12,
+    "topic": "jackal-sour-when-to-call"
+  },
+  {
+    "q": "According to the note on MICKEY, what is unique about an E-3 AWACS manual MICKEY?",
+    "options": [
+      "It is single tone only",
+      "It cannot be passed manually",
+      "It requires a return frequency",
+      "It is multiple tone"
+    ],
+    "answer": "A",
+    "explain": "E-3 AWACS manual MICKEY is single tone only; a multiple tone MICKEY is expected from other TAC C2 agencies (p.13).",
+    "page": 13,
+    "topic": "awacs-mickey-single-tone"
+  },
+  {
+    "q": "When should INFLTREPs be passed to TAC C2?",
+    "options": [
+      "When declaring JACKAL SOUR",
+      "Immediately at initial check-in",
+      "Upon checking out from a JOA, BMA, or before returning to base",
+      "Only during weapons employment"
+    ],
+    "answer": "C",
+    "explain": "INFLTREPs should be passed to TAC C2 upon checking out from a JOA, BMA, or before returning to base (p.14).",
+    "page": 14,
+    "topic": "infltrep-when-passed"
+  },
+  {
+    "q": "In the fighter Inflight Report example (Table 6), what does Line 3 capture?",
+    "options": [
+      "Mission results",
+      "Known blue attrition",
+      "STATE check and aircraft intentions",
+      "Red tactics observed"
+    ],
+    "answer": "B",
+    "explain": "In Table 6, Line 3 is 'Known blue attrition' (e.g., FALLEN ANGEL reports) (p.15).",
+    "page": 15,
+    "topic": "infltrep-fighter-line3-blue-attrition"
+  },
+  {
+    "q": "As part of Wounded Bird, battle damage, or hung ordnance notification procedures, what should be done with the track until directed by higher headquarters?",
+    "options": [
+      "Hand the track to civil air traffic control",
+      "Drop the track",
+      "Designate the track as neutral",
+      "FORCE TELL the track"
+    ],
+    "answer": "D",
+    "explain": "Returning-forces procedures direct controllers to FORCE TELL the track until directed by higher headquarters (p.16).",
+    "page": 16,
+    "topic": "force-tell-wounded-bird"
+  },
+  {
+    "q": "When TAC C2 has positive contact but uses procedural methods to deconflict, what call is transmitted when an aircraft checks in?",
+    "options": [
+      "\"PROCEDURAL HANDOFF\"",
+      "\"NEGATIVE CONTACT\"",
+      "\"TALLY CONTACT\"",
+      "\"RADAR CONTACT\""
+    ],
+    "answer": "B",
+    "explain": "When establishing procedural control, TAC C2 will transmit 'NEGATIVE CONTACT' when an aircraft checks in (p.17).",
+    "page": 17,
+    "topic": "procedural-control-negative-contact"
+  },
+  {
+    "q": "How does each aircraft, flight lead, or team lead respond during a roll call?",
+    "options": [
+      "With call sign in a predetermined sequence",
+      "With their current WORDS designator",
+      "With an ALPHA CHECK from BULLSEYE",
+      "With their full MNPOPCA brief"
+    ],
+    "answer": "A",
+    "explain": "Once a roll call is initiated, each aircraft, flight lead, or team lead will respond with call sign in a predetermined sequence (p.19).",
+    "page": 19,
+    "topic": "roll-call-response-sequence"
+  },
+  {
+    "q": "After LOWDOWN is passed at a briefed time, what is it immediately followed by?",
+    "options": [
+      "A WORDS update",
+      "A roll call",
+      "An ALPHA CHECK",
+      "A fidelity check"
+    ],
+    "answer": "B",
+    "explain": "LOWDOWN is passed at a briefed time (e.g., 5 minutes prior to mission execution) and is immediately followed by a roll call (p.20).",
+    "page": 20,
+    "topic": "lowdown-followed-by-roll-call"
+  },
+  {
+    "q": "When disseminating tactical SAMs and MOVERS in a LOWDOWN, what determines the order of dissemination first?",
+    "options": [
+      "Highest altitude system",
+      "Most lethal system",
+      "Closest MEZ to friendly forces",
+      "Closest MEZ to friendly axis of attack"
+    ],
+    "answer": "C",
+    "explain": "For tactical SAMs and MOVERS, the order of dissemination begins with the closest MEZ to friendly forces (p.21).",
+    "page": 21,
+    "topic": "lowdown-tactical-sam-order"
+  },
+  {
+    "q": "Prior to switching to the alternate tactical NET, how many times will TAC C2 or MC repeat CHATTERMARK on the primary tactical NET?",
+    "options": [
+      "Three times",
+      "Once",
+      "Twice",
+      "Five times"
+    ],
+    "answer": "A",
+    "explain": "TAC C2 or MC will repeat CHATTERMARK three times on the primary tactical NET prior to switching to the alternate NET (p.22).",
+    "page": 22,
+    "topic": "chattermark-repeat-three-times"
+  },
+  {
+    "q": "Once all players have checked in on the new NET after a CHATTERMARK, what does TAC C2 communicate?",
+    "options": [
+      "\"POGO COMPLETE\"",
+      "\"NET SWEET\"",
+      "\"FORCE ACCOUNTABILITY\"",
+      "\"ROLL CALL COMPLETE\""
+    ],
+    "answer": "B",
+    "explain": "TAC C2 communicates \"NET SWEET\" on the new NET once all players have checked in (p.23).",
+    "page": 23,
+    "topic": "chattermark-net-sweet"
+  },
+  {
+    "q": "Who is responsible for coordinating on-station relief before an aircraft communicates RED on the primary NET?",
+    "options": [
+      "The on-coming lane commander",
+      "The MC",
+      "The aircrew",
+      "TAC C2"
+    ],
+    "answer": "D",
+    "explain": "TAC C2 is responsible to coordinate on-station relief prior to the aircraft communicating RED on the primary NET (p.24).",
+    "page": 24,
+    "topic": "fuel-weapons-red-relief"
+  },
+  {
+    "q": "In ACC terminology, what is a GROUP used to describe?",
+    "options": [
+      "Ground convoys and movers",
+      "Other air assets, including unknown or enemy aircraft",
+      "Friendly fighter formations only",
+      "Surface-to-air missile sites"
+    ],
+    "answer": "B",
+    "explain": "A GROUP is the way TAC C2 and aircraft describe other air assets and is used to describe unknown or enemy aircraft (p.25).",
+    "page": 25,
+    "topic": "group-definition"
+  },
+  {
+    "q": "Which of the following is part of the core information format used to communicate GROUPs?",
+    "options": [
+      "Fuel state",
+      "IMPACT time of flight",
+      "Call sign of the controlling platform",
+      "Altitude rounded to the nearest thousands of feet"
+    ],
+    "answer": "D",
+    "explain": "The core information format includes altitude rounded to the nearest thousands of feet (p.26).",
+    "page": 26,
+    "topic": "core-information-altitude"
+  },
+  {
+    "q": "When a controller voices HITS, what additional information will they provide if known?",
+    "options": [
+      "GEOREFs or BULLSEYE and altitude",
+      "Target aspect and speed",
+      "Declaration and platform type",
+      "Track number and STRENGTH"
+    ],
+    "answer": "A",
+    "explain": "Controllers will voice GEOREFs or BULLSEYE and altitude if known when voicing HITS (p.27).",
+    "page": 27,
+    "topic": "hits-georef-altitude"
+  },
+  {
+    "q": "When voicing an altitude STACK, in what order are the altitudes stated?",
+    "options": [
+      "Higher altitude first, then lower",
+      "In order of CONTACT strength",
+      "Nearest to the fighter first",
+      "Lower altitude first, then higher"
+    ],
+    "answer": "A",
+    "explain": "A STACK is voiced stating the higher altitude first, then the lower altitude (p.28).",
+    "page": 28,
+    "topic": "altitude-stack-order"
+  },
+  {
+    "q": "Specific aspects (HOT, FLANK, BEAM, DRAG) are used with which communication format?",
+    "options": [
+      "GEOREF format",
+      "PICTURE format",
+      "BRAA format",
+      "BULLSEYE format"
+    ],
+    "answer": "C",
+    "explain": "Specific aspects are used when correlating a group to a specific fighter and will be used when communicating with the BRAA format (p.29).",
+    "page": 29,
+    "topic": "specific-aspects-braa"
+  },
+  {
+    "q": "Which term do fighters use, versus controllers, to distinguish who is providing the strength assessment?",
+    "options": [
+      "Fighters use STRENGTH, controllers use CONTACTs",
+      "Both use STRENGTH",
+      "Fighters use CONTACTs, controllers use STRENGTH",
+      "Both use CONTACTs"
+    ],
+    "answer": "A",
+    "explain": "Fighters will use STRENGTH and controllers will use the term CONTACTs to distinguish who is providing the strength assessment (p.30).",
+    "page": 30,
+    "topic": "strength-vs-contacts"
+  },
+  {
+    "q": "What is the defined speed range for the fill-in FAST?",
+    "options": [
+      "Greater than 1,200 knots or 2.0 mach",
+      "660-900 knots ground speed or 1.1-1.5 mach",
+      "Greater than 900 knots or 1.5 mach",
+      "400-660 knots or 0.8-1.1 mach"
+    ],
+    "answer": "B",
+    "explain": "FAST is a target speed of 660-900 knots ground speed or 1.1-1.5 mach (p.31).",
+    "page": 31,
+    "topic": "fast-speed-definition"
+  },
+  {
+    "q": "In cruise missile defense, which inner GROUP formation should be voiced to the maximum extent possible?",
+    "options": [
+      "COVEY formations",
+      "BOX formations",
+      "WALL formations",
+      "LADDER formations"
+    ],
+    "answer": "A",
+    "explain": "In cruise missile defense (CMD), inner COVEY formations should be voiced to the maximum extent possible (p.32).",
+    "page": 32,
+    "topic": "cmd-covey-formations"
+  },
+  {
+    "q": "Unless briefed otherwise, in what format does PICTURE provide information?",
+    "options": [
+      "Link ID format",
+      "GEOREF format",
+      "BULLSEYE format",
+      "BRAA format"
+    ],
+    "answer": "C",
+    "explain": "PICTURE is a request to provide information pertinent to the mission in a BULLSEYE format, unless briefed otherwise (p.33).",
+    "page": 33,
+    "topic": "picture-bullseye-format"
+  },
+  {
+    "q": "When a PICTURE contains four GROUPs or more, how many GROUPs are communicated?",
+    "options": [
+      "Only the closest GROUP to friendly forces",
+      "Only the two outermost GROUPs",
+      "All GROUPs in detail",
+      "Only the three highest priority GROUPs"
+    ],
+    "answer": "D",
+    "explain": "For four GROUPs or more, the call includes the total number of GROUPs but communicates only the three highest priority GROUPs (p.34).",
+    "page": 34,
+    "topic": "four-groups-three-highest"
+  },
+  {
+    "q": "For SMA, what is assumed regarding their flight profile unless deemed tactically significant?",
+    "options": [
+      "They are HIGH",
+      "They are tracking HOT",
+      "They are FAST",
+      "CAP is assumed and track direction is not given"
+    ],
+    "answer": "D",
+    "explain": "For SMA, CAP will be assumed and track direction will not be given unless deemed to be tactically significant (p.35).",
+    "page": 35,
+    "topic": "sma-cap-assumed"
+  },
+  {
+    "q": "GROUPs will be anchored with BULLSEYE if the GROUPs are outside what distance in azimuth?",
+    "options": [
+      "5 nm",
+      "3 nm",
+      "15 nm",
+      "10 nm"
+    ],
+    "answer": "D",
+    "explain": "GROUPs will be anchored with BULLSEYE if the GROUPs are outside 10 nm in azimuth (p.36).",
+    "page": 36,
+    "topic": "anchoring-10nm-azimuth"
+  },
+  {
+    "q": "Which of the following is one of the standard traditional labels used for a PICTURE?",
+    "options": [
+      "CHAMPAGNE",
+      "COVEY",
+      "STACK",
+      "MANEUVER"
+    ],
+    "answer": "A",
+    "explain": "The standard traditional labels are SINGLE GROUP, RANGE, AZIMUTH, VIC, CHAMPAGNE, WALL, LADDER, and BOX (p.37).",
+    "page": 37,
+    "topic": "traditional-labels-list"
+  },
+  {
+    "q": "When can OPENING or CLOSING be applied to a PICTURE?",
+    "options": [
+      "When the distance between GROUPs is increasing or decreasing and may impact the fighter intercept",
+      "When fighters are in COLD operations",
+      "When a GROUP is declared HOSTILE",
+      "When a GROUP exceeds 40,000 feet"
+    ],
+    "answer": "A",
+    "explain": "OPENING or CLOSING can be applied when the distance between GROUPs is increasing or decreasing and may impact the fighter intercept (p.38).",
+    "page": 38,
+    "topic": "opening-closing-criteria"
+  },
+  {
+    "q": "To evaluate whether a PICTURE is WEIGHTED, how does the controller divide the azimuth?",
+    "options": [
+      "Into thirds",
+      "Into quarters",
+      "Into halves",
+      "Into fifths"
+    ],
+    "answer": "A",
+    "explain": "The controller divides the azimuth into thirds; if the out-of-position GROUP is outside the middle third, it is WEIGHTED (p.39).",
+    "page": 39,
+    "topic": "weighted-azimuth-thirds"
+  },
+  {
+    "q": "WEIGHTED is accompanied by what additional descriptor?",
+    "options": [
+      "An altitude block in thousands of feet",
+      "A track direction such as TRACK WEST",
+      "A range in nautical miles to BULLSEYE",
+      "A cardinal direction relative to the defined threat axis"
+    ],
+    "answer": "D",
+    "explain": "WEIGHTED is accompanied by a cardinal direction relative to the defined threat axis (p.40).",
+    "page": 40,
+    "topic": "weighted-cardinal-direction"
+  },
+  {
+    "q": "When is ECHELON used to amplify a traditional label?",
+    "options": [
+      "When two PACKAGES are operating in separate lanes",
+      "When all GROUPs share a common HOT track direction",
+      "When only a SINGLE GROUP is detected",
+      "When GROUPs in the traditional label are not directly in AZIMUTH or RANGE with one another"
+    ],
+    "answer": "D",
+    "explain": "ECHELON is used to amplify a traditional label when GROUPs in the traditional label are not directly in AZIMUTH or RANGE with one another (p.41).",
+    "page": 41,
+    "topic": "echelon-when-used"
+  },
+  {
+    "q": "If all GROUPs share a common track direction other than HOT, what does the controller do?",
+    "options": [
+      "Pass each GROUP as core information only",
+      "Omit track direction entirely",
+      "Provide track direction fill-ins on each individual GROUP",
+      "Voice the track direction amplification for the entire picture"
+    ],
+    "answer": "D",
+    "explain": "If all GROUPs share a common track direction other than hot, the controller voices the track direction amplification for the entire picture (p.44).",
+    "page": 44,
+    "topic": "track-common-non-hot"
+  },
+  {
+    "q": "If GROUPs in a PICTURE do NOT share a common track direction, how does the controller communicate track direction?",
+    "options": [
+      "Assume track direction for the whole picture",
+      "Provide track direction fill-ins on each individual GROUP",
+      "Voice a single track direction for the entire picture",
+      "Withhold track direction until merge"
+    ],
+    "answer": "B",
+    "explain": "If GROUPs do not share a common track direction, the controller provides track direction fill-ins on each individual GROUP (p.45).",
+    "page": 45,
+    "topic": "track-individual-fillins"
+  },
+  {
+    "q": "How are two GROUPs in AZIMUTH named?",
+    "options": [
+      "Using cardinal directions",
+      "FIRST WAVE and SECOND WAVE",
+      "MIDDLE GROUP and OUTER GROUP",
+      "LEAD GROUP and TRAIL GROUP"
+    ],
+    "answer": "A",
+    "explain": "GROUPs in AZIMUTH are named using cardinal directions (p.46).",
+    "page": 46,
+    "topic": "two-groups-azimuth-naming"
+  },
+  {
+    "q": "CHAMPAGNE or VIC is the label used under what depth condition?",
+    "options": [
+      "Depth equal to or less than 5 nm",
+      "Depth greater than 5 nm or OPENING outside 5 nm",
+      "Depth greater than 10 nm only",
+      "CLOSING inside of 5 nm"
+    ],
+    "answer": "B",
+    "explain": "CHAMPAGNE or VIC is the label used if the depth is greater than 5 nm or OPENING outside 5 nm (p.47).",
+    "page": 47,
+    "topic": "champagne-vic-depth-criteria"
+  },
+  {
+    "q": "In a WALL of five GROUPs or less, how are multiple MIDDLE GROUPs distinguished?",
+    "options": [
+      "A cardinal direction is added to each so it has a unique name (e.g., NORTH MIDDLE GROUP)",
+      "They are all simply called MIDDLE GROUP",
+      "They are named by altitude",
+      "They are numbered SECOND, THIRD, FOURTH GROUP"
+    ],
+    "answer": "A",
+    "explain": "A cardinal direction is added to multiple MIDDLE GROUPs so each has a unique GROUP name, such as NORTH MIDDLE GROUP, MIDDLE GROUP, and SOUTH MIDDLE GROUP (p.48).",
+    "page": 48,
+    "topic": "wall-multiple-middle-naming"
+  },
+  {
+    "q": "In a WALL formation with no GROUPs in the middle third, what separation is voiced?",
+    "options": [
+      "Separation from the lead to the trail GROUP",
+      "No separation is voiced",
+      "Separation between the two closest outriggers",
+      "Separation from the outrigger to the middle GROUPs"
+    ],
+    "answer": "D",
+    "explain": "In a WALL formation with no GROUPs in the middle third, voice separation from the outrigger to middle GROUPs (p.49).",
+    "page": 49,
+    "topic": "wall-no-middle-third-separation"
+  },
+  {
+    "q": "In a CHAMPAGNE, how are the two GROUPs closest to the fighters named?",
+    "options": [
+      "MIDDLE GROUPs",
+      "TRAIL GROUPs with a cardinal direction descriptor",
+      "EAST GROUP and WEST GROUP only",
+      "LEAD GROUPs with a cardinal direction descriptor"
+    ],
+    "answer": "D",
+    "explain": "In a CHAMPAGNE, the two GROUPs closest to the fighters are named LEAD GROUPs with a cardinal direction descriptor, and the GROUP in trail is the TRAIL GROUP (p.50).",
+    "page": 50,
+    "topic": "champagne-lead-groups-naming"
+  },
+  {
+    "q": "How is a VIC defined?",
+    "options": [
+      "Three GROUPs with two closest in AZIMUTH and the third in RANGE",
+      "Three GROUPs with the first closest to the fighters and two GROUPs in RANGE of it, separated in AZIMUTH",
+      "Three or more GROUPs separated only in RANGE",
+      "Four GROUPs in two AZIMUTH pairs"
+    ],
+    "answer": "B",
+    "explain": "A VIC is three GROUPs with the first GROUP closest to the fighters and two GROUPs in RANGE of the first, separated in AZIMUTH (p.51).",
+    "page": 51,
+    "topic": "vic-definition"
+  },
+  {
+    "q": "In a BOX, how are the GROUPs closest to the fighters named?",
+    "options": [
+      "LEAD GROUP with a cardinal direction descriptor (e.g., EAST LEAD GROUP)",
+      "TRAIL GROUP with a cardinal direction descriptor",
+      "MIDDLE GROUP",
+      "FIRST WAVE"
+    ],
+    "answer": "A",
+    "explain": "In a BOX, the GROUPs closest to the fighters are named LEAD GROUP with a cardinal direction descriptor, such as EAST LEAD GROUP and WEST LEAD GROUP (p.52).",
+    "page": 52,
+    "topic": "box-lead-group-naming"
+  },
+  {
+    "q": "Which term describes the total RANGE dimension of a LADDER?",
+    "options": [
+      "WIDE",
+      "DEEP",
+      "WEIGHTED",
+      "SEPARATION"
+    ],
+    "answer": "B",
+    "explain": "The term DEEP is used to describe the total RANGE dimension of the LADDER (p.53).",
+    "page": 53,
+    "topic": "ladder-deep-dimension"
+  },
+  {
+    "q": "Besides being numbered, what else is given to the SECOND WAVE and any subsequent WAVES?",
+    "options": [
+      "An ECHELON direction",
+      "BULLSEYE coordinates only",
+      "Traditional labels",
+      "A PACKAGE name"
+    ],
+    "answer": "C",
+    "explain": "The SECOND WAVE and any subsequent WAVES will also be given traditional labels (p.54).",
+    "page": 54,
+    "topic": "waves-traditional-labels"
+  },
+  {
+    "q": "Which communication terms should controllers strive to use for WAVES that are maneuvering?",
+    "options": [
+      "HOT, COLD, and FLANKING",
+      "ANCHORED, WEIGHTED, and ECHELON",
+      "REFORMING, RECOMMITTING, and PASSING",
+      "OPENING, CLOSING, and CRANKING"
+    ],
+    "answer": "C",
+    "explain": "Controllers should strive to communicate WAVES maneuvering with REFORMING, RECOMMITTING, and PASSING communication if applicable (p.56).",
+    "page": 56,
+    "topic": "waves-maneuvering-terms"
+  },
+  {
+    "q": "What anchoring reference is used for an ADDITIONAL GROUP?",
+    "options": [
+      "The bullseye of the LEAD GROUP",
+      "BULLSEYE in accordance with the defined anchoring priorities",
+      "BRAA from the closest fighter",
+      "The defended asset location"
+    ],
+    "answer": "B",
+    "explain": "An ADDITIONAL GROUP is anchored using BULLSEYE in accordance with the defined anchoring priorities (p.57).",
+    "page": 57,
+    "topic": "additional-group-anchoring"
+  },
+  {
+    "q": "An undetected GROUP meets briefed THREAT criteria. What format should controllers use when issuing the call to the closest aircraft?",
+    "options": [
+      "BRAA format",
+      "BULLSEYE format",
+      "Cardinal direction only",
+      "MGRS grid"
+    ],
+    "answer": "A",
+    "explain": "If an undetected or unreported GROUP meets briefed THREAT criteria it is named a THREAT GROUP, and controllers should use the BRAA format when issuing a THREAT call to the closest aircraft (p.58).",
+    "page": 58,
+    "topic": "threat-group-braa-format"
+  },
+  {
+    "q": "Independent of platform or Service, Chapter V states that the air-to-air communication format applies to which aircraft?",
+    "options": [
+      "Only manned fighters, not UAS",
+      "Only fifth-generation fighters",
+      "Only US Air Force fighters",
+      "Any aircraft capable of employing A/A ordnance"
+    ],
+    "answer": "D",
+    "explain": "The fighter is the example used throughout the chapter, but the information applies to any aircraft capable of employing A/A ordnance, independent of platform or Service (p.59).",
+    "page": 59,
+    "topic": "fighter-any-aa-aircraft"
+  },
+  {
+    "q": "Per Table 8, who is the priority communicator during the Targeting/Weapons Employment phase?",
+    "options": [
+      "Fighters",
+      "Controller",
+      "Supporting fighters",
+      "Engaged fighter only"
+    ],
+    "answer": "A",
+    "explain": "In Table 8, during the Targeting/Weapons Employment phase the priority communicators are first the Fighters, then the Controller (p.60).",
+    "page": 60,
+    "topic": "table8-targeting-priority"
+  },
+  {
+    "q": "If only the controller retains COMMIT authority, what can the MC or TL do?",
+    "options": [
+      "Only recommend COMMIT",
+      "Delegate COMMIT to the wingman",
+      "Direct the COMMIT themselves",
+      "Override the controller's COMMIT"
+    ],
+    "answer": "A",
+    "explain": "If only the controller retains COMMIT authority, the controller should direct the COMMIT once criteria has been met, and the MC or TL may only recommend COMMIT (p.61).",
+    "page": 61,
+    "topic": "controller-commit-mc-tl-recommend"
+  },
+  {
+    "q": "How may a fighter combine targeting with shot communication?",
+    "options": [
+      "By calling BANZAI after the group label",
+      "By appending the BULLSEYE twice",
+      "By voicing FOX (with a sort, as appropriate) after TARGETED",
+      "By adding the word ENGAGED before TARGETED"
+    ],
+    "answer": "C",
+    "explain": "Fighters may combine targeting with shot communication by voicing FOX, with a sort as appropriate, after TARGETED (p.62).",
+    "page": 62,
+    "topic": "targeted-fox-combined-shot"
+  },
+  {
+    "q": "What information will a controller always include when responding to a DECLARE request?",
+    "options": [
+      "Only the declaration",
+      "BULLSEYE, altitude, track direction, declaration, and fill-ins",
+      "BRAA and aspect only",
+      "Strength and contacts only"
+    ],
+    "answer": "B",
+    "explain": "Controllers will always respond to a DECLARE request with BULLSEYE, altitude, track direction, declaration, and fill-ins (p.63).",
+    "page": 63,
+    "topic": "declare-response-content"
+  },
+  {
+    "q": "When does a fighter call CLEAN?",
+    "options": [
+      "When the GROUP is declared FRIENDLY",
+      "When they have no sensor information on a GROUP of interest",
+      "When they have locked the GROUP",
+      "When they are merged with the GROUP"
+    ],
+    "answer": "B",
+    "explain": "Fighters will call CLEAN if they have no sensor information on a GROUP of interest (p.64).",
+    "page": 64,
+    "topic": "clean-no-sensor-info"
+  },
+  {
+    "q": "Three or more CONTACTs maneuver in RANGE and AZIMUTH simultaneously while at least one remains FLANK/HOT. Which call is used?",
+    "options": [
+      "MANEUVER RANGE",
+      "MANEUVER RANGE AND AZIMUTH",
+      "MANEUVER AZIMUTH AND RANGE",
+      "MANEUVER SPREAD"
+    ],
+    "answer": "B",
+    "explain": "Communicate MANEUVER RANGE AND AZIMUTH if three or more CONTACTs maneuver in RANGE and AZIMUTH simultaneously while at least one CONTACT remains FLANK/HOT (p.65).",
+    "page": 65,
+    "topic": "maneuver-range-and-azimuth"
+  },
+  {
+    "q": "What does targeting range refer to?",
+    "options": [
+      "The first time targeting is issued for any fighter in the element or the term TARGETED is communicated on the control net",
+      "The 60-nm default TAC RANGE separation",
+      "The 35-nm default THREAT criteria",
+      "The 3-5 nm merge range"
+    ],
+    "answer": "A",
+    "explain": "Targeting range refers to the first time targeting is issued for any fighter in the element or the term TARGETED is communicated on the control net (p.68).",
+    "page": 68,
+    "topic": "targeting-range-definition"
+  },
+  {
+    "q": "If multiple GROUPs maneuver outside GROUP criteria, what naming should fighters and controllers use?",
+    "options": [
+      "The new name (e.g., ARM or CONTACT) and the previous GROUP name (e.g., LEAD GROUP or NORTH GROUP)",
+      "Only the new ARM name",
+      "Only the BULLSEYE location",
+      "A fresh sequential number for each contact"
+    ],
+    "answer": "A",
+    "explain": "If multiple GROUPs maneuver outside GROUP criteria, fighters and controllers should use the new name such as ARM or CONTACT along with the previous GROUP name such as LEAD GROUP or NORTH GROUP (p.69).",
+    "page": 69,
+    "topic": "multiple-groups-maneuver-naming"
+  },
+  {
+    "q": "When does the JOINED call occur?",
+    "options": [
+      "When two or more named GROUPs maneuver to meet and maintain GROUP criteria",
+      "When all CONTACTs remain HOT",
+      "When a GROUP maneuvers to a traditional label",
+      "When two GROUPs cross in azimuth"
+    ],
+    "answer": "A",
+    "explain": "JOINED occurs when two or more named GROUPs maneuver to meet and maintain GROUP criteria, with a new GROUP label that makes sense based on the tactical situation (p.70).",
+    "page": 70,
+    "topic": "joined-meet-group-criteria"
+  },
+  {
+    "q": "In what format do controllers respond to a BOGEY DOPE or BRAA request?",
+    "options": [
+      "Cardinal direction and range only",
+      "BRAA format with appropriate fill-ins",
+      "MGRS grid format",
+      "BULLSEYE format with track direction"
+    ],
+    "answer": "B",
+    "explain": "Controllers will respond to a BOGEY DOPE/BRAA request using the BRAA format and add appropriate fill-ins (p.71).",
+    "page": 71,
+    "topic": "bogey-dope-braa-response"
+  },
+  {
+    "q": "If a controller cannot correlate any GROUP along the aircraft's SPIKE bearing, how should they respond?",
+    "options": [
+      "With CLEAN and the bearing of the SPIKE",
+      "With MUSIC and the altitude",
+      "With the closest GROUP's BULLSEYE",
+      "With UNABLE"
+    ],
+    "answer": "A",
+    "explain": "If a controller cannot correlate any GROUP along the aircraft's SPIKE bearing or cardinal direction, they will respond with CLEAN and the bearing of the SPIKE (p.72).",
+    "page": 72,
+    "topic": "spike-no-correlation-clean-bearing"
+  },
+  {
+    "q": "What does the SEPARATION call provide?",
+    "options": [
+      "The altitude stack of a GROUP",
+      "The aspect of the closest GROUP",
+      "The bearing from ownship to a GROUP",
+      "The distance in nm between two GROUPs or WAVEs"
+    ],
+    "answer": "D",
+    "explain": "SEPARATION is a fighter request or C2 enhancing call to provide the distance in nm between two GROUPs or WAVEs, used when a fighter is ANCHORED (p.73).",
+    "page": 73,
+    "topic": "separation-distance-groups-waves"
+  },
+  {
+    "q": "What is the default THREAT criteria controllers should use, independent of aspect?",
+    "options": [
+      "5 nm",
+      "30 nm",
+      "35 nm",
+      "60 nm"
+    ],
+    "answer": "C",
+    "explain": "Controllers should use 35 nm, independent of aspect, as a default THREAT criteria (p.74).",
+    "page": 74,
+    "topic": "threat-default-35nm"
+  },
+  {
+    "q": "When communicating surface threat information to US Army or US Marine Corps rotary-wing aircraft and UAS, what format is used?",
+    "options": [
+      "BULLSEYE with altitude",
+      "BRAA from the closest fighter",
+      "Cardinal direction and range",
+      "MGRS, with an attempt to provide at least a six-digit grid"
+    ],
+    "answer": "D",
+    "explain": "When communicating with US Army or US Marine Corps rotary-wing aircraft and UAS, pass surface threat information in MGRS, attempting to provide at least a six-digit grid (p.75).",
+    "page": 75,
+    "topic": "rotary-wing-mgrs-surface-threat"
+  },
+  {
+    "q": "If a status of a FADED GROUP is requested within 1 minute of the fade and the contact was NOT continuously tracked by a fighter, how should controllers respond?",
+    "options": [
+      "With the last fighter location in a \"FADED...LAST KNOWN\" call",
+      "With \"CLEAN\" and \"[number of] CONTACTs FADED\"",
+      "By anchoring the group at its last BULLSEYE position",
+      "With \"NEGATIVE CONTACT\""
+    ],
+    "answer": "B",
+    "explain": "Unless the contact was continuously tracked by a fighter, controllers respond with \"CLEAN\" and \"[number of] CONTACTs FADED\" (p.76).",
+    "page": 76,
+    "topic": "faded-clean-contacts-response"
+  },
+  {
+    "q": "In response to a PICTURE request regarding faded contacts, what options do controllers have for reporting the number of contacts FADED?",
+    "options": [
+      "\"low,\" \"medium,\" or \"high\"",
+      "\"1,\" \"2,\" or \"multiple\"",
+      "\"single\" or \"many\"",
+      "An exact count up to ten only"
+    ],
+    "answer": "B",
+    "explain": "In response to a PICTURE request, controllers report \"1,\" \"2,\" or \"multiple\" contacts FADED, as appropriate (p.77).",
+    "page": 77,
+    "topic": "picture-faded-contact-count"
+  },
+  {
+    "q": "After a controller voices a GROUP as FADED, what responsibility do the fighters retain for that GROUP if they can maintain correlation?",
+    "options": [
+      "TARGETED responsibility",
+      "SORT responsibility",
+      "MONITOR responsibility",
+      "COVER responsibility"
+    ],
+    "answer": "C",
+    "explain": "Fighters will maintain MONITOR responsibility for a GROUP voiced FADED if they can maintain correlation (p.78).",
+    "page": 78,
+    "topic": "faded-fighter-monitor-responsibility"
+  },
+  {
+    "q": "When making a LEAKER call, what call sign should the entity use?",
+    "options": [
+      "BULLSEYE only",
+      "The package commander's call sign",
+      "The controller's call sign",
+      "Its own call sign"
+    ],
+    "answer": "D",
+    "explain": "The entity making the LEAKER call should use its own call sign (p.79).",
+    "page": 79,
+    "topic": "leaker-own-callsign"
+  },
+  {
+    "q": "In CMD PICTURE communication, which piece of information will always be included as core information?",
+    "options": [
+      "The BULLSEYE of each QUAIL",
+      "The track number of the lead COVEY",
+      "Inter-covey formation",
+      "The total number of QUAIL"
+    ],
+    "answer": "C",
+    "explain": "Inter-covey formation will always be included as core information in CMD PICTURE (p.80).",
+    "page": 80,
+    "topic": "cmd-inter-covey-formation-core"
+  },
+  {
+    "q": "When using LEADING EDGE communication in CMD PICTURE, what must the controller communicate before communicating the LEADING EDGE itself?",
+    "options": [
+      "The total number of COVEYs",
+      "The inter-covey formation",
+      "The total number of QUAIL",
+      "The priority COVEY's BULLSEYE"
+    ],
+    "answer": "A",
+    "explain": "The controller should communicate the total number of COVEYs prior to communicating the LEADING EDGE (p.81).",
+    "page": 81,
+    "topic": "cmd-leading-edge-total-coveys-first"
+  },
+  {
+    "q": "According to the A/S serialization labeling convention, what does the designator \"AA01\" represent?",
+    "options": [
+      "Attack axis number 01",
+      "ATO day 1 in area A",
+      "The first aircraft of package A",
+      "The first task of ATO day AA"
+    ],
+    "answer": "D",
+    "explain": "The labeling convention uses the ATO day and two-digit numeric sequencing, so AA01 is the first task of ATO day AA (p.83).",
+    "page": 83,
+    "topic": "as-serialization-aa01-labeling"
+  },
+  {
+    "q": "In the DLER attack briefing format, which information belongs in the \"Remarks/Restrictions\" field?",
+    "options": [
+      "Deconfliction measures, ordnance, final attack heading, and TOT windows",
+      "The Link 16 track number only",
+      "The grid location compatible with the receiving system",
+      "Target type, size, and description"
+    ],
+    "answer": "A",
+    "explain": "The DLER Remarks/Restrictions field includes deconfliction measures, ordnance, final attack heading, and TOT windows as required (p.84).",
+    "page": 84,
+    "topic": "dler-remarks-restrictions-content"
+  },
+  {
+    "q": "The read-back formats are listed from least restrictive/least radio time to most restrictive/most radio time. Which is the least restrictive option?",
+    "options": [
+      "WILCO digital response to J12.0",
+      "Voice response with task type and location",
+      "Voice response with task type, coordinates, elevation, and remarks",
+      "A full DLER voice readback"
+    ],
+    "answer": "A",
+    "explain": "The least restrictive, least radio time read-back is a WILCO digital response to J12.0 (p.85).",
+    "page": 85,
+    "topic": "readback-least-restrictive-wilco"
+  },
+  {
+    "q": "In ground threat system status terminology, what does ACTIVE mean?",
+    "options": [
+      "Land or surface activity detected via communications intelligence",
+      "The emitter is radiating, derived from electronic intelligence",
+      "Ground equipment is at the tasked target location",
+      "A threat emitter derived from an off-board source"
+    ],
+    "answer": "B",
+    "explain": "ACTIVE means the emitter is radiating, derived from electronic intelligence (p.86).",
+    "page": 86,
+    "topic": "status-active-definition"
+  },
+  {
+    "q": "In the TACREP alphanumeric designator table, what type of intelligence does the designator \"E-##\" indicate?",
+    "options": [
+      "Imagery or nonimaging infrared",
+      "Communication (air activity)",
+      "Electromagnetic",
+      "Human"
+    ],
+    "answer": "C",
+    "explain": "Per the TACREP designator table, E-## indicates Electromagnetic intelligence (p.87).",
+    "page": 87,
+    "topic": "tacrep-designator-e-electromagnetic"
+  },
+  {
+    "q": "When is TRESPASS voiced?",
+    "options": [
+      "When a friendly aircraft loses sensor data",
+      "When an aircraft is within a not-previously-known SAM MEZ or any non-SEAD aircraft crosses inside the max recommended intercept range of a known SAM",
+      "When a group fades for more than 1 minute",
+      "When a cruise missile is positively identified"
+    ],
+    "answer": "B",
+    "explain": "TRESPASS is voiced when an aircraft is within a not-previously-known SAM MEZ (e.g., a POP-UP SAM) or any non-SEAD aircraft crosses inside the maximum recommended intercept range of a known SAM (p.88).",
+    "page": 88,
+    "topic": "trespass-trigger-conditions"
+  },
+  {
+    "q": "What is the minimum accuracy for a threat reaction transmission to be considered \"high fidelity\"?",
+    "options": [
+      "A 1 nm semi-major ellipse",
+      "A 5 nm semi-major ellipse, or as mission planned",
+      "A six-digit MGRS grid",
+      "A 10 nm semi-major ellipse"
+    ],
+    "answer": "B",
+    "explain": "Minimum accuracy to consider a threat high fidelity is a 5 nm semi-major ellipse, or as mission planned (p.89).",
+    "page": 89,
+    "topic": "high-fidelity-5nm-ellipse"
+  },
+  {
+    "q": "In the F2T2EA chain, who is responsible for holding or delegating authority for aircraft or element search contracts under Find?",
+    "options": [
+      "The mission commander (MC)",
+      "The SEAD team lead",
+      "The range training officer",
+      "The SIGINT ID authority"
+    ],
+    "answer": "A",
+    "explain": "Under Find, the MC is responsible to hold or delegate authority for aircraft or element search contracts (p.90).",
+    "page": 90,
+    "topic": "find-mc-search-authority"
+  },
+  {
+    "q": "What should a controller report if they do not hold the J12.6 once a target is called TARGETABLE?",
+    "options": [
+      "\"VACANT [BULLSEYE]\"",
+      "\"HOLD [BULLSEYE]\"",
+      "\"CLEAN [BULLSEYE]\"",
+      "\"HOLLOW [BULLSEYE]\""
+    ],
+    "answer": "D",
+    "explain": "Controllers should report \"HOLLOW [BULLSEYE]\" if they do not hold the J12.6 (p.91).",
+    "page": 91,
+    "topic": "targetable-hollow-bullseye"
+  },
+  {
+    "q": "What response do assets give if they have not found the object?",
+    "options": [
+      "NO JOY",
+      "VACANT",
+      "DEADMAN",
+      "EMPTY"
+    ],
+    "answer": "A",
+    "explain": "Assets can respond with NO JOY if they have not found the object (p.92).",
+    "page": 92,
+    "topic": "no-joy-not-found"
+  },
+  {
+    "q": "Under the Assess contract, what does SUCCESSFUL indicate?",
+    "options": [
+      "Weapon impact was noted but effects were not generated",
+      "Desired weapon effects were generated",
+      "The target was not found",
+      "No visible battle damage"
+    ],
+    "answer": "B",
+    "explain": "SUCCESSFUL means desired weapon effects were generated and can be used to complete the F2T2EA chain (p.93).",
+    "page": 93,
+    "topic": "assess-successful-effects-generated"
+  },
+  {
+    "q": "Which two examples are given of fire support coordination measures?",
+    "options": [
+      "High-density airspace control zones and transit levels",
+      "Coordinating altitude and restricted operations zones",
+      "Low-level transit routes and minimum-risk routes",
+      "Restrictive fire and no-fire areas"
+    ],
+    "answer": "D",
+    "explain": "Fire support coordination measures include restrictive fire and no-fire areas (p.1).",
+    "page": 1,
+    "topic": "fire-support-coordination-measures"
+  },
+  {
+    "q": "According to the ACC publication, which Service has no TAC C2 capable entities?",
+    "options": [
+      "Navy",
+      "Marine Corps",
+      "Army",
+      "Air Force"
+    ],
+    "answer": "C",
+    "explain": "Among the TAC C2 capable entities by Service, the Army is listed as None (p.2).",
+    "page": 2,
+    "topic": "army-no-tac-c2"
+  },
+  {
+    "q": "During peacetime operations, the surface warfare commander and antisubmarine warfare commander are often combined into which single warfare commander?",
+    "options": [
+      "The sea combat commander",
+      "The information operations warfare commander",
+      "The strike warfare commander",
+      "The air and missile warfare commander"
+    ],
+    "answer": "A",
+    "explain": "During peacetime operations, the surface warfare commander and antisubmarine warfare commanders are often combined into a single warfare commander, the sea combat commander (p.3).",
+    "page": 3,
+    "topic": "sea-combat-commander-combination"
+  },
+  {
+    "q": "According to the Communication Priorities table, what is the number one priority for air communication?",
+    "options": [
+      "Flight safety and aircraft emergencies",
+      "DEFENDING, SPIKE, and THREAT calls",
+      "KILL verification",
+      "PICTURE or fill-ins"
+    ],
+    "answer": "A",
+    "explain": "Table 1 lists flight safety and aircraft emergencies as priority 1 for air communication (p.5).",
+    "page": 5,
+    "topic": "comm-priority-1-flight-safety"
+  },
+  {
+    "q": "What is the purpose of the check-in procedure?",
+    "options": [
+      "To assign new mission numbers to flights after launch",
+      "To establish contact, allow the airspace element to establish accountability of the airborne asset, and pass critical information before handoff to a final mission controller",
+      "To deconflict ground fires from aircraft transit routes",
+      "To terminate radar coverage of returning forces"
+    ],
+    "answer": "B",
+    "explain": "The purpose of check-in is to establish contact, allow the airspace element to establish accountability of the airborne asset, and pass critical information before handoff to a final mission controller (p.6).",
+    "page": 6,
+    "topic": "check-in-purpose"
+  },
+  {
+    "q": "When checking in with the final controller, what assumption is made about the on-coming aircraft?",
+    "options": [
+      "The aircraft is assumed to be JACKAL SOUR",
+      "The aircraft is assumed to require a full position update",
+      "The aircraft is assumed to be TACADMIN complete",
+      "The aircraft is assumed to need a MICKEY"
+    ],
+    "answer": "C",
+    "explain": "When checking in with the final controller, the on-coming aircraft is assumed to be TACADMIN complete (p.7).",
+    "page": 7,
+    "topic": "final-controller-tacadmin-complete"
+  },
+  {
+    "q": "Per Table 2, what is the preferred primary digital means for verifying WORDS were received?",
+    "options": [
+      "J12.0",
+      "J3.5",
+      "J28.2",
+      "J35.1"
+    ],
+    "answer": "C",
+    "explain": "Check-in procedures call for verifying WORDS received via digital means (e.g., primary J28.2) or voice (p.8).",
+    "page": 8,
+    "topic": "words-verify-j28-2"
+  },
+  {
+    "q": "Which of the following deviations should always be communicated by aircrew and controllers at check-in?",
+    "options": [
+      "A change in the number of aircraft, such as a three-ship when four-ships were anticipated",
+      "The assigned BULLSEYE location",
+      "The current WORDS designator",
+      "The HOME PLATE recovery weather"
+    ],
+    "answer": "A",
+    "explain": "Deviations that should always be communicated at check-in include the number of aircraft (e.g., a three-ship flight when four-ships are anticipated) (p.9).",
+    "page": 9,
+    "topic": "deviation-number-of-aircraft"
+  },
+  {
+    "q": "How should unmanned aircraft systems (UAS) check in with TAC C2?",
+    "options": [
+      "By relaying through a manned flight lead",
+      "Only via Link 16 PPLI",
+      "Via tactical chat using the same format as other aircraft",
+      "Via the track supervision net"
+    ],
+    "answer": "C",
+    "explain": "Unmanned aircraft systems should check in with TAC C2 via tactical chat using the same format (p.10).",
+    "page": 10,
+    "topic": "uas-check-in-tactical-chat"
+  },
+  {
+    "q": "Per the J3.5 Track Identification Plan, a Downed Aircraft event is represented as which track type?",
+    "options": [
+      "Neutral radar site",
+      "Friendly troop concentration search and rescue",
+      "J3.1 downed aircraft (bailout or pilot in water)",
+      "Hostile ballistic missile firing"
+    ],
+    "answer": "C",
+    "explain": "In Table 4, a Downed Aircraft is represented as 'J3.1 downed aircraft (bailout or pilot in water)' (p.11).",
+    "page": 11,
+    "topic": "j35-downed-aircraft-j31"
+  },
+  {
+    "q": "How are WORDS designated and numbered?",
+    "options": [
+      "By aircraft mission number",
+      "By ATO day, numbered sequentially, and established and deleted individually",
+      "By geographic grid coordinate",
+      "By threat warning condition"
+    ],
+    "answer": "B",
+    "explain": "WORDS are designated by ATO day, numbered sequentially, and established and deleted individually; e.g., WORDS AA01 is the first WORDS on ATO day 'AA' (p.12).",
+    "page": 12,
+    "topic": "words-designation-ato-day"
+  },
+  {
+    "q": "What is required for successful HAVE QUICK II/SATURN between communicators?",
+    "options": [
+      "A valid IFF mode 5 response",
+      "A completed Link 16 fidelity check",
+      "A synchronized time-of-day (TOD) signal, MICKEY",
+      "An ALPHA CHECK within 3 nm"
+    ],
+    "answer": "C",
+    "explain": "Successful HAVE QUICK II/SATURN requires a synchronized time-of-day (TOD) signal, MICKEY, between all communicators (p.13).",
+    "page": 13,
+    "topic": "have-quick-mickey-tod"
+  },
+  {
+    "q": "For a voice fighter INFLTREP, how will controllers respond as a read back?",
+    "options": [
+      "\"CONTACT (CALLSIGN), ALPHA CHECK\"",
+      "\"GOOD ZAP (CALLSIGN MISSION NUMBER), LINE 3 DETAILS\"",
+      "\"ROLL CALL (CALLSIGN), MIN FORCES MET\"",
+      "\"COPY (CALLSIGN MISSION NUMBER), LINE 3 DETAILS\""
+    ],
+    "answer": "D",
+    "explain": "For voice, controllers will respond 'COPY (CALLSIGN MISSION NUMBER), LINE 3 DETAILS' (p.14).",
+    "page": 14,
+    "topic": "infltrep-voice-readback-copy"
+  },
+  {
+    "q": "Which publication provides the example of a non-fighter INFLTREP referenced in Table 7?",
+    "options": [
+      "JP 3-09.3, Close Air Support",
+      "JP 3-01, Countering Air and Missile Threats",
+      "JP 3-30, Joint Air Operations",
+      "JP 3-52, Joint Airspace Control"
+    ],
+    "answer": "A",
+    "explain": "JP 3-09.3, Close Air Support, provides an example of a non-fighter INFLTREP for reference, as depicted in Table 7 (p.15).",
+    "page": 15,
+    "topic": "infltrep-nonfighter-jp3093"
+  },
+  {
+    "q": "During the Return to Base/Returning Forces phase, what should the TAC C2 check-in controller verify prior to friendly missile engagement zone (MEZ) entry?",
+    "options": [
+      "That aircraft have passed a roll call",
+      "That aircraft are SQUAWKING appropriate modes and codes",
+      "That aircraft have received the LOWDOWN",
+      "That aircraft have completed a fidelity check"
+    ],
+    "answer": "B",
+    "explain": "TAC C2 should verify aircraft are SQUAWKING appropriate modes and codes prior to friendly missile engagement zone (MEZ) entry (p.16).",
+    "page": 16,
+    "topic": "rtb-squawk-prior-mez"
+  },
+  {
+    "q": "What are considerations for finding the bottom altitude of a stack when using procedural control?",
+    "options": [
+      "Weather, threats, and terrain",
+      "Fuel state, ordnance, and abort code",
+      "Call sign, mission number, and PLAYTIME",
+      "IFF modes and link fidelity"
+    ],
+    "answer": "A",
+    "explain": "Weather, threats, and terrain are considerations for finding the bottom altitude of a stack (p.17).",
+    "page": 17,
+    "topic": "stack-bottom-altitude-considerations"
+  },
+  {
+    "q": "What are the two techniques given for ensuring the required minimum forces are ready?",
+    "options": [
+      "An INFLTREP or a WORDS update",
+      "A LOWDOWN or a MICKEY",
+      "A fidelity check or an ALPHA CHECK",
+      "A TAC C2-provided update or a roll call"
+    ],
+    "answer": "D",
+    "explain": "Two techniques for force package accountability are a TAC C2-provided update or a roll call (p.19).",
+    "page": 19,
+    "topic": "force-accountability-two-techniques"
+  },
+  {
+    "q": "When communicating with US Army or US Marine Corps rotary-wing and UAS, how should surface threat information be passed, if known?",
+    "options": [
+      "Via Link 16 PPLI only",
+      "In BULLSEYE format only",
+      "In MGRS, with at least a six-digit grid",
+      "In latitude/longitude only"
+    ],
+    "answer": "C",
+    "explain": "When communicating with US Army or US Marine Corps rotary-wing and UAS, pass surface threat information in MGRS, if known, attempting to provide at least a six-digit grid (p.20).",
+    "page": 20,
+    "topic": "lowdown-army-usmc-mgrs"
+  },
+  {
+    "q": "In a LOWDOWN, short-range air defense (SHORAD) or tactical SAMs are included if they have been ACTIVE or AWAKE within what timeframe?",
+    "options": [
+      "Within the last 30 minutes",
+      "At any time during the mission",
+      "Within the last hour",
+      "Within the last 2 hours"
+    ],
+    "answer": "C",
+    "explain": "SHORAD or tactical SAMs ACTIVE or AWAKE within the last hour may be included in a LOWDOWN (p.21).",
+    "page": 21,
+    "topic": "lowdown-shorad-last-hour"
+  },
+  {
+    "q": "Original TOT is 1500Z. TAC C2 hears \"HARDROCK, HOSS 1, SLIP TOT 9 MINUTES.\" What is the new TOT?",
+    "options": [
+      "1515Z",
+      "1500Z",
+      "1506Z",
+      "1509Z"
+    ],
+    "answer": "D",
+    "explain": "SLIP is not additive, so SLIP TOT 9 MINUTES sets the new TOT to 1509Z (p.22).",
+    "page": 22,
+    "topic": "slip-tot-not-additive"
+  },
+  {
+    "q": "Before pushing assets to the tactical frequency during a lane handover, what should TAC C2 do?",
+    "options": [
+      "Confirm fuel states are GREEN",
+      "Repeat CHATTERMARK three times",
+      "Issue a ROLEX to all flights",
+      "Pass big-picture information to the on-coming lane commander"
+    ],
+    "answer": "D",
+    "explain": "TAC C2 should pass big-picture information to the on-coming lane commander before pushing assets to the tactical frequency (p.23).",
+    "page": 23,
+    "topic": "lane-handover-big-picture"
+  },
+  {
+    "q": "Unless otherwise briefed, how is a YELLOW fuel/weapons status defined?",
+    "options": [
+      "A status sufficient to continue the mission indefinitely",
+      "A status requiring immediate return to base",
+      "A status approaching a level insufficient to continue execution of the mission",
+      "A status insufficient to continue execution of the mission"
+    ],
+    "answer": "C",
+    "explain": "YELLOW means the aircraft is at a weapon and/or fuel status approaching a level insufficient to continue mission execution (p.24).",
+    "page": 24,
+    "topic": "fuel-weapons-yellow-definition"
+  },
+  {
+    "q": "If a controller cannot determine the number of CONTACTs in a GROUP but assesses three or more, what fill-in is used?",
+    "options": [
+      "MANY",
+      "STACK",
+      "HEAVY",
+      "BULK"
+    ],
+    "answer": "C",
+    "explain": "If unable to determine the number of CONTACTs but assessed to be three or more, controllers will only use the fill-in HEAVY (p.25).",
+    "page": 25,
+    "topic": "group-heavy-fillin"
+  },
+  {
+    "q": "What is the primary method to communicate a GROUP's location?",
+    "options": [
+      "BULLSEYE",
+      "GEOREF",
+      "Link ID",
+      "BRAA"
+    ],
+    "answer": "A",
+    "explain": "BULLSEYE is the primary method to communicate the GROUP location (p.26).",
+    "page": 26,
+    "topic": "group-location-bullseye-primary"
+  },
+  {
+    "q": "Which format will controllers use when providing a THREAT call to an aircraft?",
+    "options": [
+      "BRAA format",
+      "Link ID format",
+      "GEOREF format",
+      "BULLSEYE format"
+    ],
+    "answer": "A",
+    "explain": "Controllers will use the BRAA format when providing a THREAT call to an aircraft (p.27).",
+    "page": 27,
+    "topic": "threat-call-braa-format"
+  },
+  {
+    "q": "When may a controller voice \"LAST\" after an altitude?",
+    "options": [
+      "When the GROUP is within 5 nm of BULLSEYE",
+      "When two GROUPs share the same altitude",
+      "When the altitude exceeds 40,000 feet",
+      "When sensors have lost altitude data on a track but the controller has reported or offboard data for a last known altitude, up to 30 seconds after report"
+    ],
+    "answer": "D",
+    "explain": "Controllers may voice \"LAST\" after the altitude when sensors have lost altitude data but a last known altitude is available, up to 30 seconds after report (p.28).",
+    "page": 28,
+    "topic": "altitude-last"
+  },
+  {
+    "q": "Which specific aspects must be accompanied by a cardinal or sub-cardinal direction?",
+    "options": [
+      "FLANK, BEAM, and DRAG",
+      "HOT and FLANK only",
+      "HOT, BEAM, and DRAG",
+      "HOT, FLANK, and BEAM"
+    ],
+    "answer": "A",
+    "explain": "FLANK, BEAM, and DRAG are accompanied with a cardinal/sub-cardinal direction (e.g., DRAG EAST) (p.29).",
+    "page": 29,
+    "topic": "aspect-cardinal-flank-beam-drag"
+  },
+  {
+    "q": "As a fill-in, the term HIGH indicates a contact at what altitude?",
+    "options": [
+      "Greater than 30,000 feet MSL",
+      "Greater than 40,000 feet MSL",
+      "Greater than 50,000 feet MSL",
+      "Greater than 25,000 feet MSL"
+    ],
+    "answer": "B",
+    "explain": "HIGH means the contact is greater than 40,000 feet mean sea level and can be used as a fill-in (p.30).",
+    "page": 30,
+    "topic": "high-fillin-40000"
+  },
+  {
+    "q": "What does the fill-in VERY FAST indicate?",
+    "options": [
+      "Target speed greater than 900 knots or 1.5 mach",
+      "Target speed greater than 1.5 mach only above 40,000 feet",
+      "Target speed of 660-900 knots or 1.1-1.5 mach",
+      "Target speed greater than 660 knots or 1.1 mach"
+    ],
+    "answer": "A",
+    "explain": "VERY FAST is a target speed greater than 900 knots or 1.5 mach (p.31).",
+    "page": 31,
+    "topic": "very-fast-speed-definition"
+  },
+  {
+    "q": "When must controllers add the IMPACT time to FRIENDLY surface-to-air fires?",
+    "options": [
+      "When fighters are in COLD operations",
+      "When operating in a joint engagement zone or fighter engagement zone",
+      "Whenever a PICTURE is called",
+      "When a GROUP is declared HOSTILE"
+    ],
+    "answer": "B",
+    "explain": "Controllers will add the IMPACT time to any FRIENDLY surface-to-air fires when operating in a joint engagement zone or fighter engagement zone (p.32).",
+    "page": 32,
+    "topic": "impact-time-jez-fez"
+  },
+  {
+    "q": "Which of the following will NOT be included in the PICTURE or total number of GROUPs?",
+    "options": [
+      "BOGEY GROUPs",
+      "FRIENDLY, NEUTRAL, STRANGERs, and nonparticipating GROUPs",
+      "BANDIT GROUPs",
+      "HOSTILE GROUPs"
+    ],
+    "answer": "B",
+    "explain": "FRIENDLY, NEUTRAL, STRANGERs, and nonparticipating GROUPs are not included in the PICTURE or total number of GROUPs (p.33).",
+    "page": 33,
+    "topic": "picture-exclusions"
+  },
+  {
+    "q": "When should the SMA PICTURE be given?",
+    "options": [
+      "After fighter check-in, prior to the initial picture",
+      "After the initial picture",
+      "Only after a NEW PICTURE is called",
+      "During the lane handover sequence"
+    ],
+    "answer": "A",
+    "explain": "The SMA picture should be given after fighter check-in, prior to the initial picture (p.34).",
+    "page": 34,
+    "topic": "sma-picture-timing"
+  },
+  {
+    "q": "If an SMA PICTURE is passed via non-secure communications, what should be used for identification?",
+    "options": [
+      "Applicable code words",
+      "BRAA format",
+      "Track numbers only",
+      "NATO designators"
+    ],
+    "answer": "A",
+    "explain": "If the SMA PICTURE is passed via non-secure communications, applicable code words should be used; NATO designators are used over secure communications (p.35).",
+    "page": 35,
+    "topic": "sma-nonsecure-codewords"
+  },
+  {
+    "q": "What is an anchor in the context of a PICTURE?",
+    "options": [
+      "The lowest-priority GROUP in the picture",
+      "A BULLSEYE used to establish the PICTURE and aid in fighter targeting",
+      "A GEOREF used for surface fires",
+      "A BRAA reference to a friendly fighter"
+    ],
+    "answer": "B",
+    "explain": "An anchor is a BULLSEYE used to establish the PICTURE and aid in fighter targeting (p.36).",
+    "page": 36,
+    "topic": "anchor-definition"
+  },
+  {
+    "q": "Which of the following is one of the most common amplifying remarks that follows the dimensions of a traditional PICTURE?",
+    "options": [
+      "WEIGHTED",
+      "DRAG",
+      "MANEUVER",
+      "HEAVY"
+    ],
+    "answer": "A",
+    "explain": "OPENING/CLOSING, TRACK, WEIGHTED, and ECHELON are the most common amplifying remarks (p.37).",
+    "page": 37,
+    "topic": "amplifying-remarks-common"
+  },
+  {
+    "q": "What is the correct order of PICTURE amplification?",
+    "options": [
+      "TRACK, ECHELON, WEIGHTED, OPENING/CLOSING",
+      "OPENING/CLOSING, WEIGHTED, ECHELON, TRACK direction",
+      "ECHELON, TRACK, WEIGHTED, OPENING/CLOSING",
+      "WEIGHTED, OPENING/CLOSING, TRACK, ECHELON"
+    ],
+    "answer": "B",
+    "explain": "PICTURE amplification order is OPENING/CLOSING, WEIGHTED, ECHELON, then TRACK direction (p.38).",
+    "page": 38,
+    "topic": "picture-amplification-order"
+  },
+  {
+    "q": "A PICTURE is considered WEIGHTED under what condition?",
+    "options": [
+      "Only one BOGEY GROUP is in the operating area",
+      "One or more GROUPs are offset so the distances between GROUPs are not equidistant",
+      "All GROUPs are HOT along the fight axis",
+      "The depth between GROUPs is less than 5 nm"
+    ],
+    "answer": "B",
+    "explain": "The PICTURE is WEIGHTED if one or more GROUPs are offset, meaning the distances between GROUPs are not equidistant (p.39).",
+    "page": 39,
+    "topic": "weighted-offset-condition"
+  },
+  {
+    "q": "When applying ECHELON, how is the distance between GROUPs passed?",
+    "options": [
+      "As SEPARATION",
+      "As OFFSET",
+      "As WIDE",
+      "As DEPTH"
+    ],
+    "answer": "A",
+    "explain": "The distance between GROUPs will be passed as SEPARATION (p.41).",
+    "page": 41,
+    "topic": "echelon-distance-as-separation"
+  },
+  {
+    "q": "In a PICTURE, when is track direction assumed without the controller voicing it?",
+    "options": [
+      "When only a SINGLE GROUP is present",
+      "When GROUPs share any common track direction",
+      "When all GROUPs are COLD",
+      "When all GROUPs are HOT along the fight axis"
+    ],
+    "answer": "D",
+    "explain": "If all GROUPs in a PICTURE are HOT along the fight axis, track direction is assumed (p.44).",
+    "page": 44,
+    "topic": "track-direction-assumed-hot"
+  },
+  {
+    "q": "When is the label SINGLE GROUP used?",
+    "options": [
+      "When three or more GROUPs are separated in AZIMUTH",
+      "When exactly two GROUPs are detected in RANGE",
+      "When GROUPs cannot fit a traditional label",
+      "When one known BOGEY/BANDIT/HOSTILE GROUP is detected in an operating area"
+    ],
+    "answer": "D",
+    "explain": "The label SINGLE GROUP is used only when one known BOGEY/BANDIT/HOSTILE GROUP is detected in an operating area, and all information is passed as core information (p.46).",
+    "page": 46,
+    "topic": "single-group-definition"
+  },
+  {
+    "q": "Which label is used if depth is equal to or less than 5 nm or CLOSING inside of 5 nm?",
+    "options": [
+      "VIC",
+      "CHAMPAGNE",
+      "WALL",
+      "LADDER"
+    ],
+    "answer": "C",
+    "explain": "WALL is the label used if depth is equal to or less than 5 nm or CLOSING inside of 5 nm (p.47).",
+    "page": 47,
+    "topic": "wall-depth-criteria"
+  },
+  {
+    "q": "A WALL is defined as how many GROUPs in what relationship?",
+    "options": [
+      "Four GROUPs separated in RANGE",
+      "THREE GROUPs or more separated in AZIMUTH",
+      "Three GROUPs with two in AZIMUTH and one in RANGE",
+      "Two GROUPs in RANGE"
+    ],
+    "answer": "B",
+    "explain": "A WALL is THREE GROUPs or more separated in AZIMUTH (p.48).",
+    "page": 48,
+    "topic": "wall-definition"
+  },
+  {
+    "q": "In a WALL with more than five GROUPs, which GROUP is always closest to the first anchored outrigger GROUP?",
+    "options": [
+      "The MIDDLE GROUP",
+      "The SECOND GROUP",
+      "The THIRD GROUP",
+      "The TRAIL GROUP"
+    ],
+    "answer": "B",
+    "explain": "The SECOND GROUP will always be closest to the first anchored outrigger GROUP (p.49).",
+    "page": 49,
+    "topic": "wall-second-group-anchor"
+  },
+  {
+    "q": "In describing a CHAMPAGNE, which dimension term is used first?",
+    "options": [
+      "WIDE, to describe the AZIMUTH dimension",
+      "SEPARATION, to describe the echelon",
+      "WEIGHTED, to describe the offset",
+      "DEEP, to describe the RANGE dimension"
+    ],
+    "answer": "A",
+    "explain": "For a CHAMPAGNE, the term WIDE is used first to describe the AZIMUTH dimension and DEEP is used second for the RANGE dimension (p.50).",
+    "page": 50,
+    "topic": "champagne-wide-first"
+  },
+  {
+    "q": "In a VIC, how are the two GROUPs in RANGE named?",
+    "options": [
+      "LEAD GROUPS with a cardinal direction descriptor",
+      "SECOND and THIRD GROUP",
+      "TRAIL GROUPS with a cardinal direction descriptor",
+      "MIDDLE GROUPs"
+    ],
+    "answer": "C",
+    "explain": "In a VIC, the GROUP closest to the fighters is the LEAD GROUP and the two GROUPs in RANGE are named the TRAIL GROUPS with a cardinal direction descriptor (p.51).",
+    "page": 51,
+    "topic": "vic-trail-groups-naming"
+  },
+  {
+    "q": "In a BOX, how are GROUPs voiced?",
+    "options": [
+      "In order of altitude",
+      "Always east to west",
+      "Always from nearest to farthest GROUP",
+      "Clockwise or counterclockwise, based on anchoring priorities of the lead groups"
+    ],
+    "answer": "D",
+    "explain": "In a BOX, GROUPs will be voiced clockwise or counterclockwise, based on anchoring priorities of the lead groups (p.52).",
+    "page": 52,
+    "topic": "box-voicing-order"
+  },
+  {
+    "q": "In a LADDER with more than three GROUPs, what are the GROUP names?",
+    "options": [
+      "NORTH GROUP, MIDDLE GROUP, SOUTH GROUP",
+      "FIRST GROUP through LAST GROUP by cardinal direction",
+      "LEAD GROUP, MIDDLE GROUP, TRAIL GROUP, REAR GROUP",
+      "LEAD GROUP, SECOND GROUP, THIRD GROUP, TRAIL GROUP"
+    ],
+    "answer": "D",
+    "explain": "When there are more than three GROUPs in a LADDER, the GROUP names are LEAD GROUP, SECOND GROUP, THIRD GROUP, TRAIL GROUP (p.53).",
+    "page": 53,
+    "topic": "ladder-more-than-three-naming"
+  },
+  {
+    "q": "Which of the following is a stated reason to apply LEADING-EDGE communication?",
+    "options": [
+      "When only a SINGLE GROUP is detected",
+      "When all GROUPs in an operating area do not fit a traditional label",
+      "When two PACKAGES are in separate lanes",
+      "When all GROUPs are HOT along the fight axis"
+    ],
+    "answer": "B",
+    "explain": "LEADING-EDGE communication is applied when all GROUPs in an operating area do not fit a traditional label, to minimize radio transmission, and to facilitate rapid targeting of priority GROUPs (p.54).",
+    "page": 54,
+    "topic": "leading-edge-application"
+  },
+  {
+    "q": "If PACKAGE bounding limits are defined by a known geographic boundary, what may controllers use to describe the relationship between PACKAGES?",
+    "options": [
+      "BULLSEYE",
+      "WAVE communication",
+      "GEOREF",
+      "ECHELON"
+    ],
+    "answer": "C",
+    "explain": "If bounding limits are defined by a known geographic boundary, controllers may use GEOREF to describe the relationship between PACKAGES (p.56).",
+    "page": 56,
+    "topic": "package-georef-boundary"
+  },
+  {
+    "q": "When is the term NEW PICTURE used as opposed to PICTURE?",
+    "options": [
+      "When fighters are COLD",
+      "When fighters are ANCHORED",
+      "When fighters are MERGED",
+      "When fighters are HOT"
+    ],
+    "answer": "D",
+    "explain": "The term NEW PICTURE will be used when fighters are HOT, while fighters executing COLD operations will request a PICTURE (p.57).",
+    "page": 57,
+    "topic": "new-picture-hot-fighters"
+  },
+  {
+    "q": "What drives the shift in communication priorities between controllers and fighters during an intercept?",
+    "options": [
+      "The data link bandwidth available",
+      "The seniority of the flight lead",
+      "Whichever asset transmitted last",
+      "Which asset has the most SA to communicate time-sensitive information"
+    ],
+    "answer": "D",
+    "explain": "Priorities shift based on what asset has the most SA to communicate time-sensitive information (p.59).",
+    "page": 59,
+    "topic": "comm-priority-shift-sa"
+  },
+  {
+    "q": "Which is listed as a COMMIT criteria consideration during mission planning?",
+    "options": [
+      "Fuel state of the tanker",
+      "Weapon employment based (e.g., employ at first available employment range)",
+      "Number of available controllers",
+      "Cloud ceiling over the target area"
+    ],
+    "answer": "B",
+    "explain": "COMMIT criteria considerations include range based, location based, threat based, and weapon employment based, such as allowing fighters to employ at their first available employment range (p.60).",
+    "page": 60,
+    "topic": "commit-criteria-considerations"
+  },
+  {
+    "q": "What does a fighter indicate by calling TARGETED on a specified GROUP?",
+    "options": [
+      "That the fighter is maintaining awareness of and responsibility for the specified group",
+      "That the fighter has fired on the group",
+      "That the fighter has merged with the group",
+      "That the group has been declared HOSTILE"
+    ],
+    "answer": "A",
+    "explain": "A fighter that has called TARGETED indicates that fighter is maintaining awareness of and responsibility for the specified group (p.61).",
+    "page": 61,
+    "topic": "targeted-meaning"
+  },
+  {
+    "q": "When does a controller provide a QC TARGETING response?",
+    "options": [
+      "After every fighter targeting call regardless of correlation",
+      "Only when the fighter requests confirmation",
+      "When fighter targeted communication does not correlate to a known group, match briefed shot doctrine, or to correct fighter misperception",
+      "Only when a data link dropout occurs"
+    ],
+    "answer": "C",
+    "explain": "Controllers respond with QC comparative communication when fighter targeted communication does not correlate to a known group, match briefed shot doctrine, or to correct misperception; if all information correlates, no response is provided (p.62).",
+    "page": 62,
+    "topic": "qc-targeting-trigger"
+  },
+  {
+    "q": "After the tactical picture has been labeled, what may a DECLARE request use instead of the BULLSEYE location?",
+    "options": [
+      "The MGRS grid",
+      "The BRAA range",
+      "The GROUP name",
+      "The fighter's heading"
+    ],
+    "answer": "C",
+    "explain": "When a declaration request is made after the tactical picture has been labeled, the GROUP name can be used instead of the BULLSEYE location (p.63).",
+    "page": 63,
+    "topic": "declare-group-name-after-label"
+  },
+  {
+    "q": "Which is one of the three components to communicating each GROUP maneuver?",
+    "options": [
+      "Recognizing the maneuver",
+      "Calling BANZAI",
+      "Issuing a TAC RANGE call",
+      "Requesting a DECLARE"
+    ],
+    "answer": "A",
+    "explain": "The three components to each maneuver are recognizing the maneuver, communicating the relationship of the maneuver, and updating GROUP names/altitude (p.64).",
+    "page": 64,
+    "topic": "maneuver-three-components"
+  },
+  {
+    "q": "Which call communicates that no CONTACTs are remaining HOT after a maneuver?",
+    "options": [
+      "MANEUVER AZIMUTH",
+      "MANEUVER SPREAD",
+      "MANEUVER RANGE",
+      "MANEUVER RANGE AND AZIMUTH"
+    ],
+    "answer": "A",
+    "explain": "Communicate MANEUVER AZIMUTH if all CONTACTs BEAM/DRAG with no CONTACTs remaining FLANK/HOT, indicating no CONTACTs remaining HOT (p.65).",
+    "page": 65,
+    "topic": "maneuver-azimuth-none-hot"
+  },
+  {
+    "q": "If maneuvers occur inside the targeting range, which option is available to the controller?",
+    "options": [
+      "Use UNTARGETED for the highest factor GROUP, ARM, or CONTACT not being TARGETED",
+      "Always issue a full NEW PICTURE",
+      "Cancel all targeting contracts",
+      "Switch to BULLSEYE-only labeling"
+    ],
+    "answer": "A",
+    "explain": "Inside the targeting range, controllers can update each CONTACT with a new name, use UNTARGETED for the highest factor GROUP/ARM/CONTACT not being TARGETED, issue targeting per the game plan, or provide an abbreviated NEW PICTURE (p.68).",
+    "page": 68,
+    "topic": "inside-targeting-range-options"
+  },
+  {
+    "q": "Two GROUPs with an AZIMUTH relationship maneuver to opposite sides in an AZIMUTH relationship. Which call applies?",
+    "options": [
+      "CROSSING",
+      "PASSING",
+      "MANEUVER AZIMUTH",
+      "JOINED"
+    ],
+    "answer": "A",
+    "explain": "CROSSING is two GROUPs with an AZIMUTH relationship maneuvering to opposite sides in an AZIMUTH relationship, and is an informative call using the original PICTURE GROUP names (p.69).",
+    "page": 69,
+    "topic": "crossing-azimuth-relationship"
+  },
+  {
+    "q": "What is a BOGEY DOPE request?",
+    "options": [
+      "A request for information relative to ownship position on an indicated or closest GROUP to build/enhance fighter SA",
+      "A call indicating no sensor information on a GROUP",
+      "A directive call to commit on a GROUP",
+      "An interrogative call to declare a GROUP"
+    ],
+    "answer": "A",
+    "explain": "BOGEY DOPE is a request for information relative to ownship position on an indicated GROUP, or closest GROUP if not indicated, to build or enhance fighter SA (p.70).",
+    "page": 70,
+    "topic": "bogey-dope-definition"
+  },
+  {
+    "q": "How will a controller respond to a STROBE call?",
+    "options": [
+      "With MGRS grid coordinates",
+      "By anchoring the GROUP off BULLSEYE",
+      "With range, altitude, aspect (HOT assumed), declaration, and GROUP name (if applicable) to the closest GROUP along that line of bearing",
+      "With BULLSEYE, altitude, and track direction"
+    ],
+    "answer": "C",
+    "explain": "Controllers respond to STROBE calls with range, altitude, aspect with HOT assumed, declaration, and GROUP name if applicable to the closest GROUP along that line of bearing (p.71).",
+    "page": 71,
+    "topic": "strobe-response-format"
+  },
+  {
+    "q": "Does a METALLICA call relieve a fighter of targeting responsibility for a GROUP?",
+    "options": [
+      "Yes, it transfers responsibility to the controller",
+      "Only if the controller acknowledges it",
+      "No, METALLICA does not alleviate fighter targeting responsibility for a GROUP",
+      "Yes, until the EA ceases"
+    ],
+    "answer": "C",
+    "explain": "METALLICA does not alleviate fighter targeting responsibility for a GROUP, and controllers are not required to respond to it (p.72).",
+    "page": 72,
+    "topic": "metallica-no-relief-targeting"
+  },
+  {
+    "q": "What should ANCHORED or STANDBY calls include if the GROUP does not have a name?",
+    "options": [
+      "The MGRS grid",
+      "The fighter's altitude",
+      "The BULLSEYE location",
+      "The BRAA range from ownship"
+    ],
+    "answer": "C",
+    "explain": "ANCHORED or STANDBY calls should include the BULLSEYE location if the GROUP does not have a name (p.73).",
+    "page": 73,
+    "topic": "anchored-standby-bullseye"
+  },
+  {
+    "q": "No later than when is the THREAT call completed?",
+    "options": [
+      "No later than threat range",
+      "No later than the merge",
+      "No later than 60 nm",
+      "No later than the COMMIT"
+    ],
+    "answer": "A",
+    "explain": "The THREAT call is completed no later than threat range (p.74).",
+    "page": 74,
+    "topic": "threat-call-no-later-than-range"
+  },
+  {
+    "q": "What term may fighters use to warn other flights or elements when TARGETED GROUPs maneuver and appear to meet THREAT criteria to them?",
+    "options": [
+      "TRESPASS",
+      "TARGETED BY",
+      "BANZAI",
+      "HEADS UP"
+    ],
+    "answer": "D",
+    "explain": "Fighters may use the term HEADS UP to other flights or elements when TARGETED GROUPs maneuver and appear to meet THREAT criteria to the other flight or element (p.75).",
+    "page": 75,
+    "topic": "heads-up-cross-court-warning"
+  },
+  {
+    "q": "Which set of brevity terms can a friendly element use to indicate a COLD flow in relation to the enemy?",
+    "options": [
+      "FENCE, GROOM, SPIKE, or STROBE",
+      "EXIT, OUT, ABORT, COLD, or FLOW",
+      "NAILS, MUD, SINGER, or BUDDY",
+      "BUGOUT, SEPARATE, BREAK, or PUMP"
+    ],
+    "answer": "B",
+    "explain": "A COLD flow is indicated via EXIT, OUT, ABORT, COLD, or FLOW (p.76).",
+    "page": 76,
+    "topic": "cold-flow-indicator-terms"
+  },
+  {
+    "q": "Why should controllers not anchor a group previously called FADED if the elapsed time since the fade exceeds 1 minute?",
+    "options": [
+      "Due to system limitations and degradations in sensor SA",
+      "Because the BULLSEYE reference becomes invalid",
+      "Because the group is automatically reclassified as VANISHED",
+      "Because friendly fighters assume MONITOR responsibility"
+    ],
+    "answer": "A",
+    "explain": "Controllers should not anchor a group FADED more than 1 minute prior due to system limitations and degradations in sensor SA (p.77).",
+    "page": 77,
+    "topic": "faded-no-anchor-rationale"
+  },
+  {
+    "q": "In training, when GROUPs are called DEAD by an RTO or a GROUP acknowledges a KILL call, what term do controllers use in response to DECLARE/STATUS requests to prevent erroneous targeting?",
+    "options": [
+      "VANISHED",
+      "CLEAN",
+      "FADED",
+      "DEADMAN"
+    ],
+    "answer": "A",
+    "explain": "In training, controllers use VANISHED in response to DECLARE/STATUS requests for GROUPs called DEAD or acknowledging a KILL, to prevent erroneous targeting (p.78).",
+    "page": 78,
+    "topic": "vanished-training-dead-groups"
+  },
+  {
+    "q": "How does a LANE CROSSER differ from a LANE RIDER?",
+    "options": [
+      "A LANE CROSSER stays on the dividing line",
+      "A LANE CROSSER maneuvers into different areas of targeting responsibility",
+      "A LANE CROSSER is a positively identified cruise missile",
+      "A LANE CROSSER is always targeted by integrated fires"
+    ],
+    "answer": "B",
+    "explain": "A LANE CROSSER is a GROUP that maneuvers into different areas of targeting responsibility (p.79).",
+    "page": 79,
+    "topic": "lane-crosser-definition"
+  },
+  {
+    "q": "In CMD PICTURE communication for positively identified cruise missiles, the terms \"GROUP\" and \"CONTACT\" are replaced with which terms, respectively?",
+    "options": [
+      "WAVE and ARM",
+      "FLIGHT and BIRD",
+      "COVEY and QUAIL",
+      "PACK and ROUND"
+    ],
+    "answer": "C",
+    "explain": "When referring to positively identified cruise missiles, \"GROUP\" and \"CONTACT\" are replaced with \"COVEY\" and \"QUAIL,\" respectively (p.80).",
+    "page": 80,
+    "topic": "cmd-covey-quail-substitution"
+  },
+  {
+    "q": "During CLOSE CONTROL, when does C2 transition to tactical control?",
+    "options": [
+      "At the TARGETED call or at the GO TACTICAL call",
+      "Upon the first SPLASH call",
+      "After the initial vectors are provided",
+      "When the COVEY is within 35 nm"
+    ],
+    "answer": "A",
+    "explain": "C2 transitions to tactical control at the TARGETED call or at the GO TACTICAL call (p.81).",
+    "page": 81,
+    "topic": "cmd-close-control-tactical-transition"
+  },
+  {
+    "q": "What does serialization imply about a task's order of creation?",
+    "options": [
+      "It does not imply priority or confidence",
+      "It implies the task's priority",
+      "It implies the controller's confidence level",
+      "It implies the weapon pairing"
+    ],
+    "answer": "A",
+    "explain": "Serialization is applied to each task in the order of creation and does not imply priority or confidence (p.83).",
+    "page": 83,
+    "topic": "as-serialization-no-priority-implied"
+  },
+  {
+    "q": "In full digital tasking, which J-series message is the assumed data source unless the controller specifies another?",
+    "options": [
+      "J14.0",
+      "J28.2",
+      "J12.0",
+      "J3.5"
+    ],
+    "answer": "B",
+    "explain": "J28.2 is the assumed data source unless the controller specifies another (p.84).",
+    "page": 84,
+    "topic": "full-digital-tasking-j282-assumed"
+  },
+  {
+    "q": "Who is responsible for maintaining the accuracy of the common tactical ground picture based on emitter or ROTATOR information?",
+    "options": [
+      "The strike package lead",
+      "The SIGINT ID authority",
+      "The range training officer",
+      "The mission commander"
+    ],
+    "answer": "B",
+    "explain": "The SIGINT ID authority is responsible for maintaining accuracy of the common tactical ground picture based on emitter or ROTATOR information and resolving emitter ID ambiguities (p.85).",
+    "page": 85,
+    "topic": "sigint-id-authority-ground-picture"
+  },
+  {
+    "q": "If a tasked asset is HOLLOW for the J3.3 or J3.5 message, what should be passed?",
+    "options": [
+      "A WILCO digital response",
+      "CHECK DATA",
+      "Full voice tasking",
+      "A J28.2 message"
+    ],
+    "answer": "C",
+    "explain": "If a tasked asset is HOLLOW for the J3.3 or J3.5 message, pass full voice tasking (p.86).",
+    "page": 86,
+    "topic": "hollow-asset-full-voice-tasking"
+  },
+  {
+    "q": "According to the TACREP alphanumeric designator table, what does the designator \"S-##\" indicate?",
+    "options": [
+      "Surface naval activity",
+      "SIGINT summary",
+      "Survivor/isolated personnel",
+      "Survey signals"
+    ],
+    "answer": "C",
+    "explain": "Per the TACREP designator table, S-## indicates Survivor/isolated personnel (p.87).",
+    "page": 87,
+    "topic": "tacrep-designator-s-survivor"
+  },
+  {
+    "q": "When voicing TRESPASS, what heading does the voicing entity direct relative to the SAM?",
+    "options": [
+      "A SNAP heading 90 degrees from the SAM",
+      "A SNAP heading 180 degrees away from the SAM",
+      "A SNAP heading to a HOT aspect on the SAM",
+      "A SNAP heading directly toward the SAM"
+    ],
+    "answer": "B",
+    "explain": "The voicing entity directs a SNAP heading 180 degrees away from the SAM and voices the SAM's bullseye, being directive then descriptive (p.88).",
+    "page": 88,
+    "topic": "trespass-snap-180-away"
+  },
+  {
+    "q": "Which elements make up the Low-Fidelity threat reaction format?",
+    "options": [
+      "Call sign, RWR indication, S/A threat BULLSEYE/LOCATION, DEFENDING with cardinal direction",
+      "Call sign, RWR indication, bearing, DEFENDING with cardinal direction, ownship BULLSEYE",
+      "Call sign, BRAA, aspect, declaration, fill-ins",
+      "Call sign, track number, TLE, DEFENDING"
+    ],
+    "answer": "B",
+    "explain": "The Low-Fidelity format is call sign, RWR indication, bearing, DEFENDING with cardinal direction, and ownship BULLSEYE (p.89).",
+    "page": 89,
+    "topic": "low-fidelity-format-elements"
+  },
+  {
+    "q": "Under the Fix contract, what fix quality is described as \"inside 1 nm\"?",
+    "options": [
+      "Low Accuracy",
+      "TARGETABLE",
+      "High Accuracy",
+      "CAT II low"
+    ],
+    "answer": "A",
+    "explain": "Low Accuracy is defined as inside 1 nm (p.90).",
+    "page": 90,
+    "topic": "fix-low-accuracy-1nm"
+  },
+  {
+    "q": "Which responses can an asset give if it is able to TRACK?",
+    "options": [
+      "OCCUPIED, TALLY, TRACKING, CAPTURED, or MONITORING",
+      "HARM INBOUND, MAGNUM, EMPTY, or ARIZONA",
+      "FADED, VANISHED, or CLEAN",
+      "WILCO, GOOD DATA, or EOM"
+    ],
+    "answer": "A",
+    "explain": "Assets can respond with OCCUPIED, TALLY, TRACKING, CAPTURED, or MONITORING if able to TRACK (p.91).",
+    "page": 91,
+    "topic": "track-response-options"
+  },
+  {
+    "q": "When an ATTACK plan is communicated via Link 16, what does each player need only to acknowledge?",
+    "options": [
+      "WILCO",
+      "GOOD DATA",
+      "PUSHING",
+      "CHECK DATA"
+    ],
+    "answer": "B",
+    "explain": "The plan can be communicated via Link 16, and each player needs only to acknowledge GOOD DATA (p.92).",
+    "page": 92,
+    "topic": "attack-plan-link16-good-data"
+  },
+  {
+    "q": "If unable to find the target or object during the Assess SCAN, which terms may be relayed?",
+    "options": [
+      "CAPTURED, TALLY, or TRACKING",
+      "SUCCESSFUL, FUMBLE, or HOUNDDOG",
+      "OCCUPIED, MONITORING, or GOOD DATA",
+      "VACANT, EMPTY, or NO JOY"
+    ],
+    "answer": "D",
+    "explain": "If unable to find the target or object, relay VACANT, EMPTY, or NO JOY (p.93).",
+    "page": 93,
+    "topic": "assess-scan-unable-vacant-empty-nojoy"
+  },
+  {
+    "q": "Which method of airspace control relies on positive identification, tracking, and direction of aircraft conducted with electronic means by an agency having authority?",
+    "options": [
+      "Decentralized control",
+      "Procedural control",
+      "Delegated control",
+      "Positive control"
+    ],
+    "answer": "D",
+    "explain": "Positive control relies on positive identification, tracking, and direction of aircraft within an airspace, conducted with electronic means by an agency having the authority and responsibility therein (p.1).",
+    "page": 1,
+    "topic": "positive-control-method"
+  },
+  {
+    "q": "Under whose tactical control do TAC C2 airspace control elements operate?",
+    "options": [
+      "The JFACC, joint force maritime component commander, or composite warfare commander",
+      "Civil air traffic control authorities",
+      "Only the area air defense commander",
+      "The joint force land component commander exclusively"
+    ],
+    "answer": "A",
+    "explain": "TAC C2 are airspace control elements under tactical control of the JFACC, joint force maritime component commander, or composite warfare commander (CWC) (p.2).",
+    "page": 2,
+    "topic": "tac-c2-tactical-control"
+  },
+  {
+    "q": "The ASOC, DASC, or ACIT serves as the airspace control element for airspace control within what areas?",
+    "options": [
+      "The entire joint operations area",
+      "The fire support coordination line forward",
+      "All airspace above the coordinating altitude",
+      "Their assigned BMAs"
+    ],
+    "answer": "D",
+    "explain": "The ASOC, DASC, or ACIT is the airspace control element for airspace control within their assigned BMAs (p.3).",
+    "page": 3,
+    "topic": "asoc-dasc-acit-bma-control"
+  },
+  {
+    "q": "What is identified as the exception to the rule that TACADMIN does not cover operations outside the managed JOA or BMA?",
+    "options": [
+      "An aircraft operating under military tower control in the terminal area",
+      "An aircraft departing an operating base under local air traffic control",
+      "An aircraft navigating routinely in civil airspace",
+      "An aircraft launched under scramble orders but operating in civil airspace"
+    ],
+    "answer": "D",
+    "explain": "An example of an exception is an aircraft launched under scramble orders (e.g., an alert status) but operating in civil airspace (p.5).",
+    "page": 5,
+    "topic": "tacadmin-scramble-exception"
+  },
+  {
+    "q": "When relaying a call, what must be done with the relaying entity's call sign?",
+    "options": [
+      "It is not included in the transmission",
+      "It is appended at the end of the message",
+      "It is stated first, before the recipient",
+      "It replaces the call sign of the entity being relayed"
+    ],
+    "answer": "A",
+    "explain": "When relaying a call, the format is '[entity speaking to], relay, [call sign of entity being relayed]' and the relaying entity's call sign is not included (p.6).",
+    "page": 6,
+    "topic": "relay-omit-relaying-callsign"
+  },
+  {
+    "q": "Per Table 2, what reference point is used to accomplish the ALPHA CHECK during check-in?",
+    "options": [
+      "HOME PLATE",
+      "The fire support coordination line",
+      "The control point",
+      "BULLSEYE"
+    ],
+    "answer": "D",
+    "explain": "Check-in procedures include 'Accomplish ALPHA CHECK from BULLSEYE' (p.8).",
+    "page": 8,
+    "topic": "alpha-check-from-bullseye"
+  },
+  {
+    "q": "If aircrew are unable to make contact on the primary check-in NET, what procedures should they and TAC C2 refer to?",
+    "options": [
+      "INFLTREP procedures",
+      "FORCE TELL procedures",
+      "CHATTERMARK procedures",
+      "Roll call procedures"
+    ],
+    "answer": "C",
+    "explain": "If unable to make contact on the primary check-in NET, the aircrew and TAC C2 should refer to the CHATTERMARK procedures (p.10).",
+    "page": 10,
+    "topic": "chattermark-no-contact"
+  },
+  {
+    "q": "Per the J3.5 Track Identification Plan, how is a High-Value Individual event represented as a track type?",
+    "options": [
+      "Hostile troop concentration",
+      "Convoy moving",
+      "Unknown vehicle",
+      "Hostile train"
+    ],
+    "answer": "D",
+    "explain": "In Table 4, a High-Value Individual is represented by the track type 'Hostile train' (p.11).",
+    "page": 11,
+    "topic": "j35-hvi-hostile-train"
+  },
+  {
+    "q": "If correlation is in question for JACKAL SOUR fighters, what may they request prior to weapons employment?",
+    "options": [
+      "The controller DECLARE a group, or BOGEY DOPE / BRAA to a GROUP",
+      "A WORDS update for the next ATO day",
+      "A new abort code and mission number",
+      "A roll call of the package"
+    ],
+    "answer": "A",
+    "explain": "If correlation is in question, fighters may request the controller DECLARE a group or request BOGEY DOPE, bearing, range, altitude, and aspect (BRAA) to a GROUP prior to weapons employment (p.12).",
+    "page": 12,
+    "topic": "jackal-sour-declare-bogey-dope"
+  },
+  {
+    "q": "What is the first (highest priority) TOD source listed for HAVE QUICK II/SATURN?",
+    "options": [
+      "TAC C2 auto TOD",
+      "Secure Global Positioning System",
+      "Aircrew manual MICKEY",
+      "Auto-TOD from an operating location"
+    ],
+    "answer": "B",
+    "explain": "The prioritized list of TOD sources begins with Secure Global Positioning System (p.13).",
+    "page": 13,
+    "topic": "tod-source-priority-gps"
+  },
+  {
+    "q": "When is TAC C2 NOT required to state \"PROCEDURAL CONTROL IN EFFECT\"?",
+    "options": [
+      "When an aircraft first checks in",
+      "When the operating area standard is already procedural control",
+      "When moving from positive to procedural control",
+      "When the operating area standard is positive control"
+    ],
+    "answer": "B",
+    "explain": "If the operating area standard is procedural control, then TAC C2 does not need to state 'PROCEDURAL CONTROL IN EFFECT' (p.17).",
+    "page": 17,
+    "topic": "procedural-control-in-effect-omit"
+  },
+  {
+    "q": "If a flight does not respond to the roll call, what can the mission commander do?",
+    "options": [
+      "Query TAC C2",
+      "Immediately abort the mission",
+      "Re-accomplish the LOWDOWN",
+      "Declare the flight FORCE TELL"
+    ],
+    "answer": "A",
+    "explain": "If a flight does not respond to the roll call, the MC can query TAC C2 (p.19).",
+    "page": 19,
+    "topic": "roll-call-no-response-query-tac-c2"
+  },
+  {
+    "q": "An aircrew requesting LOWDOWN should allow how much time for TAC C2 to compile it?",
+    "options": [
+      "2 to 3 minutes",
+      "30 to 60 seconds",
+      "5 to 10 seconds",
+      "5 minutes"
+    ],
+    "answer": "B",
+    "explain": "An aircrew may request LOWDOWN but should allow 30 to 60 seconds for TAC C2 to compile it, in accordance with communication priorities (p.20).",
+    "page": 20,
+    "topic": "lowdown-request-timing-30-60-sec"
+  },
+  {
+    "q": "What does ROLEX adjust, and in what increments is it made?",
+    "options": [
+      "Individual flight event timing in 1-minute increments",
+      "Mission timing in 5-minute increments",
+      "TOT window extensions in 15-minute increments",
+      "Vulnerability times in 10-minute increments"
+    ],
+    "answer": "B",
+    "explain": "ROLEX is used to adjust mission timing and is made in 5-minute increments and is not additive (p.21).",
+    "page": 21,
+    "topic": "rolex-mission-timing-increments"
+  },
+  {
+    "q": "With whom does the criteria and authority for executing a CHATTERMARK reside?",
+    "options": [
+      "Any aircrew member experiencing jamming",
+      "The MC or a designated TL",
+      "The off-going lane commander",
+      "TAC C2 exclusively"
+    ],
+    "answer": "B",
+    "explain": "The authority for executing a CHATTERMARK resides with the MC or a designated TL (p.22).",
+    "page": 22,
+    "topic": "chattermark-authority"
+  },
+  {
+    "q": "During a lane handover sequence, what does the COMMIT call do?",
+    "options": [
+      "Transitions communication priority to the committing aircraft",
+      "Confirms positive communication lane handoff",
+      "Allows on-coming aircraft to enter the operating area",
+      "Updates WORDS or LOWDOWN"
+    ],
+    "answer": "A",
+    "explain": "When directed by the lane commander, the COMMIT call transitions communication priority to the committing aircraft (p.23).",
+    "page": 23,
+    "topic": "lane-handover-commit"
+  },
+  {
+    "q": "At which status must aircraft relay their state to TAC C2?",
+    "options": [
+      "GREEN",
+      "YELLOW",
+      "Only when at RED",
+      "Only when BINGO"
+    ],
+    "answer": "B",
+    "explain": "Aircraft must relay when they are YELLOW to TAC C2 (p.24).",
+    "page": 24,
+    "topic": "fuel-weapons-yellow-relay"
+  },
+  {
+    "q": "What is the assumed STRENGTH for all GROUPs unless otherwise specified?",
+    "options": [
+      "SINGLE CONTACT",
+      "THREE CONTACTS",
+      "HEAVY",
+      "TWO CONTACTS"
+    ],
+    "answer": "A",
+    "explain": "SINGLE CONTACT is the assumed STRENGTH for all GROUPs; more CONTACTs are specified (p.25).",
+    "page": 25,
+    "topic": "group-single-contact-assumed"
+  },
+  {
+    "q": "If an aircraft or GROUP is within 5 nm of BULLSEYE, how may it be described?",
+    "options": [
+      "BULLSEYE ZERO",
+      "NEAR BULLSEYE",
+      "ON BULLSEYE",
+      "AT BULLSEYE"
+    ],
+    "answer": "D",
+    "explain": "If an aircraft is within 5 nm of BULLSEYE, the GROUP may be described as AT BULLSEYE (p.26).",
+    "page": 26,
+    "topic": "at-bullseye-5nm"
+  },
+  {
+    "q": "Why will BULLSEYE never be truncated to \"bull\"?",
+    "options": [
+      "To avoid it being misinterpreted as \"BRAA\"",
+      "To save radio transmission time",
+      "Because it conflicts with GEOREF code names",
+      "To comply with NATO standards"
+    ],
+    "answer": "A",
+    "explain": "BULLSEYE will not be truncated to \"bull\" to avoid it being misinterpreted as \"BRAA\" (p.27).",
+    "page": 27,
+    "topic": "bullseye-no-truncation"
+  },
+  {
+    "q": "A controller can determine altitude but does not have a solution available. What does the controller voice?",
+    "options": [
+      "\"LOW\"",
+      "\"LAST\"",
+      "Omit altitude entirely",
+      "\"ALTITUDE UNKNOWN\""
+    ],
+    "answer": "D",
+    "explain": "Controllers will use \"ALTITUDE UNKNOWN\" if the controlling platform is capable of determining altitude but a solution is not available (p.28).",
+    "page": 28,
+    "topic": "altitude-unknown"
+  },
+  {
+    "q": "When a GROUP is communicated via BULLSEYE, how is track direction expressed?",
+    "options": [
+      "With degrees magnetic",
+      "With the cardinal or sub-cardinal direction",
+      "With a specific aspect such as HOT or FLANK",
+      "With a clock position"
+    ],
+    "answer": "B",
+    "explain": "Track direction is communicated with the cardinal or sub-cardinal direction (e.g., TRACK SOUTH, TRACK NORTHEAST) when using BULLSEYE (p.29).",
+    "page": 29,
+    "topic": "track-direction-cardinal"
+  },
+  {
+    "q": "A GROUP is labeled HEAVY when it is known to contain how many CONTACTs?",
+    "options": [
+      "Four or more",
+      "Three or more",
+      "Two or more",
+      "Five or more"
+    ],
+    "answer": "B",
+    "explain": "A GROUP is HEAVY if it is known to contain three or more CONTACTs (p.30).",
+    "page": 30,
+    "topic": "heavy-three-contacts"
+  },
+  {
+    "q": "When are LEANING ON assessments generally reserved for use?",
+    "options": [
+      "When fighters are HOT",
+      "When operating inside a MEZ",
+      "When fighters are in COLD operations",
+      "When a GROUP is HEAVY"
+    ],
+    "answer": "C",
+    "explain": "LEANING ON assessments are generally reserved for when fighters are in COLD operations (p.31).",
+    "page": 31,
+    "topic": "leaning-on-cold-ops"
+  },
+  {
+    "q": "When should controllers and fighters name an inner GROUP formation?",
+    "options": [
+      "Only when the call will enhance fighter targeting or SA approaching the merge",
+      "On every PICTURE call regardless of range",
+      "Only when altitude is unknown",
+      "Only when a GROUP is declared FRIENDLY"
+    ],
+    "answer": "A",
+    "explain": "Controllers and fighters should only name the inner GROUP formation when it will enhance fighter targeting or SA approaching the merge (p.32).",
+    "page": 32,
+    "topic": "inner-group-naming-criteria"
+  },
+  {
+    "q": "How many ways are there to communicate the PICTURE?",
+    "options": [
+      "Three",
+      "Five",
+      "Six",
+      "Four"
+    ],
+    "answer": "B",
+    "explain": "There are five ways to communicate the PICTURE: core information, traditional labels, LEADING EDGE communication, WAVEs, and PACKAGEs (p.33).",
+    "page": 33,
+    "topic": "picture-five-formats"
+  },
+  {
+    "q": "If SMA positioning does not match a traditional label, how may the SMA be named?",
+    "options": [
+      "With cardinal directions only",
+      "With BULLSEYE code names",
+      "By numbering them (e.g., 1st SMA, 2nd SMA)",
+      "With NATO designators only"
+    ],
+    "answer": "C",
+    "explain": "If SMA positioning does not match a traditional label, the SMA can be numbered (e.g., 1st SMA, 2nd SMA, 3rd SMA) (p.34).",
+    "page": 34,
+    "topic": "sma-numbering"
+  },
+  {
+    "q": "With multiple GROUPs in azimuth, and unless utilizing directive targeting, which GROUPs are anchored?",
+    "options": [
+      "Only the outermost GROUPs",
+      "Only the highest GROUPs",
+      "Only the innermost GROUPs",
+      "All GROUPs"
+    ],
+    "answer": "A",
+    "explain": "With multiple GROUPs in azimuth, unless utilizing directive targeting, only the outermost GROUPs are anchored (p.36).",
+    "page": 36,
+    "topic": "anchoring-outermost-groups"
+  },
+  {
+    "q": "If a traditional label does not apply based on the threat presentation, what communication should controllers use?",
+    "options": [
+      "Core information only",
+      "A SMA PICTURE",
+      "LEADING EDGE communication",
+      "BRAA format"
+    ],
+    "answer": "C",
+    "explain": "If a traditional label does not apply based on the threat presentation, controllers should use LEADING EDGE communication (p.37).",
+    "page": 37,
+    "topic": "leading-edge-fallback"
+  },
+  {
+    "q": "What does the amplifying remark WEIGHTED describe?",
+    "options": [
+      "Two GROUPs in RANGE only",
+      "Any GROUP that is HOT along the fight axis",
+      "A SINGLE GROUP at high altitude",
+      "Traditional labels with THREE GROUPs or more"
+    ],
+    "answer": "D",
+    "explain": "WEIGHTED is an amplifying remark that describes traditional labels with THREE GROUPs or more (p.39).",
+    "page": 39,
+    "topic": "weighted-definition"
+  },
+  {
+    "q": "Using the 45-degree ECHELON line drawn from the GROUP closest to the fighters, where must the offset GROUP be for the PICTURE to be a RANGE?",
+    "options": [
+      "Aft of the 45-degree line",
+      "Forward of the 45-degree line",
+      "Directly on the 45-degree line",
+      "Perpendicular to the 45-degree line"
+    ],
+    "answer": "A",
+    "explain": "If the offset GROUP is aft of the 45-degree line, the PICTURE is a RANGE; if forward of it, the PICTURE is an AZIMUTH (p.41).",
+    "page": 41,
+    "topic": "echelon-45-degree-line"
+  },
+  {
+    "q": "For a SINGLE GROUP label, how is the GROUP's information passed?",
+    "options": [
+      "As core information",
+      "As a PACKAGE label",
+      "Using WAVE communication",
+      "As an ECHELON amplification"
+    ],
+    "answer": "A",
+    "explain": "For SINGLE GROUP, the label is SINGLE GROUP and all information is passed as core information (p.46).",
+    "page": 46,
+    "topic": "single-group-core-info"
+  },
+  {
+    "q": "What depth value do controllers use to determine the tactical relationship between GROUPs?",
+    "options": [
+      "10 nm",
+      "15 nm",
+      "3 nm",
+      "5 nm"
+    ],
+    "answer": "D",
+    "explain": "Controllers use 5 nm of depth to determine the tactical relationship between GROUPs (p.47).",
+    "page": 47,
+    "topic": "five-nm-depth-relationship"
+  }
+]
