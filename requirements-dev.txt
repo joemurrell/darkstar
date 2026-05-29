@@ -1,6 +1,6 @@
 -r requirements.txt
 pytest>=9.0.3
-pytest-asyncio>=0.23
+pytest-asyncio>=1.4.0
 ruff>=0.15.14
 # Used only by scripts/extract_pdf.py (local, one-time); not a runtime dep.
 pypdf>=6.12.1
