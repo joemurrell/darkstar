@@ -256,6 +256,46 @@ class QuizStore:
             "accuracy": (correct / answered) if answered else 0.0,
         }
 
+    async def get_leaderboard(self, guild_id: int, limit: int = 10) -> List[dict]:
+        """
+        Top scorers across **completed** quizzes in one guild, ranked by total
+        correct answers (tie-break: higher accuracy, then fewer answered).
+        Active quizzes are excluded so the board doesn't shift mid-quiz.
+
+        Returns at most `limit` rows, best first; each row is
+        {user_id, quizzes, answered, correct, accuracy}.
+        """
+        rows = await self._fetchall(
+            """
+            SELECT
+                a.user_id AS user_id,
+                COUNT(DISTINCT a.quiz_id) AS quizzes,
+                COUNT(*) AS answered,
+                COALESCE(SUM(CASE WHEN a.choice = q.answer THEN 1 ELSE 0 END), 0) AS correct
+            FROM quiz_answers a
+            JOIN quizzes z ON z.id = a.quiz_id AND z.status = 'completed' AND z.guild_id = ?
+            JOIN quiz_questions q ON q.quiz_id = a.quiz_id AND q.position = a.position
+            GROUP BY a.user_id
+            ORDER BY correct DESC, CAST(correct AS REAL) / answered DESC, answered ASC
+            LIMIT ?
+            """,
+            (guild_id, limit),
+        )
+        result = []
+        for r in rows:
+            answered = r["answered"] or 0
+            correct = r["correct"] or 0
+            result.append(
+                {
+                    "user_id": r["user_id"],
+                    "quizzes": r["quizzes"] or 0,
+                    "answered": answered,
+                    "correct": correct,
+                    "accuracy": (correct / answered) if answered else 0.0,
+                }
+            )
+        return result
+
     async def _fetchall(self, sql: str, params: tuple = ()) -> List[aiosqlite.Row]:
         cur = await self._conn.execute(sql, params)
         rows = await cur.fetchall()

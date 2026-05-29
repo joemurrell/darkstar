@@ -1573,6 +1573,69 @@ async def quiz_stats(interaction: discord.Interaction):
     await interaction.response.send_message(embed=embed, ephemeral=True)
 
 
+@tree.command(name="leaderboard", description="Show this server's top quiz scorers")
+async def leaderboard_command(interaction: discord.Interaction):
+    """Show the top scorers across completed quizzes in this server."""
+    discord_logger.info(f"/leaderboard command: user={interaction.user.name}({interaction.user.id}) guild={interaction.guild.name if interaction.guild else 'DM'}({interaction.guild_id if interaction.guild else 'N/A'}) channel={interaction.channel_id}")
+
+    has_perms, perm_error = await check_bot_permissions(interaction)
+    if not has_perms:
+        await interaction.response.send_message(perm_error, ephemeral=True)
+        return
+
+    # Leaderboard is per-server; there's no guild to rank within a DM.
+    if interaction.guild_id is None:
+        await interaction.response.send_message(
+            "❌ The leaderboard is only available in a server.",
+            ephemeral=True,
+        )
+        return
+
+    if quiz_store is None:
+        await interaction.response.send_message(
+            "❌ Quiz history isn't available right now (persistence is offline).",
+            ephemeral=True,
+        )
+        return
+
+    try:
+        rows = await quiz_store.get_leaderboard(interaction.guild_id)
+    except Exception as e:
+        quiz_logger.error(f"Failed to load leaderboard for guild {interaction.guild_id}: {e}", exc_info=True)
+        await interaction.response.send_message(
+            "❌ Couldn't load the leaderboard right now. Try again in a moment.",
+            ephemeral=True,
+        )
+        return
+
+    if not rows:
+        await interaction.response.send_message(
+            "📊 No completed quizzes yet — start one with `/quiz_start`!",
+            ephemeral=True,
+        )
+        return
+
+    # Mentions inside an embed render as names without pinging anyone.
+    medals = ["🥇", "🥈", "🥉"]
+    lines = []
+    for i, r in enumerate(rows):
+        rank = medals[i] if i < len(medals) else f"**{i + 1}.**"
+        accuracy_pct = round(r["accuracy"] * 100)
+        lines.append(
+            f"{rank} <@{r['user_id']}> — **{r['correct']}** correct "
+            f"({accuracy_pct}%, {r['quizzes']} quiz(zes))"
+        )
+
+    embed = discord.Embed(
+        title="🏆 Quiz Leaderboard",
+        description="\n".join(lines),
+        color=0x2d5016,
+    )
+    embed.set_footer(text="Top scorers across completed quizzes")
+
+    await interaction.response.send_message(embed=embed)
+
+
 @tree.command(name="info", description="Show bot information and stats")
 async def info_command(interaction: discord.Interaction):
     """Display bot information."""
@@ -1600,6 +1663,7 @@ async def info_command(interaction: discord.Interaction):
             "• `/quiz_answer` - Submit an answer by question number (alternative to buttons)\n"
             "• `/quiz_score` - View your progress in the running quiz\n"
             "• `/quiz_stats` - View your lifetime quiz stats\n"
+            "• `/leaderboard` - Show this server's top quiz scorers\n"
             "• `/quiz_end` - End the running quiz (initiator/mod only)\n"
             "• `/info` - Show this info panel"
         ),

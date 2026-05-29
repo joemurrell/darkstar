@@ -86,7 +86,7 @@ Roughly in file order:
 4. **`check_bot_permissions`** — every slash command calls this first; produces verbose diagnostic strings when perms are missing
 5. **`ask_assistant`** — the Claude integration layer (handles both plain text and forced tool-use); `rate_limit_ask` (per-user `/ask` sliding-window limit) sits nearby
 6. **Quiz pipeline** — `format_mcq`, `shuffle_quiz_options`, dedup helpers, `QUIZ_TOOL`, `validate_quiz_questions`, `load_question_bank` / `sample_questions` (+ the `QUESTION_BANK` global), `_request_quiz_questions`, `generate_quiz`, `auto_end_quiz`, `display_quiz_results`
-7. **Slash commands** — `/ask` (rate-limited per user), `/quiz_start` (bank-first, live fallback), `/quiz_answer`, `/quiz_end`, `/quiz_score`, `/info`
+7. **Slash commands** — `/ask` (rate-limited per user), `/quiz_start` (bank-first, live fallback), `/quiz_answer`, `/quiz_end`, `/quiz_score`, `/quiz_stats` (lifetime per-user), `/leaderboard` (per-server top scorers), `/info`
 8. **`on_ready` + `client.run()`**
 
 ### PDF grounding via the cached system prompt
@@ -105,6 +105,8 @@ Verify caching is working by inspecting `usage.cache_read_input_tokens` in the l
 `QUIZ_STATE: dict[int, dict]` is a module-level dict keyed by Discord `channel_id` and is the **hot-path source of truth** (button clicks, timers). Each entry holds the question list (shuffled), per-user answers (`{str(user_id): {int position: choice}}`), end time, duration, initiator user ID, the `quiz_id` of its DB row, and the `auto_end_quiz` task handle.
 
 `db.py` (`QuizStore`, aiosqlite) **mirrors** this to SQLite so quizzes survive a restart. Persistence is **best-effort**: `quiz_start` persists on creation (`create_quiz`), the answer paths call `_persist_answer`, and `display_quiz_results` calls `_persist_completion` — every one wrapped so a storage failure degrades to in-memory-only rather than breaking a live quiz (`quiz_id` stays `None` and the mirror calls no-op). Schema: `quizzes` (surrogate id, `status` active/completed, partial unique index enforcing one *active* quiz per channel), `quiz_questions`, `quiz_answers` (upsert PK). See `tests/test_db.py`.
+
+The accumulated history backs two read-only aggregates over **completed** quizzes (active ones excluded so numbers don't shift mid-quiz), both comparing each recorded `choice` to the stored shuffled `answer`: `get_user_stats(user_id)` (quizzes/answered/correct/accuracy) powers `/quiz_stats`, and `get_leaderboard(guild_id, limit)` (top scorers per server, ranked by correct then accuracy) powers `/leaderboard`.
 
 On startup, `on_ready` opens the store **once** (guarded by `_startup_done`) and calls `rehydrate_quizzes`: each active quiz is restored into `QUIZ_STATE` and its `auto_end_quiz` timer re-armed for the *remaining* time; a quiz that expired during downtime is finalized immediately. **Caveat:** buttons on messages posted before a restart won't respond (their `View` objects died with the process) — `/quiz_answer` is the fallback, and recorded answers are preserved regardless. Re-registering persistent views would need channel-scoped `custom_id`s (a follow-up).
 

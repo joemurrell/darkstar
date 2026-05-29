@@ -176,3 +176,70 @@ async def test_get_user_stats_is_per_user(store):
 
     assert (await store.get_user_stats(1))["correct"] == 1
     assert (await store.get_user_stats(2))["correct"] == 0
+
+
+# --- get_leaderboard ---
+
+async def _answer_all(store, quiz_id, user_id, choices, now=None):
+    """Record `choices` (by position) for a user, then nothing else."""
+    now = now or datetime.now(timezone.utc)
+    for pos, choice in enumerate(choices):
+        await store.record_answer(quiz_id=quiz_id, position=pos, user_id=user_id, choice=choice, answered_at=now)
+
+
+async def test_get_leaderboard_ranks_by_correct_desc(store):
+    # _questions() all answer "A". user 1 gets 3/3, user 2 gets 1/3, user 3 gets 2/3.
+    qid = await store.create_quiz(**_quiz_kwargs(guild_id=200))
+    await _answer_all(store, qid, 1, ["A", "A", "A"])
+    await _answer_all(store, qid, 2, ["A", "B", "C"])
+    await _answer_all(store, qid, 3, ["A", "A", "D"])
+    await store.complete_quiz(qid)
+
+    board = await store.get_leaderboard(200)
+    assert [r["user_id"] for r in board] == [1, 3, 2]
+    assert [r["correct"] for r in board] == [3, 2, 1]
+    assert board[0]["accuracy"] == 1.0
+
+
+async def test_get_leaderboard_tiebreak_by_accuracy(store):
+    # Both users get 2 correct, but user 5 answered only 2 (100%) vs user 4's 3 (67%).
+    qid = await store.create_quiz(**_quiz_kwargs(guild_id=200))
+    await _answer_all(store, qid, 4, ["A", "A", "D"])  # 2/3
+    await _answer_all(store, qid, 5, ["A", "A"])       # 2/2
+    await store.complete_quiz(qid)
+
+    board = await store.get_leaderboard(200)
+    assert [r["user_id"] for r in board] == [5, 4]
+
+
+async def test_get_leaderboard_is_guild_scoped(store):
+    q_a = await store.create_quiz(**_quiz_kwargs(channel_id=1, guild_id=200))
+    await _answer_all(store, q_a, 1, ["A", "A", "A"])
+    await store.complete_quiz(q_a)
+    q_b = await store.create_quiz(**_quiz_kwargs(channel_id=2, guild_id=999))
+    await _answer_all(store, q_b, 2, ["A", "A", "A"])
+    await store.complete_quiz(q_b)
+
+    board = await store.get_leaderboard(200)
+    assert [r["user_id"] for r in board] == [1]
+
+
+async def test_get_leaderboard_excludes_active_quizzes(store):
+    qid = await store.create_quiz(**_quiz_kwargs(guild_id=200))
+    await _answer_all(store, qid, 1, ["A", "A", "A"])
+    # Not completed -> not counted.
+    assert await store.get_leaderboard(200) == []
+
+
+async def test_get_leaderboard_respects_limit(store):
+    qid = await store.create_quiz(**_quiz_kwargs(guild_id=200))
+    for uid in range(1, 6):
+        await _answer_all(store, qid, uid, ["A"])
+    await store.complete_quiz(qid)
+
+    board = await store.get_leaderboard(200, limit=3)
+    assert len(board) == 3
+
+
+async def test_get_leaderboard_empty_when_no_history(store):
+    assert await store.get_leaderboard(200) == []
