@@ -90,6 +90,29 @@ def test_chunk_mentions_respects_max_chars():
         assert len(value) <= 100
 
 
+# --- truncate_for_discord custom limit ---
+
+def test_truncate_custom_limit_shorter():
+    text = "x" * 600
+    result = app.truncate_for_discord(text, limit=500)
+    assert len(result) <= 500
+    assert result.endswith("...")
+
+
+def test_truncate_exactly_at_limit_no_truncation():
+    text = "y" * 2000
+    result = app.truncate_for_discord(text, limit=2000)
+    # Exactly at the limit means len(text) <= limit, so no truncation occurs.
+    assert result == text
+
+
+def test_truncate_one_over_limit_truncates():
+    text = "z" * 2001
+    result = app.truncate_for_discord(text, limit=2000)
+    assert len(result) <= 2000
+    assert result.endswith("...")
+
+
 # --- model_supports_temperature ---
 
 def test_temperature_supported_for_haiku_and_sonnet():
@@ -105,6 +128,12 @@ def test_temperature_supported_for_opus_4_6():
 
 def test_temperature_rejected_for_opus_4_7():
     assert not app.model_supports_temperature("claude-opus-4-7")
+
+
+def test_temperature_rejected_for_future_opus_4_7x():
+    # startswith("claude-opus-4-7") covers sub-versions like 4.70, 4.71, etc.
+    assert not app.model_supports_temperature("claude-opus-4-70")
+    assert not app.model_supports_temperature("claude-opus-4-7-new-edition")
 
 
 def test_temperature_default_true_for_unknown_or_none():
