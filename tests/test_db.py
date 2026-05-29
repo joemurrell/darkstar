@@ -128,3 +128,51 @@ async def test_multiple_channels_independent(store):
     await store.create_quiz(**_quiz_kwargs(channel_id=2))
     active = await store.load_active_quizzes()
     assert {q["channel_id"] for q in active} == {1, 2}
+
+
+# --- get_user_stats ---
+
+async def test_get_user_stats_counts_correct_and_accuracy(store):
+    now = datetime.now(timezone.utc)
+    # _questions() all have answer "A". Quiz 1: user 42 gets q0 right, q1 wrong.
+    q1 = await store.create_quiz(**_quiz_kwargs(channel_id=1))
+    await store.record_answer(quiz_id=q1, position=0, user_id=42, choice="A", answered_at=now)
+    await store.record_answer(quiz_id=q1, position=1, user_id=42, choice="B", answered_at=now)
+    await store.complete_quiz(q1)
+    # Quiz 2: user 42 gets q0 right.
+    q2 = await store.create_quiz(**_quiz_kwargs(channel_id=2))
+    await store.record_answer(quiz_id=q2, position=0, user_id=42, choice="A", answered_at=now)
+    await store.complete_quiz(q2)
+
+    stats = await store.get_user_stats(42)
+    assert stats["quizzes"] == 2
+    assert stats["answered"] == 3
+    assert stats["correct"] == 2
+    assert stats["accuracy"] == 2 / 3
+
+
+async def test_get_user_stats_excludes_active_quizzes(store):
+    # Answers in an active (not completed) quiz must not count.
+    qid = await store.create_quiz(**_quiz_kwargs(channel_id=1))
+    await store.record_answer(quiz_id=qid, position=0, user_id=42, choice="A", answered_at=datetime.now(timezone.utc))
+    assert await store.get_user_stats(42) == {"quizzes": 0, "answered": 0, "correct": 0, "accuracy": 0.0}
+
+
+async def test_get_user_stats_unknown_user_is_zero(store):
+    qid = await store.create_quiz(**_quiz_kwargs())
+    await store.complete_quiz(qid)
+    stats = await store.get_user_stats(999)
+    assert stats["answered"] == 0
+    assert stats["correct"] == 0
+    assert stats["accuracy"] == 0.0
+
+
+async def test_get_user_stats_is_per_user(store):
+    now = datetime.now(timezone.utc)
+    qid = await store.create_quiz(**_quiz_kwargs())
+    await store.record_answer(quiz_id=qid, position=0, user_id=1, choice="A", answered_at=now)  # correct
+    await store.record_answer(quiz_id=qid, position=0, user_id=2, choice="D", answered_at=now)  # wrong
+    await store.complete_quiz(qid)
+
+    assert (await store.get_user_stats(1))["correct"] == 1
+    assert (await store.get_user_stats(2))["correct"] == 0

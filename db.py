@@ -224,8 +224,46 @@ class QuizStore:
             )
         return result
 
+    async def get_user_stats(self, user_id: int) -> dict:
+        """
+        Aggregate a user's answers across **completed** quizzes (active quizzes
+        are excluded so the numbers don't move mid-quiz). Correctness compares
+        the recorded choice to the shuffled answer stored for that question.
+
+        Returns {quizzes, answered, correct, accuracy}, where accuracy is a
+        float 0.0-1.0 (0.0 when the user has answered nothing).
+        """
+        row = await self._fetchone(
+            """
+            SELECT
+                COUNT(DISTINCT a.quiz_id) AS quizzes,
+                COUNT(*) AS answered,
+                COALESCE(SUM(CASE WHEN a.choice = q.answer THEN 1 ELSE 0 END), 0) AS correct
+            FROM quiz_answers a
+            JOIN quizzes z ON z.id = a.quiz_id AND z.status = 'completed'
+            JOIN quiz_questions q ON q.quiz_id = a.quiz_id AND q.position = a.position
+            WHERE a.user_id = ?
+            """,
+            (user_id,),
+        )
+        answered = (row["answered"] if row else 0) or 0
+        correct = (row["correct"] if row else 0) or 0
+        quizzes = (row["quizzes"] if row else 0) or 0
+        return {
+            "quizzes": quizzes,
+            "answered": answered,
+            "correct": correct,
+            "accuracy": (correct / answered) if answered else 0.0,
+        }
+
     async def _fetchall(self, sql: str, params: tuple = ()) -> List[aiosqlite.Row]:
         cur = await self._conn.execute(sql, params)
         rows = await cur.fetchall()
         await cur.close()
         return rows
+
+    async def _fetchone(self, sql: str, params: tuple = ()) -> Optional[aiosqlite.Row]:
+        cur = await self._conn.execute(sql, params)
+        row = await cur.fetchone()
+        await cur.close()
+        return row

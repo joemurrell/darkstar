@@ -1527,6 +1527,52 @@ async def quiz_score(interaction: discord.Interaction):
     )
 
 
+@tree.command(name="quiz_stats", description="Show your lifetime quiz stats across completed quizzes")
+async def quiz_stats(interaction: discord.Interaction):
+    """Show the calling user's aggregate performance from quiz history."""
+    discord_logger.info(f"/quiz_stats command: user={interaction.user.name}({interaction.user.id}) guild={interaction.guild.name if interaction.guild else 'DM'}({interaction.guild_id if interaction.guild else 'N/A'}) channel={interaction.channel_id}")
+
+    has_perms, perm_error = await check_bot_permissions(interaction)
+    if not has_perms:
+        await interaction.response.send_message(perm_error, ephemeral=True)
+        return
+
+    # Stats live in the persistence layer; if it's down there's nothing to show.
+    if quiz_store is None:
+        await interaction.response.send_message(
+            "❌ Quiz history isn't available right now (persistence is offline).",
+            ephemeral=True,
+        )
+        return
+
+    try:
+        stats = await quiz_store.get_user_stats(interaction.user.id)
+    except Exception as e:
+        quiz_logger.error(f"Failed to load stats for user {interaction.user.id}: {e}", exc_info=True)
+        await interaction.response.send_message(
+            "❌ Couldn't load your stats right now. Try again in a moment.",
+            ephemeral=True,
+        )
+        return
+
+    if stats["answered"] == 0:
+        await interaction.response.send_message(
+            "📊 You haven't answered any questions in a completed quiz yet — "
+            "jump into a `/quiz_start`!",
+            ephemeral=True,
+        )
+        return
+
+    accuracy_pct = round(stats["accuracy"] * 100)
+    embed = discord.Embed(title="📊 Your Quiz Stats", color=0x2d5016)
+    embed.add_field(name="Quizzes", value=str(stats["quizzes"]), inline=True)
+    embed.add_field(name="Questions Answered", value=str(stats["answered"]), inline=True)
+    embed.add_field(name="Correct", value=f"{stats['correct']} ({accuracy_pct}%)", inline=True)
+    embed.set_footer(text="Across completed quizzes")
+
+    await interaction.response.send_message(embed=embed, ephemeral=True)
+
+
 @tree.command(name="info", description="Show bot information and stats")
 async def info_command(interaction: discord.Interaction):
     """Display bot information."""
@@ -1553,6 +1599,7 @@ async def info_command(interaction: discord.Interaction):
             "• `/quiz_start` - Start a timed quiz (1-60 min, 1-10 questions)\n"
             "• `/quiz_answer` - Submit an answer by question number (alternative to buttons)\n"
             "• `/quiz_score` - View your progress in the running quiz\n"
+            "• `/quiz_stats` - View your lifetime quiz stats\n"
             "• `/quiz_end` - End the running quiz (initiator/mod only)\n"
             "• `/info` - Show this info panel"
         ),
