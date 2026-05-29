@@ -55,8 +55,9 @@ def test_without_question_num_no_numbering_header():
 
 
 def test_with_question_num_shows_progress():
-    embed = _embed(question_num=3, total=10)
+    embed = _embed(question="What is X?", question_num=3, total=10)
     assert "Question 3/10" in embed.description
+    assert "**What is X?**" in embed.description
 
 
 def test_with_question_num_question_text_still_bold():

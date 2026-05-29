@@ -112,7 +112,7 @@ def test_deduplicate_returns_topics_parallel_to_unique():
 
 def test_similar_via_keyword_overlap_different_topics():
     # Questions that share many content words but have different explicit topics.
-    # This exercises the keyword-overlap branch (line 717) rather than topic match.
+    # High keyword overlap (>40%) should flag them as similar even without a topic match.
     q1 = {"q": "How does fuel pressure affect engine throttle response during descent?"}
     q2 = {"q": "How does fuel pressure influence engine throttle behavior during descent?"}
     assert app.are_questions_similar(q1, q2, "fuel-system", "engine-performance")
