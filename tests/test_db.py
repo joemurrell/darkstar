@@ -243,3 +243,47 @@ async def test_get_leaderboard_respects_limit(store):
 
 async def test_get_leaderboard_empty_when_no_history(store):
     assert await store.get_leaderboard(200) == []
+
+
+# --- guild_id=None edge cases ---
+
+async def test_load_active_quizzes_with_null_guild_id(store):
+    quiz_id = await store.create_quiz(**_quiz_kwargs(guild_id=None))
+    active = await store.load_active_quizzes()
+    assert len(active) == 1
+    assert active[0]["quiz_id"] == quiz_id
+    assert active[0]["guild_id"] is None
+
+
+async def test_leaderboard_excludes_null_guild_quizzes_from_other_guild(store):
+    # A quiz with guild_id=None should not appear on guild 200's leaderboard.
+    qid = await store.create_quiz(**_quiz_kwargs(guild_id=None))
+    await _answer_all(store, qid, 1, ["A", "A", "A"])
+    await store.complete_quiz(qid)
+
+    board = await store.get_leaderboard(200)
+    assert board == []
+
+
+# --- get_leaderboard tiebreak: fewer answered wins ---
+
+async def test_get_leaderboard_tiebreak_by_fewer_answered(store):
+    # User 7 gets 1 correct at 100% accuracy; user 6 gets 1 correct at 50%.
+    # Tiebreak by accuracy → user 7 ranked above user 6.
+    qid = await store.create_quiz(**_quiz_kwargs(guild_id=200))
+    now = datetime.now(timezone.utc)
+    await store.record_answer(quiz_id=qid, position=0, user_id=6, choice="A", answered_at=now)
+    await store.record_answer(quiz_id=qid, position=1, user_id=6, choice="D", answered_at=now)
+    await store.record_answer(quiz_id=qid, position=0, user_id=7, choice="A", answered_at=now)
+    await store.complete_quiz(qid)
+
+    board = await store.get_leaderboard(200)
+    user_ids = [r["user_id"] for r in board]
+    assert user_ids.index(7) < user_ids.index(6)
+
+
+# --- get_user_stats: no activity at all ---
+
+async def test_get_user_stats_no_quizzes_ever(store):
+    stats = await store.get_user_stats(42)
+    assert stats == {"quizzes": 0, "answered": 0, "correct": 0, "accuracy": 0.0}
