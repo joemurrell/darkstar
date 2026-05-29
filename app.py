@@ -114,18 +114,43 @@ except FileNotFoundError:
 
 # --- Button Classes for Quiz Interaction ---
 
-class QuizAnswerButton(discord.ui.Button):
-    """Button for answering a quiz question."""
-    
-    def __init__(self, question_idx: int, choice: str, label: str):
+# Answer buttons are persistent *dynamic* items: all of their state lives in the
+# custom_id, so after a restart `client.add_dynamic_items(QuizAnswerButton)`
+# (in on_ready) re-attaches a handler to buttons posted before the restart —
+# no need to persist message IDs or re-send the questions. The channel id in
+# the custom_id also keeps it globally unique across concurrent quizzes in
+# different channels (discord.py routes persistent components by custom_id).
+QUIZ_BUTTON_TEMPLATE = r"quiz:(?P<channel>\d+):(?P<q>\d+):(?P<choice>[ABCD])"
+
+
+def quiz_button_custom_id(channel_id: int, question_idx: int, choice: str) -> str:
+    """The stable custom_id for one answer button (channel + question + choice)."""
+    return f"quiz:{channel_id}:{question_idx}:{choice}"
+
+
+class QuizAnswerButton(
+    discord.ui.DynamicItem[discord.ui.Button],
+    template=QUIZ_BUTTON_TEMPLATE,
+):
+    """A persistent answer button; its channel/question/choice live in the custom_id."""
+
+    def __init__(self, channel_id: int, question_idx: int, choice: str):
         super().__init__(
-            style=discord.ButtonStyle.primary,
-            label=f"{choice}",
-            custom_id=f"quiz_{question_idx}_{choice}"
+            discord.ui.Button(
+                style=discord.ButtonStyle.primary,
+                label=f"{choice}",
+                custom_id=quiz_button_custom_id(channel_id, question_idx, choice),
+            )
         )
+        self.channel_id = channel_id
         self.question_idx = question_idx
         self.choice = choice
-    
+
+    @classmethod
+    async def from_custom_id(cls, interaction: discord.Interaction, item, match):
+        """Rebuild the button from a matched custom_id (used for clicks after a restart)."""
+        return cls(int(match["channel"]), int(match["q"]), match["choice"])
+
     async def callback(self, interaction: discord.Interaction):
         """Handle button click."""
         quiz_logger.info(f"Button click: user={interaction.user.name}({interaction.user.id}) guild={interaction.guild.name if interaction.guild else 'DM'}({interaction.guild_id if interaction.guild else 'N/A'}) channel={interaction.channel_id} question={self.question_idx+1} choice={self.choice}")
@@ -185,17 +210,17 @@ class QuizAnswerButton(discord.ui.Button):
         )
 
 
-class QuizQuestionView(discord.ui.View):
-    """View containing buttons for a quiz question."""
-    
-    def __init__(self, question_idx: int, options: List[str]):
-        super().__init__(timeout=None)  # No timeout since quiz has its own timer
-        
-        # Add buttons for each option (A, B, C, D)
-        choices = ["A", "B", "C", "D"]
-        for i, (choice, option_text) in enumerate(zip(choices[:len(options)], options)):
-            button = QuizAnswerButton(question_idx, choice, option_text)
-            self.add_item(button)
+def build_question_view(channel_id: int, question_idx: int, options: List[str]) -> discord.ui.View:
+    """
+    Build a persistent view of answer buttons (A..D) for one question. timeout
+    is None because the quiz runs its own timer; routing for clicks survives a
+    restart via the registered QuizAnswerButton dynamic item, not this object.
+    """
+    view = discord.ui.View(timeout=None)
+    choices = ["A", "B", "C", "D"]
+    for choice in choices[:len(options)]:
+        view.add_item(QuizAnswerButton(channel_id, question_idx, choice))
+    return view
 
 
 # --- Helper Functions ---
@@ -1355,7 +1380,7 @@ async def quiz_start(interaction: discord.Interaction, topic: str = "", question
     # Send each question with its button options
     for idx, q in enumerate(shuffled_questions):
         question_embed = format_mcq(q["q"], q["options"], idx + 1, len(shuffled_questions))
-        view = QuizQuestionView(idx, q["options"])
+        view = build_question_view(interaction.channel_id, idx, q["options"])
         await interaction.channel.send(embed=question_embed, view=view)
     
     quiz_logger.info(f"All quiz questions posted to channel {interaction.channel_id}")
@@ -1691,10 +1716,10 @@ async def rehydrate_quizzes():
 
     Each restored quiz re-arms its auto-end timer for the *remaining* time
     (auto_end_quiz derives the sleep from end_time). A quiz whose end_time
-    passed during downtime is finalized immediately. Note: the buttons on
-    messages posted before the restart won't respond (their View objects died
-    with the process) — `/quiz_answer` is the fallback, and recorded answers
-    are preserved either way.
+    passed during downtime is finalized immediately. Answer buttons on messages
+    posted before the restart keep working: their handler is re-registered in
+    on_ready via add_dynamic_items(QuizAnswerButton), and the callback reads the
+    QUIZ_STATE this function restores. `/quiz_answer` remains as a fallback.
     """
     if quiz_store is None:
         return
@@ -1778,6 +1803,10 @@ async def on_ready():
     # on_ready fires again on a gateway reconnect.
     if not _startup_done:
         _startup_done = True
+        # Re-attach answer-button handling to messages posted before this
+        # process started, so buttons keep working across a restart/redeploy.
+        client.add_dynamic_items(QuizAnswerButton)
+        discord_logger.info("🔘 Registered persistent quiz answer buttons")
         try:
             quiz_store = await db.QuizStore.connect(DARKSTAR_DB_PATH)
             discord_logger.info(f"🗄️  Quiz store opened at {DARKSTAR_DB_PATH}")
