@@ -17,6 +17,9 @@ Four environment variables are required and the bot will crash on startup withou
 - `CLAUDE_MODEL` — optional, defaults to `claude-haiku-4-5`. Bump to `claude-sonnet-4-6` for higher-quality quiz generation (~6× the cost).
 - `ACC_DOCUMENT_PATH` — optional, defaults to `acc_document.txt`. The extracted ACC text the bot loads at startup (see "Extracting the PDF" below). Not an env requirement, but the file must exist or the bot runs ungrounded.
 - `DARKSTAR_DB_PATH` — optional, defaults to `darkstar.db`. SQLite file for quiz persistence. **On Railway, point this at a mounted volume** (e.g. `/data/darkstar.db`) or the DB is ephemeral and in-flight quizzes still vanish on redeploy.
+- `ACC_QUESTIONS_PATH` — optional, defaults to `acc_questions.json`. The pre-generated question bank `/quiz_start` samples from (see "Generating the question bank"). Committed empty (`[]`) until seeded; while empty the bot falls back to live generation.
+- `ASK_RATE_LIMIT` — optional, defaults to `5`. Max `/ask` calls per user within `ASK_RATE_WINDOW_SECONDS`. Set to `0` to disable.
+- `ASK_RATE_WINDOW_SECONDS` — optional, defaults to `3600` (1 hour). The sliding window for `ASK_RATE_LIMIT`.
 
 ```bash
 pip install -r requirements.txt
@@ -44,6 +47,19 @@ python scripts/extract_pdf.py path/to/acc_2024.pdf
 
 It writes `acc_document.txt` in the repo root — **commit that file**; the bot loads it at startup. Re-run only when the source PDF changes. `pypdf` is a dev-only dependency (the bot just reads the `.txt` at runtime). The Dockerfile copies `acc_document.txt` into the image.
 
+### Generating the question bank
+
+`scripts/generate_quiz_bank.py` is a one-time helper (run it once, then re-run only when the ACC document changes). It reuses the bot's grounded generation pipeline — it imports `app`, calls `_request_quiz_questions` in batches against the same cached ACC system prompt, deduplicates across the whole run (`are_questions_similar`), and writes a JSON list of question dicts:
+
+```bash
+pip install -r requirements-dev.txt
+export ANTHROPIC_API_KEY=...                 # required — this spends against your account
+export CLAUDE_MODEL=claude-sonnet-4-6         # optional; a bigger model => a better one-time bank
+python scripts/generate_quiz_bank.py --count 120
+```
+
+It writes `acc_questions.json` in the repo root — **commit that file**; the bot loads it at startup and the Dockerfile copies it into the image. The script imports `app` after setting a placeholder `DISCORD_TOKEN` (like `tests/conftest.py`); it never connects to Discord. It stops early if several consecutive batches add nothing new (the document is saturated). Questions are stored with their original answer letter — `shuffle_quiz_options` re-letters at quiz time, so a banked question still varies between quizzes.
+
 ### Tests + lint
 
 ```bash
@@ -54,7 +70,7 @@ pytest tests/test_dedup.py   # one file
 pytest -k "shuffle"          # one test by keyword
 ```
 
-Tests live in `tests/` and cover the pure helpers — `validate_quiz_questions`, `shuffle_quiz_options`, the dedup chain, and the small Discord helpers. They import `app` directly; `tests/conftest.py` populates fake env vars so the import succeeds without contacting Discord or Anthropic. The Discord/Anthropic clients in `app.py` are constructed lazily and make no requests until called, so tests don't need to mock them.
+Tests live in `tests/` and cover the pure helpers — `validate_quiz_questions`, `shuffle_quiz_options`, the dedup chain, the small Discord helpers, the bank loader/sampler (`tests/test_bank.py`), and the `/ask` rate limiter (`tests/test_rate_limit.py`). They import `app` directly; `tests/conftest.py` populates fake env vars so the import succeeds without contacting Discord or Anthropic. The Discord/Anthropic clients in `app.py` are constructed lazily and make no requests until called, so tests don't need to mock them.
 
 CI lives at `.github/workflows/ci.yml` and runs ruff + pytest on push to main and on every PR.
 
@@ -68,20 +84,19 @@ Roughly in file order:
 2. **`ACC_INSTRUCTIONS`** — the system prompt as a module-level constant. Edit directly and redeploy to change tone or refusal behavior.
 3. **UI components** — `QuizAnswerButton`, `QuizQuestionView` (Discord buttons)
 4. **`check_bot_permissions`** — every slash command calls this first; produces verbose diagnostic strings when perms are missing
-5. **`ask_assistant`** — the Claude integration layer (handles both plain text and forced tool-use)
-6. **Quiz pipeline** — `format_mcq`, `shuffle_quiz_options`, dedup helpers, `QUIZ_TOOL`, `validate_quiz_questions`, `_request_quiz_questions`, `generate_quiz`, `auto_end_quiz`, `display_quiz_results`
-7. **Slash commands** — `/ask`, `/quiz_start`, `/quiz_answer`, `/quiz_end`, `/quiz_score`, `/info`
+5. **`ask_assistant`** — the Claude integration layer (handles both plain text and forced tool-use); `rate_limit_ask` (per-user `/ask` sliding-window limit) sits nearby
+6. **Quiz pipeline** — `format_mcq`, `shuffle_quiz_options`, dedup helpers, `QUIZ_TOOL`, `validate_quiz_questions`, `load_question_bank` / `sample_questions` (+ the `QUESTION_BANK` global), `_request_quiz_questions`, `generate_quiz`, `auto_end_quiz`, `display_quiz_results`
+7. **Slash commands** — `/ask` (rate-limited per user), `/quiz_start` (bank-first, live fallback), `/quiz_answer`, `/quiz_end`, `/quiz_score`, `/info`
 8. **`on_ready` + `client.run()`**
 
-### PDF grounding via the Files API
+### PDF grounding via the cached system prompt
 
-The ACC PDF is uploaded once to Anthropic (see "Uploading the PDF") and referenced by `file_id` in every request. `ask_assistant` builds a request with:
+The ACC text (`ACC_DOCUMENT_TEXT`, loaded from `ACC_DOCUMENT_PATH` at startup) is embedded **in the system prompt as plain text**, not as a Files-API `document` block — sending it as a PDF document incurred per-page image tokens that pushed a single request past the Tier 1 50K-input-token-per-minute limit. `ask_assistant` builds:
 
-- `system`: `ACC_INSTRUCTIONS` (cached)
-- `messages[0].content`: `[document(file_id=ACC_FILE_ID, cache_control=ephemeral), text(user_msg)]`
-- `betas=["files-api-2025-04-14"]` to enable the Files API beta
+- `system`: a two-block list — `ACC_INSTRUCTIONS`, then a `"ACC documentation:\n\n{ACC_DOCUMENT_TEXT}"` block marked `cache_control: {"type": "ephemeral"}`
+- `messages[0].content`: the user question (a plain string)
 
-Both the system prompt and the document block are marked `cache_control: {"type": "ephemeral"}` so the ~50K-token prefix is served from cache (~10% of base input price) on every request after the first one in a 5-minute window. The varying user question lands *after* the document block, so it doesn't invalidate the cached prefix.
+The breakpoint sits on the document block (the last, largest, static block), so the whole ~45K-token prefix is written to cache once and served from cache (~10% of base input price) on every request in the 5-minute window. The varying user question lands in `messages`, *after* the cached prefix, so it never invalidates the cache.
 
 Verify caching is working by inspecting `usage.cache_read_input_tokens` in the logs — if it's zero across repeated requests, something is invalidating the prefix (likely an interpolated date or user-id into `ACC_INSTRUCTIONS`).
 
@@ -95,9 +110,15 @@ On startup, `on_ready` opens the store **once** (guarded by `_startup_done`) and
 
 `auto_end_quiz` derives its sleep from `state["end_time"]` (not a fixed duration), so both fresh and rehydrated quizzes end at the right wall-clock time. Its task handle is stored in `state["end_task"]` to keep it from being GC'd and so `display_quiz_results` can cancel it on manual `/quiz_end`; the cancel path skips itself when invoked from inside the auto-end task to avoid `CancelledError` on self.
 
-### Quiz generation pipeline
+### Question bank (how `/quiz_start` gets its questions)
 
-`generate_quiz` uses forced tool-use against `QUIZ_TOOL`:
+`/quiz_start` does **not** call Claude on the hot path. It calls `sample_questions(QUESTION_BANK, n, topic)`, which draws `n` questions at random from the committed bank, spread across distinct `topic` tags (round-robin over shuffled buckets) so one quiz doesn't pull several near-identical questions. Sampling is without replacement *within* a quiz; repeats *across* quizzes are expected and fine given a reasonably sized pool. Sampled questions still pass through `shuffle_quiz_options`, so even a repeated question gets fresh option ordering.
+
+`QUESTION_BANK` is loaded once at import by `load_question_bank` (reads `ACC_QUESTIONS_PATH`, parses the JSON list, runs each item through `validate_quiz_questions`; tolerates a missing/invalid file by returning `[]`). **Fallback:** when the bank can't satisfy the request — it's empty/unseeded, or a `topic` filter matches too few — `/quiz_start` falls back to live `generate_quiz`. So the bot works before the bank is seeded; seeding just makes quizzes instant and free.
+
+### Quiz generation pipeline (live fallback + the bank generator)
+
+`generate_quiz` is the live-generation path (the `/quiz_start` fallback, and the engine `scripts/generate_quiz_bank.py` drives to build the bank). It uses forced tool-use against `QUIZ_TOOL`:
 
 1. Build a prompt asking for N MCQs.
 2. Call `ask_assistant(prompt, tool=QUIZ_TOOL, temperature=0.7)`. The `tool_choice` is set to force `submit_quiz`, so Claude must call it.

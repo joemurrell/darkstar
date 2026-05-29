@@ -5,6 +5,7 @@ PDF-grounded Q&A and Quiz system using the Anthropic Claude API
 """
 import os
 import asyncio
+import json
 import random
 import logging
 from datetime import datetime, timedelta, timezone
@@ -32,6 +33,17 @@ ACC_DOCUMENT_PATH = os.environ.get("ACC_DOCUMENT_PATH", "acc_document.txt")
 # SQLite file for quiz persistence. On Railway, point this at a mounted
 # volume (e.g. /data/darkstar.db) so in-flight quizzes survive deploys.
 DARKSTAR_DB_PATH = os.environ.get("DARKSTAR_DB_PATH", "darkstar.db")
+# Pre-generated question bank (a JSON list of question dicts). /quiz_start
+# samples this pool instead of calling Claude, so quizzes are instant and free.
+# Generate it once with scripts/generate_quiz_bank.py and commit the result;
+# the bot falls back to live generation whenever the bank can't satisfy a
+# request (before it's seeded, or for a narrow topic filter).
+ACC_QUESTIONS_PATH = os.environ.get("ACC_QUESTIONS_PATH", "acc_questions.json")
+# Per-user rate limit on /ask: at most ASK_RATE_LIMIT calls per user within any
+# ASK_RATE_WINDOW_SECONDS sliding window (tracked per user, across channels).
+# Set ASK_RATE_LIMIT=0 to disable the limit.
+ASK_RATE_LIMIT = int(os.environ.get("ASK_RATE_LIMIT", "5"))
+ASK_RATE_WINDOW_SECONDS = int(os.environ.get("ASK_RATE_WINDOW_SECONDS", "3600"))
 
 # --- Discord client setup ---
 intents = discord.Intents.default()
@@ -69,6 +81,10 @@ QUIZ_STATE = {}
 # behavior rather than breaking a live quiz. None until startup completes.
 quiz_store: "db.QuizStore | None" = None
 _startup_done = False
+
+# Per-user /ask timestamps for rate limiting: {user_id: [datetime, ...]}, kept
+# pruned to the active window on each check. Grows only with distinct users.
+ASK_HISTORY: dict = {}
 
 # System prompt — defines DarkstarAIC's persona and grounding rules. Edit
 # directly to tune tone or refusal behavior; the value is cached prefix so
@@ -290,6 +306,30 @@ def model_supports_temperature(model: Optional[str]) -> bool:
     if not model:
         return True
     return not model.startswith("claude-opus-4-7")
+
+
+def rate_limit_ask(user_id: int, now: Optional[datetime] = None) -> Optional[int]:
+    """
+    Enforce the per-user sliding-window rate limit on /ask. Prunes the user's
+    history to the active window and, when the request is allowed, records this
+    attempt and returns None. When the user is at the limit, returns the integer
+    seconds until their oldest in-window request expires (a slot frees up).
+    ASK_RATE_LIMIT <= 0 disables the limit (always returns None).
+    """
+    if ASK_RATE_LIMIT <= 0:
+        return None
+    now = now or datetime.now(timezone.utc)
+    window_start = now - timedelta(seconds=ASK_RATE_WINDOW_SECONDS)
+    # History is appended in time order and only ever filtered, so it stays
+    # sorted ascending — history[0] is the oldest still-counting request.
+    history = [t for t in ASK_HISTORY.get(user_id, []) if t > window_start]
+    if len(history) >= ASK_RATE_LIMIT:
+        ASK_HISTORY[user_id] = history
+        retry_after = (history[0] + timedelta(seconds=ASK_RATE_WINDOW_SECONDS)) - now
+        return max(1, int(retry_after.total_seconds()) + 1)
+    history.append(now)
+    ASK_HISTORY[user_id] = history
+    return None
 
 
 async def ask_assistant(
@@ -748,6 +788,72 @@ def validate_quiz_questions(items: List[dict]) -> List[dict]:
     return valid
 
 
+def load_question_bank(path: str = ACC_QUESTIONS_PATH) -> List[dict]:
+    """
+    Load the pre-generated question bank (a JSON list of question dicts) and
+    validate each entry against the quiz schema. Returns [] if the file is
+    missing, isn't valid JSON, or isn't a list — the bot then falls back to
+    live generation in /quiz_start.
+    """
+    try:
+        with open(path, encoding="utf-8") as fh:
+            data = json.load(fh)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return []
+    if not isinstance(data, list):
+        return []
+    return validate_quiz_questions(data)
+
+
+def sample_questions(bank: List[dict], num_questions: int, topic: str = "") -> List[dict]:
+    """
+    Sample up to `num_questions` questions from the bank, spread across distinct
+    topic tags (round-robin over shuffled topics) so a single quiz doesn't draw
+    several near-identical questions from one topic. Sampling is random and
+    without replacement within a quiz; repeats *across* separate quizzes are
+    expected and fine given a reasonably sized pool.
+
+    When `topic` is given, only questions whose topic tag or text contains it
+    (case-insensitive) are eligible, and [] is returned if none match so the
+    caller can fall back to live generation for that topic.
+    """
+    if not bank or num_questions <= 0:
+        return []
+    candidates = bank
+    if topic:
+        needle = topic.lower().strip()
+        candidates = [
+            q for q in bank
+            if needle in (q.get("topic") or "").lower() or needle in q.get("q", "").lower()
+        ]
+        if not candidates:
+            return []
+    # Bucket by topic tag, shuffle within and across buckets, then round-robin
+    # so the selection spreads over as many distinct topics as possible.
+    groups: dict = {}
+    for q in candidates:
+        key = (q.get("topic") or extract_topic_from_question(q)).lower()
+        groups.setdefault(key, []).append(q)
+    for items in groups.values():
+        random.shuffle(items)
+    topic_keys = list(groups.keys())
+    random.shuffle(topic_keys)
+    selected: List[dict] = []
+    i = 0
+    while len(selected) < num_questions and any(groups[k] for k in topic_keys):
+        bucket = groups[topic_keys[i % len(topic_keys)]]
+        if bucket:
+            selected.append(bucket.pop())
+        i += 1
+    return selected
+
+
+# The question bank, loaded once at import. Empty until seeded with
+# scripts/generate_quiz_bank.py; on_ready logs the size and /quiz_start falls
+# back to live generation while it's empty.
+QUESTION_BANK: List[dict] = load_question_bank()
+
+
 async def _request_quiz_questions(prompt: str, temperature: float) -> List[dict]:
     """Single quiz-generation API call. Returns validated questions or []."""
     # 90s timeout: the first quiz call after a cold cache must process the full
@@ -1072,7 +1178,20 @@ async def ask_command(interaction: discord.Interaction, question: str):
         discord_logger.warning(f"/ask permission denied for user {interaction.user.name}({interaction.user.id}) in channel {interaction.channel_id}")
         await interaction.response.send_message(perm_error, ephemeral=True)
         return
-    
+
+    # Per-user rate limit so a single user can't run up cost / spam the API.
+    retry_after = rate_limit_ask(interaction.user.id)
+    if retry_after is not None:
+        window_label = "hour" if ASK_RATE_WINDOW_SECONDS == 3600 else f"{ASK_RATE_WINDOW_SECONDS // 60} minute(s)"
+        minutes, seconds = divmod(retry_after, 60)
+        discord_logger.info(f"/ask rate-limited user {interaction.user.name}({interaction.user.id}); retry in {retry_after}s")
+        await interaction.response.send_message(
+            f"⏳ You've reached the limit of {ASK_RATE_LIMIT} `/ask` questions per {window_label}. "
+            f"Try again in {minutes}m {seconds}s.",
+            ephemeral=True,
+        )
+        return
+
     await interaction.response.defer(thinking=True)
     
     # Grounding/page-citation/refusal rules live in ACC_INSTRUCTIONS (the
@@ -1133,9 +1252,27 @@ async def quiz_start(interaction: discord.Interaction, topic: str = "", question
     
     await interaction.response.defer(thinking=True)
     
-    quiz_logger.info(f"Generating quiz: topic='{topic}' questions={questions} duration={duration} for channel {interaction.channel_id}")
-    quiz_questions = await generate_quiz(topic_hint=topic, num_questions=questions)
-    
+    quiz_logger.info(f"Building quiz: topic='{topic}' questions={questions} duration={duration} for channel {interaction.channel_id}")
+
+    # Serve from the pre-generated bank when it can satisfy the request (no API
+    # call, instant). Fall back to live generation when the bank is empty/unseeded
+    # or a topic filter leaves too few matches.
+    quiz_questions = sample_questions(QUESTION_BANK, questions, topic)
+    quiz_source = "bank"
+    if len(quiz_questions) < questions:
+        quiz_logger.info(
+            f"Bank supplied {len(quiz_questions)}/{questions} (topic='{topic}') for channel "
+            f"{interaction.channel_id}; falling back to live generation"
+        )
+        generated = await generate_quiz(topic_hint=topic, num_questions=questions)
+        if generated:
+            quiz_questions = generated
+            quiz_source = "generated"
+    quiz_logger.info(
+        f"Quiz for channel {interaction.channel_id}: "
+        f"{len(quiz_questions) if quiz_questions else 0} questions from {quiz_source}"
+    )
+
     if not quiz_questions:
         quiz_logger.error(f"Failed to generate quiz for channel {interaction.channel_id}")
         await interaction.followup.send(
@@ -1512,6 +1649,13 @@ async def on_ready():
             f"📄 ACC document is EMPTY (expected at {ACC_DOCUMENT_PATH}). "
             f"Run scripts/extract_pdf.py and commit the output — /ask and /quiz "
             f"will be ungrounded until then."
+        )
+    if QUESTION_BANK:
+        discord_logger.info(f"🎯 Question bank loaded: {len(QUESTION_BANK)} questions from {ACC_QUESTIONS_PATH}")
+    else:
+        discord_logger.warning(
+            f"🎯 Question bank empty (expected at {ACC_QUESTIONS_PATH}); /quiz_start will "
+            f"generate questions live. Seed it with scripts/generate_quiz_bank.py."
         )
     discord_logger.info(f"Bot user: {client.user.name}#{client.user.discriminator} (ID: {client.user.id})")
 
