@@ -1,5 +1,5 @@
 discord.py==2.7.1
 anthropic>=0.104.1,<2.0
-aiosqlite>=0.20.0
+aiosqlite>=0.22.1
 
 h11==0.16.0
