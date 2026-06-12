@@ -47,7 +47,10 @@ ASK_RATE_WINDOW_SECONDS = int(os.environ.get("ASK_RATE_WINDOW_SECONDS", "3600"))
 
 # --- Discord client setup ---
 intents = discord.Intents.default()
-client = discord.Client(intents=intents)
+# max_messages=None disables discord.py's default 1000-message cache. The bot
+# never reads cached messages (quiz state lives in QUIZ_STATE/SQLite and buttons
+# route by custom_id), so the cache is pure idle memory overhead.
+client = discord.Client(intents=intents, max_messages=None)
 tree = app_commands.CommandTree(client)
 
 # --- Anthropic client ---
@@ -110,6 +113,19 @@ try:
         ACC_DOCUMENT_TEXT = _fh.read()
 except FileNotFoundError:
     ACC_DOCUMENT_TEXT = ""
+
+# The cached system prefix, built once at startup. ask_assistant reuses this
+# same list on every request rather than rebuilding the f"ACC documentation:..."
+# string (a ~180KB copy of the whole document) per call. The SDK serializes but
+# never mutates it, and the contents are static, so sharing is safe.
+ACC_SYSTEM_BLOCKS = [
+    {"type": "text", "text": ACC_INSTRUCTIONS},
+    {
+        "type": "text",
+        "text": f"ACC documentation:\n\n{ACC_DOCUMENT_TEXT}",
+        "cache_control": {"type": "ephemeral"},
+    },
+]
 
 
 # --- Button Classes for Quiz Interaction ---
@@ -354,6 +370,17 @@ def rate_limit_ask(user_id: int, now: Optional[datetime] = None) -> Optional[int
         return max(1, int(retry_after.total_seconds()) + 1)
     history.append(now)
     ASK_HISTORY[user_id] = history
+    # Opportunistically drop other users whose entire history has aged out of
+    # the window. Without this, ASK_HISTORY keeps one (eventually empty) list
+    # per distinct user ever seen and grows unbounded while the bot is idle;
+    # pruning here bounds it to users active within the window. /ask is itself
+    # rate-limited so this sweep over a small dict runs rarely and cheaply.
+    stale = [
+        uid for uid, ts in ASK_HISTORY.items()
+        if not ts or ts[-1] <= window_start
+    ]
+    for uid in stale:
+        del ASK_HISTORY[uid]
     return None
 
 
@@ -401,14 +428,9 @@ async def ask_assistant(
         # largest, static block), so the whole prefix is written once and
         # served from cache thereafter. The varying user question lands in
         # `messages`, after the breakpoint, so it never invalidates the cache.
-        "system": [
-            {"type": "text", "text": ACC_INSTRUCTIONS},
-            {
-                "type": "text",
-                "text": f"ACC documentation:\n\n{ACC_DOCUMENT_TEXT}",
-                "cache_control": {"type": "ephemeral"},
-            },
-        ],
+        # Built once at module load (ACC_SYSTEM_BLOCKS) to avoid re-allocating
+        # the ~180KB document string on every request.
+        "system": ACC_SYSTEM_BLOCKS,
         "messages": [{"role": "user", "content": user_msg}],
     }
 

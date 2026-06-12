@@ -49,3 +49,28 @@ def test_disabled_when_limit_zero(monkeypatch):
     monkeypatch.setattr(app, "ASK_RATE_LIMIT", 0)
     for _ in range(100):
         assert app.rate_limit_ask(1) is None
+
+
+def test_idle_users_are_pruned_from_history():
+    """A user who asked once and went idle is dropped once their history ages
+    out, so ASK_HISTORY tracks only window-active users rather than growing
+    unbounded with every distinct user ever seen."""
+    base = datetime(2026, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
+    # An idle user asks once at base.
+    app.rate_limit_ask(1, now=base)
+    assert 1 in app.ASK_HISTORY
+    # An hour-plus later a different user asks; user 1's history has aged out
+    # of the window, so the sweep removes it.
+    app.rate_limit_ask(2, now=base + timedelta(hours=1, seconds=1))
+    assert 1 not in app.ASK_HISTORY
+    assert 2 in app.ASK_HISTORY
+
+
+def test_active_users_are_not_pruned():
+    """Users with an in-window request survive the sweep."""
+    base = datetime(2026, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
+    app.rate_limit_ask(1, now=base)
+    # User 2 asks 30 minutes later — user 1 is still within the window.
+    app.rate_limit_ask(2, now=base + timedelta(minutes=30))
+    assert 1 in app.ASK_HISTORY
+    assert 2 in app.ASK_HISTORY
