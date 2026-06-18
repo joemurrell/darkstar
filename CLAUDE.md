@@ -70,7 +70,7 @@ pytest tests/test_dedup.py   # one file
 pytest -k "shuffle"          # one test by keyword
 ```
 
-Tests live in `tests/` and cover the pure helpers — `validate_quiz_questions`, `shuffle_quiz_options`, the dedup chain, the small Discord helpers, the bank loader/sampler (`tests/test_bank.py`), and the `/ask` rate limiter (`tests/test_rate_limit.py`). They import `app` directly; `tests/conftest.py` populates fake env vars so the import succeeds without contacting Discord or Anthropic. The Discord/Anthropic clients in `app.py` are constructed lazily and make no requests until called, so tests don't need to mock them.
+Tests live in `tests/` and cover the pure helpers and the persistence layer — `validate_quiz_questions` (`test_quiz_parsing.py`), `shuffle_quiz_options` (`test_shuffle.py`), the dedup chain (`test_dedup.py`), `format_mcq` (`test_format_mcq.py`), the small Discord helpers (`test_helpers.py`), the persistent buttons (`test_buttons.py`), the `QuizStore` SQLite layer (`test_db.py`), the bank loader/sampler (`test_bank.py`), and the `/ask` rate limiter (`test_rate_limit.py`). They import `app` directly; `tests/conftest.py` populates fake env vars so the import succeeds without contacting Discord or Anthropic. The Discord/Anthropic clients in `app.py` are constructed lazily and make no requests until called, so tests don't need to mock them. The DB tests use plain `async def` (no per-test marker) — `pyproject.toml` sets `asyncio_mode = "auto"`. Ruff is configured conservatively (`select = ["F", "E9", "W6"]`, line length 120) in `pyproject.toml`.
 
 CI lives at `.github/workflows/ci.yml` and runs ruff + pytest on push to main and on every PR.
 
@@ -80,9 +80,9 @@ CI lives at `.github/workflows/ci.yml` and runs ruff + pytest on push to main an
 
 Roughly in file order:
 
-1. **Environment + Anthropic client + logging setup** (top of file)
-2. **`ACC_INSTRUCTIONS`** — the system prompt as a module-level constant. Edit directly and redeploy to change tone or refusal behavior.
-3. **UI components** — `QuizAnswerButton`, `QuizQuestionView` (Discord buttons)
+1. **Environment + Discord/Anthropic client + logging setup** (top of file). The Discord `Client` is created with `max_messages=None` to disable discord.py's default 1000-message cache — the bot never reads cached messages (state lives in `QUIZ_STATE`/SQLite and buttons route by `custom_id`), so the cache would be pure idle memory.
+2. **`ACC_INSTRUCTIONS`** + **`ACC_SYSTEM_BLOCKS`** — the system prompt as a module-level constant, plus the two-block cached prefix (instructions + document) built **once** at import so `ask_assistant` doesn't re-allocate the ~180KB document string on every request. Edit `ACC_INSTRUCTIONS` directly and redeploy to change tone or refusal behavior.
+3. **UI components** — `QuizAnswerButton` (a persistent `discord.ui.DynamicItem`) + `build_question_view` (Discord buttons)
 4. **`check_bot_permissions`** — every slash command calls this first; produces verbose diagnostic strings when perms are missing
 5. **`ask_assistant`** — the Claude integration layer (handles both plain text and forced tool-use); `rate_limit_ask` (per-user `/ask` sliding-window limit) sits nearby
 6. **Quiz pipeline** — `format_mcq`, `shuffle_quiz_options`, dedup helpers, `QUIZ_TOOL`, `validate_quiz_questions`, `load_question_bank` / `sample_questions` (+ the `QUESTION_BANK` global), `_request_quiz_questions`, `generate_quiz`, `auto_end_quiz`, `display_quiz_results`
@@ -153,6 +153,10 @@ If you touch the schema and remove the `topic` requirement, restore the validati
 - Returns `None` (instead of an error string) on refusal / timeout so the caller can branch cleanly.
 
 When `tool` is omitted, the return value is a plain text string (the concatenation of all `text` blocks in `response.content`). The `refusal` stop reason is handled explicitly with a user-friendly message.
+
+`temperature` is only forwarded when the configured model accepts it. `model_supports_temperature` returns `False` for `claude-opus-4-7*` (Opus 4.7 dropped the `temperature` parameter and returns a 400 if it's sent); all other Claude models (Sonnet 4.6, Haiku 4.5, Opus 4.6 and older) accept it. If you point `CLAUDE_MODEL` at a model that rejects more params, extend that guard.
+
+Error handling distinguishes failure modes: `RateLimitError` (429 — on Tier 1 the cold-cache request can exceed the per-minute input-token limit on its own) surfaces an honest "wait ~Ns" message with the server's `retry-after`; `APITimeoutError` surfaces a "took too long" message; any other exception is logged with its type name. On the forced-tool path every one of these returns `None` so the caller can branch cleanly.
 
 Token-usage details (input, cache-read, cache-write, output) are logged on every successful response.
 
