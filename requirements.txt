@@ -3,3 +3,5 @@ anthropic>=0.104.1,<2.0
 aiosqlite>=0.20.0
 
 h11==0.16.0
+
+anyio==4.14.2
