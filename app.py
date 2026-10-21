@@ -1307,6 +1307,16 @@ async def quiz_start(interaction: discord.Interaction, topic: str = "", question
     quiz_questions = sample_questions(QUESTION_BANK, questions, topic)
     quiz_source = "bank"
     if len(quiz_questions) < questions:
+        # Live generation spends API credit (up to 4 calls), so it shares the
+        # /ask per-user budget; otherwise an off-bank topic bypasses the limit.
+        retry_after = rate_limit_ask(interaction.user.id)
+        if retry_after is not None:
+            discord_logger.info(f"/quiz_start live generation rate-limited user {interaction.user.id}; retry in {retry_after}s")
+            await interaction.followup.send(
+                f"⏳ Not enough banked questions for that request, and you've hit the live-generation limit. "
+                f"Try a broader topic or wait {retry_after // 60}m {retry_after % 60}s."
+            )
+            return
         quiz_logger.info(
             f"Bank supplied {len(quiz_questions)}/{questions} (topic='{topic}') for channel "
             f"{interaction.channel_id}; falling back to live generation"
